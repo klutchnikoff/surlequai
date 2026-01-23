@@ -4,6 +4,10 @@
 **Statut** : Phase de conception
 **Version cible** : 1.0 MVP
 
+> [!NOTE]
+> Ce document décrit la vision globale, l'architecture et la feuille de route du projet.
+> Pour une description détaillée des fonctionnalités, de l'interface et des spécifications techniques, voir [docs/FONCTIONNALITES.md](./FONCTIONNALITES.md).
+
 ---
 
 ## 🎯 Vision du projet
@@ -109,95 +113,13 @@ Texte "SurLeQuai" en petites capitales à la position 6h du cadran, ou sous le l
 
 ## 🎨 Design de l'interface
 
-### Écran unique
-
-```
-┌─────────────────────────────────────┐
-│    SurLeQuai    13:42          [⚙️] │ ← Header
-└─────────────────────────────────────┘
-│                                     │
-│   Rennes → Nantes              ⟲    │ ← Tap pour modifier
-│   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │ ← Barre couleur (état)
-│                                     │
-│        14:12      Voie 3            │ ← PROCHAIN TRAIN
-│        À l'heure                    │   (énorme, évident)
-│                                     │
-│   Puis: 14:42  15:12                │ ← Suivants (1 ligne)
-│                                     │
-├─────────────────────────────────────┤
-│                                     │
-│   Nantes → Rennes              ⟲    │
-│   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
-│                                     │
-│        14:27      Voie 1            │
-│        +5 min                        │
-│                                     │
-│   Puis: 14:57  15:27                │
-│                                     │
-└─────────────────────────────────────┘
-  ↑ Pull-to-refresh
-```
-
-### Codes couleur (états des trains)
-
-| État | Barre | Texte | Couleur | Hex |
-|------|-------|-------|---------|-----|
-| **À l'heure** | Épaisse verte | "À l'heure" en vert | Vert | `#22C55E` |
-| **Retardé** | Épaisse orange | "+X min" en orange | Orange | `#F59E0B` |
-| **Supprimé** | Épaisse rouge | "Supprimé" en rouge | Rouge | `#EF4444` |
-| **Suivants** | - | Horaires en gris | Gris | `#9CA3AF` |
-
-### Règles visuelles
-
-**Prochain train** :
-- Heure : Très grande (taille dominante)
-- Voie : Grande (lisible d'un coup d'œil)
-- État : Couleur + texte cohérent
-- 90% de l'attention visuelle
-
-**Trains suivants** :
-- Une seule ligne : `Puis: 14:42  15:12`
-- Petite taille, gris discret
-- 10% de l'attention visuelle
-
-**Principes de design** :
-- ✅ Pas de cadres lourds
-- ✅ Beaucoup d'espace blanc
-- ✅ Barre de couleur = séparateur + indicateur
-- ✅ Hiérarchie visuelle claire
-- ✅ Lisibilité maximale
-
----
-
-## 🖱️ Interactions et gestes
-
-### Gestes principaux
-
-| Geste | Action | Zone |
-|-------|--------|------|
-| **Swipe ← →** | Inverse A ⟷ B | N'importe où sur l'écran |
-| **Pull-to-refresh ↓** | Force rafraîchissement | Depuis le haut |
-| **Tap sur gare** | Ouvre sélecteur de gare | Nom de gare |
-| **Tap sur ⚙️** | Ouvre Settings | Icône settings |
-
-### Feedback visuel
-
-**Rafraîchissement** :
-- Indicateur spinner discret en haut
-- Texte "Mis à jour il y a X min"
-
-**Erreur réseau** :
-- Toast/Snackbar rouge en bas
-- Message : "Impossible de charger les horaires"
-
-**Pas de notifications** :
-- Pas de son
-- Pas de vibration
-- Tout visuel uniquement
+Le design détaillé de l'interface, les maquettes et les flux d'interaction sont spécifiés dans le document [docs/FONCTIONNALITES.md](./FONCTIONNALITES.md).
 
 ---
 
 ## ⚙️ Fonctionnalités
+
+Pour une liste exhaustive et détaillée, se référer au document [docs/FONCTIONNALITES.md](./FONCTIONNALITES.md).
 
 ### Version 1.0 (MVP)
 
@@ -321,7 +243,7 @@ Pour garder la **simplicité maximale** :
 ## 🎯 Valeurs du projet
 
 ### Principes fondateurs
-1. **Une seule chose, bien faite** : Afficher les prochains trains, point.
+1. **Une seule thing, bien faite** : Afficher les prochains trains, point.
 2. **Simplicité maximale** : Zéro friction, zéro complexité
 3. **Respect de l'utilisateur** :
    - Pas de compte obligatoire
@@ -437,70 +359,6 @@ Les trains supprimés peuvent :
 
 ---
 
-## 🎨 Palette de couleurs complète
-
-### Couleurs principales
-
-```css
-/* États des trains */
---color-on-time: #22C55E;      /* Vert - À l'heure */
---color-delayed: #F59E0B;      /* Orange - Retard */
---color-canceled: #EF4444;     /* Rouge - Supprimé */
---color-secondary: #9CA3AF;    /* Gris - Horaires suivants */
-
-/* Interface */
---color-background-light: #FFFFFF;
---color-background-dark: #1F2937;
---color-text-light: #111827;
---color-text-dark: #F9FAFB;
---color-border: #E5E7EB;
-
-/* Accents */
---color-primary: #3B82F6;      /* Bleu - éléments interactifs */
-```
-
-### Typographie
-
-**Familles de polices** :
-- **Titres/Heures** : DIN Bold ou Helvetica Neue Bold
-- **Corps** : Roboto ou SF Pro (système)
-- **Monospace** : Roboto Mono (horaires secondaires)
-
-**Tailles** :
-- Heure prochain train : 48-56px
-- Voie : 24-28px
-- État : 20-24px
-- Horaires suivants : 16-18px
-- Textes secondaires : 14px
-
----
-
-## 🧪 Tests à effectuer
-
-### Phase API
-- [ ] Connexion à l'API avec clé
-- [ ] Récupération horaires gare A
-- [ ] Récupération horaires gare B
-- [ ] Parsing données temps réel
-- [ ] Gestion erreurs réseau
-- [ ] Gestion quota dépassé
-
-### Phase UI/UX
-- [ ] Lisibilité sur différentes tailles d'écran
-- [ ] Swipe fluide et intuitif
-- [ ] Pull-to-refresh responsive
-- [ ] Transitions d'état (vert → orange → rouge)
-- [ ] Mode sombre cohérent
-- [ ] Performance (60 fps)
-
-### Phase utilisateur
-- [ ] Compréhension immédiate (premier lancement)
-- [ ] Utilisation quotidienne (fiabilité)
-- [ ] Temps de chargement acceptable
-- [ ] Consommation batterie raisonnable
-
----
-
 ## 💡 Idées pour versions futures (v2.0+)
 
 ### Extensions possibles
@@ -552,16 +410,6 @@ Les trains supprimés peuvent :
 - ✅ Maquette UI complète
 - ✅ Architecture technique validée
 - 📝 Rédaction de ce document
-
----
-
-## ✅ Prochaines actions immédiates
-
-1. **Créer compte API SNCF** (https://numerique.sncf.com/startup/api/)
-2. **Obtenir clé API** (gratuite, instantané)
-3. **Identifier codes gares** pour tests (Rennes, Nantes, etc.)
-4. **Premier appel API** pour valider les données
-5. **Setup projet Flutter** (structure de base)
 
 ---
 
