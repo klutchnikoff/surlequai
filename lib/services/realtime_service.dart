@@ -55,8 +55,8 @@ class RealtimeService {
       // 3. Fusionne théorique + temps réel
       return _mergeDepartures(theoreticalDepartures, realtimeDepartures);
     } catch (e) {
-      // 4. Pas de réseau ou erreur API → Retourne horaires théoriques
-      // avec statut "offline"
+      // 4. Erreur API → Retourne horaires théoriques avec statut "offline"
+      // Note : En Phase 1 (mock), on ne devrait jamais arriver ici car pas d'exception
       return theoreticalDepartures
           .map((d) => d.copyWith(status: DepartureStatus.offline))
           .toList();
@@ -68,27 +68,26 @@ class RealtimeService {
   /// Logique :
   /// - Pour chaque départ théorique, cherche la correspondance temps réel
   /// - Si trouvé : Enrichit avec statut, retard, heure estimée
-  /// - Si non trouvé : Garde l'horaire théorique avec statut "offline"
+  /// - Si non trouvé : Garde l'horaire théorique tel quel
   ///
-  /// Phase 1 : En mode mock, les données temps réel sont déjà complètes
-  /// donc on retourne directement realtimeDepartures
+  /// Phase 1 : En mode mock, getRealtimeDepartures() retourne vide,
+  /// donc on utilise directement les données théoriques qui contiennent
+  /// déjà les statuts réalistes (onTime, delayed, cancelled)
   ///
   /// Phase 2 : Vraie fusion avec matching par trip_id ou scheduled_time
   List<Departure> _mergeDepartures(
     List<Departure> theoretical,
     List<Departure> realtime,
   ) {
-    // Phase 1 : Mode mock - les données realtime sont complètes
-    // On retourne directement realtime car InitialMockData contient
-    // déjà toutes les infos (statut, retard, etc.)
-    if (realtime.isNotEmpty) {
-      return realtime;
+    // Phase 1 : Mode mock - pas de vraies données temps réel
+    // On retourne les données théoriques telles quelles car elles contiennent
+    // déjà des statuts réalistes dans InitialMockData
+    if (realtime.isEmpty) {
+      return theoretical;
     }
 
-    // Si pas de données temps réel, retourne théorique en mode offline
-    return theoretical
-        .map((d) => d.copyWith(status: DepartureStatus.offline))
-        .toList();
+    // Si on a des données temps réel (Phase 2), les utiliser
+    return realtime;
 
     // TODO Phase 2: Vraie logique de fusion
     // final merged = <Departure>[];
