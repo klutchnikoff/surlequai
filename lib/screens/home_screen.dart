@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/models/departure.dart';
-import 'package:surlequai/screens/settings_screen.dart'; // Import SettingsScreen
+import 'package:surlequai/screens/settings_screen.dart';
 import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/widgets/direction_card.dart';
+import 'package:surlequai/widgets/last_update_indicator.dart';
 import 'package:surlequai/widgets/schedules_modal.dart';
 import 'package:surlequai/widgets/trips_drawer.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  void _showSchedulesModal(BuildContext context, String title, List<Departure> departures) {
+  void _showSchedulesModal(
+      BuildContext context, String title, List<Departure> departures) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Important for DraggableScrollableSheet
@@ -33,13 +35,27 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       drawer: const TripsDrawer(),
       appBar: AppBar(
-        title: const Text('SurLeQuai'),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('SurLeQuai'),
+            LastUpdateIndicator(lastUpdate: tripProvider.lastUpdate),
+          ],
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Rafraîchir',
+            onPressed: () {
+              tripProvider.refreshDepartures();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
+            tooltip: 'Paramètres',
             onPressed: () {
               Navigator.push(
                 context,
@@ -64,21 +80,25 @@ class HomeScreen extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: ListView(
-        children: [
-          DirectionCard(
-            viewModel: viewModelGo,
-            onTap: () => _showSchedulesModal(context, viewModelGo.title, tripProvider.departuresGo),
-          ),
-          DirectionCard(
-            viewModel: viewModelReturn,
-            onTap: () => _showSchedulesModal(context, viewModelReturn.title, tripProvider.departuresReturn),
-          ),
-        ],
+    return RefreshIndicator(
+      onRefresh: () => tripProvider.refreshDepartures(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: ListView(
+          children: [
+            DirectionCard(
+              viewModel: viewModelGo,
+              onTap: () => _showSchedulesModal(
+                  context, viewModelGo.title, tripProvider.departuresGo),
+            ),
+            DirectionCard(
+              viewModel: viewModelReturn,
+              onTap: () => _showSchedulesModal(context, viewModelReturn.title,
+                  tripProvider.departuresReturn),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
