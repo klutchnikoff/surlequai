@@ -99,7 +99,7 @@ Mis à jour: il y a 20min ← Plus grisé, moins confiance
 
 Quand il n'y a plus de train (tard le soir, dimanche, etc.) :
 ```
-│   Rennes → Nantes         [⇄]  ⟲   │
+│   Rennes → Nantes         ⟲   │
 │   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
 │                                     │
 │        Aucun train aujourd'hui      │
@@ -258,12 +258,12 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 ```
 À 8h du matin:
 ┌─────────────────────────────────────┐
-│   Rennes → Nantes         [⇄]  ⟲   │ ← EN PREMIER (priorité)
+│   Rennes → Nantes         ⟲   │ ← EN PREMIER (priorité)
 │   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
 │        08:12      Voie 3            │
 │   Puis: 08:42  09:12                │
 ├─────────────────────────────────────┤
-│   Nantes → Rennes         [⇄]  ⟲   │ ← En second
+│   Nantes → Rennes         ⟲   │ ← En second
 │   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
 │        18:27      Voie 1            │
 │   Puis: 18:57  19:27                │
@@ -271,12 +271,12 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 
 À 18h (après-midi):
 ┌─────────────────────────────────────┐
-│   Nantes → Rennes         [⇄]  ⟲   │ ← EN PREMIER (priorité)
+│   Nantes → Rennes         ⟲   │ ← EN PREMIER (priorité)
 │   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
 │        18:27      Voie 1            │
 │   Puis: 18:57  19:27                │
 ├─────────────────────────────────────┤
-│   Rennes → Nantes         [⇄]  ⟲   │ ← En second
+│   Rennes → Nantes         ⟲   │ ← En second
 │   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
 │        (demain) 06:12     Voie 3    │
 │   Puis: 07:42  08:12                │
@@ -336,13 +336,13 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 
 | Geste | Zone | Action |
 |-------|------|--------|
-| **Swipe ← →** | N'importe où | Inverse A ⟷ B du trajet actuel |
 | **Pull-to-refresh ↓** | Écran principal | Force rafraîchissement données |
 | **Tap** | "Rennes → Nantes" | Ouvre modal horaires complets |
-| **Tap** | Bouton [⇄] | Inverse A ⟷ B |
 | **Tap** | Bouton ⟲ | Force rafraîchissement |
 | **Tap** | ☰ (menu) | Ouvre drawer trajets |
 | **Tap** | ⚙️ (settings) | Ouvre paramètres |
+
+> **Note** : L'ordre d'affichage (A→B ou B→A en premier) se fait **automatiquement** selon l'heure de la journée, configurable dans les Paramètres. Pas besoin de geste manuel.
 
 #### Drawer - Gestes
 
@@ -992,7 +992,6 @@ id = "..."
 - [ ] Mode fixe
 
 #### Gestes
-- [ ] Swipe pour inverser A ⟷ B
 - [ ] Pull-to-refresh
 - [ ] Tap pour ouvrir modal
 - [ ] Feedback haptique
@@ -1077,7 +1076,6 @@ id = "..."
 - [ ] Configuration personnalisée
 
 #### Gestes
-- [ ] Swipe inverser A ⟷ B
 - [ ] Pull-to-refresh
 - [ ] Feedback haptique ⭐⭐
 

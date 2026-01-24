@@ -130,7 +130,7 @@ Pour une liste exhaustive et détaillée, se référer au document [docs/FONCTIO
 - ✅ État temps réel : à l'heure / retard / supprimé
 - ✅ Rafraîchissement auto (60 sec)
 - ✅ Pull-to-refresh manuel
-- ✅ Swipe pour inverser A ⟷ B
+- ✅ Ordre automatique matin/soir (configurable)
 
 **Données affichées par train** :
 - ✅ Heure de départ
