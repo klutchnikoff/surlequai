@@ -36,8 +36,11 @@ class _SchedulesModalState extends State<SchedulesModal> {
       // Hauteur approximative d'un ListTile dense
       const itemHeight = 56.0;
 
-      // Calculer la position à scroller (avec un petit offset pour voir le titre)
-      final offset = nextDepartureIndex * itemHeight;
+      // Calculer la position à scroller
+      // On scroll pour que le prochain train soit visible avec une ligne au-dessus
+      // pour donner du contexte (sauf si c'est le premier train)
+      final targetIndex = nextDepartureIndex > 0 ? nextDepartureIndex - 1 : 0;
+      final offset = targetIndex * itemHeight;
 
       // Scroller avec animation douce
       controller.animateTo(
