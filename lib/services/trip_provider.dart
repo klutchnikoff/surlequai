@@ -5,12 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
+import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
 import 'package:surlequai/utils/mock_data.dart';
+import 'package:uuid/uuid.dart';
 
 class TripProvider with ChangeNotifier {
   // Public loading state
@@ -221,5 +223,78 @@ class TripProvider with ChangeNotifier {
       _buildViewModels();
       notifyListeners();
     }
+  }
+
+  /// Ajoute un nouveau trajet
+  ///
+  /// Retourne un message d'erreur si l'ajout échoue, null sinon.
+  Future<String?> addTrip({
+    required Station stationA,
+    required Station stationB,
+    required MorningDirection morningDirection,
+  }) async {
+    // Validation : maximum de trajets atteint
+    if (_trips.length >= AppConstants.maxFavoriteTrips) {
+      return 'Vous avez atteint le nombre maximum de trajets (${AppConstants.maxFavoriteTrips})';
+    }
+
+    // Validation : même gare pour A et B
+    if (stationA.id == stationB.id) {
+      return 'Les gares de départ et d\'arrivée doivent être différentes';
+    }
+
+    // Validation : vérifier les doublons (même paire de gares, dans un sens ou l'autre)
+    final isDuplicate = _trips.any((trip) {
+      return (trip.stationA.id == stationA.id &&
+              trip.stationB.id == stationB.id) ||
+          (trip.stationA.id == stationB.id && trip.stationB.id == stationA.id);
+    });
+
+    if (isDuplicate) {
+      return 'Ce trajet existe déjà';
+    }
+
+    // Créer le nouveau trajet
+    final newTrip = Trip(
+      id: 'trip-${const Uuid().v4()}',
+      stationA: stationA,
+      stationB: stationB,
+      morningDirection: morningDirection,
+    );
+
+    _trips.add(newTrip);
+    await _saveTrips();
+    notifyListeners();
+
+    return null; // Succès
+  }
+
+  /// Supprime un trajet
+  ///
+  /// Retourne un message d'erreur si la suppression échoue, null sinon.
+  Future<String?> removeTrip(String tripId) async {
+    // Validation : au moins un trajet doit rester
+    if (_trips.length <= 1) {
+      return 'Vous devez conserver au moins un trajet';
+    }
+
+    final tripIndex = _trips.indexWhere((t) => t.id == tripId);
+
+    if (tripIndex == -1) {
+      return 'Trajet introuvable';
+    }
+
+    _trips.removeAt(tripIndex);
+
+    // Si le trajet supprimé était le trajet actif, basculer vers le premier
+    if (_activeTrip?.id == tripId) {
+      _activeTrip = _trips.first;
+      _buildViewModels();
+    }
+
+    await _saveTrips();
+    notifyListeners();
+
+    return null; // Succès
   }
 }
