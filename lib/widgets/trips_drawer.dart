@@ -31,12 +31,12 @@ class TripsDrawer extends StatelessWidget {
           for (var trip in allTrips)
             ListTile(
               leading: Icon(
-                trip.id == activeTrip.id ? Icons.arrow_forward_ios : null,
+                trip.id == activeTrip?.id ? Icons.arrow_forward_ios : null,
                 size: 16,
                 color: Theme.of(context).primaryColor,
               ),
               title: Text('${trip.stationA.name} ⟷ ${trip.stationB.name}'),
-              selected: trip.id == activeTrip.id,
+              selected: trip.id == activeTrip?.id,
               selectedTileColor: Theme.of(context).primaryColor.withOpacity(0.1),
               onTap: () {
                 // Using `read` here as we are in a callback, not the build method

@@ -1,47 +1,123 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
+import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/mock_data.dart';
 
 class TripProvider with ChangeNotifier {
-  // Private state
-  late List<Trip> _trips;
-  late Trip _activeTrip;
-  late DirectionCardViewModel _directionGoViewModel;
-  late DirectionCardViewModel _directionReturnViewModel;
-  
-  // Also keep raw departures for the modal for now
-  late List<Departure> _departuresGo;
-  late List<Departure> _departuresReturn;
+  // SharedPreferences key
+  static const String _tripsKey = 'trips';
 
-  // Public getters
+  // Public loading state
+  bool isLoading = true;
+
+  // Private state - now nullable or initialized empty
+  List<Trip> _trips = [];
+  Trip? _activeTrip;
+  DirectionCardViewModel? _directionGoViewModel;
+  DirectionCardViewModel? _directionReturnViewModel;
+  
+  List<Departure> _departuresGo = [];
+  List<Departure> _departuresReturn = [];
+
+  // Dependencies
+  final SettingsProvider _settingsProvider;
+
+  // Public getters - now nullable
   List<Trip> get trips => _trips;
-  Trip get activeTrip => _activeTrip;
-  DirectionCardViewModel get directionGoViewModel => _directionGoViewModel;
-  DirectionCardViewModel get directionReturnViewModel => _directionReturnViewModel;
+  Trip? get activeTrip => _activeTrip;
+  DirectionCardViewModel? get directionGoViewModel => _directionGoViewModel;
+  DirectionCardViewModel? get directionReturnViewModel => _directionReturnViewModel;
   List<Departure> get departuresGo => _departuresGo;
   List<Departure> get departuresReturn => _departuresReturn;
 
-  TripProvider() {
-    _trips = MockData.mockTrips;
-    _activeTrip = _trips.first;
-    _buildViewModels();
+  TripProvider(this._settingsProvider) {
+    _loadTrips();
+  }
+
+  Future<void> _loadTrips() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tripsJson = prefs.getString(_tripsKey);
+
+    if (tripsJson != null) {
+      final List<dynamic> tripsData = jsonDecode(tripsJson);
+      _trips = tripsData.map((data) => Trip.fromJson(data)).toList();
+    } else {
+      _trips = InitialMockData.initialTrips;
+    }
+
+    if (_trips.isNotEmpty) {
+      _activeTrip = _trips.first;
+      _buildViewModels();
+    }
+    
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> _saveTrips() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tripsJson = jsonEncode(_trips.map((trip) => trip.toJson()).toList());
+    await prefs.setString(_tripsKey, tripsJson);
+  }
+
+  void update() {
+    if (!isLoading) {
+      _buildViewModels();
+      notifyListeners();
+    }
   }
 
   void _buildViewModels() {
-    _departuresGo = MockData.getDeparturesGo(_activeTrip.id);
-    _departuresReturn = MockData.getDeparturesReturn(_activeTrip.id);
+    if (_activeTrip == null) return;
 
-    _directionGoViewModel = _createViewModel(
-      title: '${_activeTrip.stationA.name} → ${_activeTrip.stationB.name}',
-      departures: _departuresGo,
+    final rawDeparturesGo = InitialMockData.departuresData['${_activeTrip!.id}_go'] ?? [];
+    final rawDeparturesReturn = InitialMockData.departuresData['${_activeTrip!.id}_return'] ?? [];
+
+    final goViewModel = _createViewModel(
+      title: '${_activeTrip!.stationA.name} → ${_activeTrip!.stationB.name}',
+      departures: rawDeparturesGo,
     );
-    _directionReturnViewModel = _createViewModel(
-      title: '${_activeTrip.stationB.name} → ${_activeTrip.stationA.name}',
-      departures: _departuresReturn,
+    final returnViewModel = _createViewModel(
+      title: '${_activeTrip!.stationB.name} → ${_activeTrip!.stationA.name}',
+      departures: rawDeparturesReturn,
     );
+    
+    if (_shouldSwapOrder()) {
+      _directionGoViewModel = returnViewModel;
+      _directionReturnViewModel = goViewModel;
+      _departuresGo = rawDeparturesReturn;
+      _departuresReturn = rawDeparturesGo;
+    } else {
+      _directionGoViewModel = goViewModel;
+      _directionReturnViewModel = returnViewModel;
+      _departuresGo = rawDeparturesGo;
+      _departuresReturn = rawDeparturesReturn;
+    }
+  }
+
+  bool _shouldSwapOrder() {
+    if (_activeTrip == null) return false;
+
+    final hour = DateTime.now().hour;
+    final splitTime = _settingsProvider.morningEveningSplitTime;
+    
+    final isEvening = hour >= splitTime && hour < 22;
+
+    if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
+      return true;
+    }
+    if (!isEvening && _activeTrip!.morningDirection == MorningDirection.bToA) {
+      return true;
+    }
+
+    return false;
   }
 
   DirectionCardViewModel _createViewModel({required String title, required List<Departure> departures}) {
@@ -89,13 +165,26 @@ class TripProvider with ChangeNotifier {
   }
 
   void setActiveTrip(Trip trip) {
-    if (_activeTrip.id != trip.id) {
+    if (_activeTrip?.id != trip.id) {
       _activeTrip = trip;
       _buildViewModels();
       notifyListeners();
     }
   }
 
-  // TODO: Add methods to add/remove trips
+  Future<void> updateActiveTripMorningDirection(MorningDirection direction) async {
+    if (_activeTrip == null || _activeTrip!.morningDirection == direction) return;
+
+    final updatedTrip = _activeTrip!.copyWith(morningDirection: direction);
+    
+    final tripIndex = _trips.indexWhere((t) => t.id == updatedTrip.id);
+    if (tripIndex != -1) {
+      _trips[tripIndex] = updatedTrip;
+      _activeTrip = updatedTrip;
+      await _saveTrips();
+      _buildViewModels();
+      notifyListeners();
+    }
+  }
 }
 
