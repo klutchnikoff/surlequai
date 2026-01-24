@@ -96,15 +96,46 @@ class _SchedulesModalState extends State<SchedulesModal> {
                     final isNext = index == nextDepartureIndex;
                     final isPast = departure.scheduledTime.isBefore(now);
 
+                    // Déterminer la couleur selon le statut
+                    Color statusColor;
+                    switch (departure.status) {
+                      case DepartureStatus.onTime:
+                        statusColor = AppColors.onTime;
+                        break;
+                      case DepartureStatus.delayed:
+                        statusColor = AppColors.delayed;
+                        break;
+                      case DepartureStatus.cancelled:
+                        statusColor = AppColors.cancelled;
+                        break;
+                      case DepartureStatus.offline:
+                        statusColor = AppColors.offline;
+                        break;
+                    }
+
                     TextStyle timeStyle;
                     TextStyle platformStyle;
 
                     if (isNext) {
+                      // Prochain train : couleur selon statut + gras
                       timeStyle = AppTextStyles.medium.copyWith(
-                          color: AppColors.onTime, fontWeight: FontWeight.bold);
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        decoration:
+                            departure.status == DepartureStatus.cancelled
+                                ? TextDecoration.lineThrough
+                                : null,
+                      );
                       platformStyle = AppTextStyles.medium.copyWith(
-                          color: AppColors.onTime, fontWeight: FontWeight.bold);
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        decoration:
+                            departure.status == DepartureStatus.cancelled
+                                ? TextDecoration.lineThrough
+                                : null,
+                      );
                     } else if (isPast) {
+                      // Trains passés : gris + barré
                       timeStyle = AppTextStyles.medium.copyWith(
                           color: AppColors.secondary,
                           decoration: TextDecoration.lineThrough);
@@ -112,6 +143,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
                           color: AppColors.secondary,
                           decoration: TextDecoration.lineThrough);
                     } else {
+                      // Trains futurs : style normal
                       timeStyle = AppTextStyles.medium;
                       platformStyle = AppTextStyles.medium;
                     }
@@ -119,8 +151,8 @@ class _SchedulesModalState extends State<SchedulesModal> {
                     return ListTile(
                       dense: true,
                       leading: isNext
-                          ? const Icon(Icons.arrow_forward_ios,
-                              color: AppColors.onTime, size: 16)
+                          ? Icon(Icons.arrow_forward_ios,
+                              color: statusColor, size: 16)
                           : const SizedBox(width: 24),
                       title: Text(
                         TimeFormatter.formatTime(departure.scheduledTime),
