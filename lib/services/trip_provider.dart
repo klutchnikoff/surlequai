@@ -97,6 +97,13 @@ class TripProvider with ChangeNotifier {
 
     isLoading = false;
     notifyListeners();
+
+    // Après avoir affiché les données locales, tente automatiquement
+    // de se "connecter" pour passer en mode online
+    // (En Phase 1 : simule juste le délai réseau, en Phase 2 : vrai appel API)
+    if (_trips.isNotEmpty) {
+      await refreshDepartures();
+    }
   }
 
   Future<void> _saveTrips() async {
