@@ -26,22 +26,48 @@ class InitialMockData {
   static final Map<String, List<Departure>> departuresData = {
     // Trip 1
     'trip-1_go': [
-      Departure(id: 'd-g-1', scheduledTime: DateTime.now().add(const Duration(minutes: 12)), platform: '3', status: DepartureStatus.onTime),
-      Departure(id: 'd-g-2', scheduledTime: DateTime.now().add(const Duration(minutes: 42)), platform: '2', status: DepartureStatus.onTime),
+      Departure(
+          id: 'd-g-1',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 12)),
+          platform: '3',
+          status: DepartureStatus.onTime),
+      Departure(
+          id: 'd-g-2',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 42)),
+          platform: '2',
+          status: DepartureStatus.onTime),
     ],
     'trip-1_return': [
-      Departure(id: 'd-r-1', scheduledTime: DateTime.now().add(const Duration(minutes: 27)), platform: '1', status: DepartureStatus.delayed, delayMinutes: 5),
-      Departure(id: 'd-r-2', scheduledTime: DateTime.now().add(const Duration(minutes: 57)), platform: '2', status: DepartureStatus.cancelled),
+      Departure(
+          id: 'd-r-1',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 27)),
+          platform: '1',
+          status: DepartureStatus.delayed,
+          delayMinutes: 5),
+      Departure(
+          id: 'd-r-2',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 57)),
+          platform: '2',
+          status: DepartureStatus.cancelled),
     ],
     // Trip 2
     'trip-2_go': [
-       Departure(id: 'd-g-p-1', scheduledTime: DateTime.now().add(const Duration(minutes: 5)), platform: 'A', status: DepartureStatus.delayed, delayMinutes: 15),
+      Departure(
+          id: 'd-g-p-1',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 5)),
+          platform: 'A',
+          status: DepartureStatus.delayed,
+          delayMinutes: 15),
     ],
     'trip-2_return': [],
     // Trip 3
     'trip-3_go': [],
     'trip-3_return': [
-      Departure(id: 'd-r-b-1', scheduledTime: DateTime.now().add(const Duration(minutes: 18)), platform: '7', status: DepartureStatus.onTime),
+      Departure(
+          id: 'd-r-b-1',
+          scheduledTime: DateTime.now().add(const Duration(minutes: 18)),
+          platform: '7',
+          status: DepartureStatus.onTime),
     ],
   };
 }

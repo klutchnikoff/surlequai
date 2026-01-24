@@ -43,12 +43,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+        style: Theme.of(context)
+            .textTheme
+            .titleSmall
+            ?.copyWith(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }
 
-  Widget _buildThemeSetting(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildThemeSetting(
+      BuildContext context, SettingsProvider settingsProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -67,7 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeRadio(BuildContext context, AppThemeMode mode, String text) {
+  Widget _buildThemeRadio(
+      BuildContext context, AppThemeMode mode, String text) {
     final settingsProvider = context.watch<SettingsProvider>();
 
     return Expanded(
@@ -84,7 +89,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildDisplayOrderSetting(BuildContext context, TripProvider tripProvider) {
+  Widget _buildDisplayOrderSetting(
+      BuildContext context, TripProvider tripProvider) {
     final activeTrip = tripProvider.activeTrip;
 
     if (activeTrip == null) {
@@ -100,19 +106,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         const ListTile(
           title: Text('Ordre d\'affichage automatique'),
-          subtitle: Text('Le trajet du matin est affiché en premier avant l\'heure de bascule.'),
+          subtitle: Text(
+              'Le trajet du matin est affiché en premier avant l\'heure de bascule.'),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('Trajet du matin pour "${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}"', style: Theme.of(context).textTheme.titleSmall),
+          child: Text(
+              'Trajet du matin pour "${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}"',
+              style: Theme.of(context).textTheme.titleSmall),
         ),
-        _buildMorningDirectionRadio(context, MorningDirection.aToB, '${activeTrip.stationA.name} → ${activeTrip.stationB.name}'),
-        _buildMorningDirectionRadio(context, MorningDirection.bToA, '${activeTrip.stationB.name} → ${activeTrip.stationA.name}'),
+        _buildMorningDirectionRadio(context, MorningDirection.aToB,
+            '${activeTrip.stationA.name} → ${activeTrip.stationB.name}'),
+        _buildMorningDirectionRadio(context, MorningDirection.bToA,
+            '${activeTrip.stationB.name} → ${activeTrip.stationA.name}'),
       ],
     );
   }
 
-  Widget _buildMorningDirectionRadio(BuildContext context, MorningDirection direction, String text) {
+  Widget _buildMorningDirectionRadio(
+      BuildContext context, MorningDirection direction, String text) {
     final tripProvider = context.watch<TripProvider>();
     return ListTile(
       title: Text(text),
@@ -121,43 +133,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
         groupValue: tripProvider.activeTrip?.morningDirection,
         onChanged: (MorningDirection? value) {
           if (value != null) {
-            context.read<TripProvider>().updateActiveTripMorningDirection(value);
+            context
+                .read<TripProvider>()
+                .updateActiveTripMorningDirection(value);
           }
         },
       ),
     );
   }
 
-  Widget _buildTimeBehaviorSetting(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildTimeBehaviorSetting(
+      BuildContext context, SettingsProvider settingsProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(context, 'COMPORTEMENT HORAIRE'),
         ListTile(
           title: const Text('Bascule matin/soir'),
-          subtitle: Text('Heure à partir de laquelle le trajet du soir est prioritaire : ${settingsProvider.morningEveningSplitTime}h'),
+          subtitle: Text(
+              'Heure à partir de laquelle le trajet du soir est prioritaire : ${settingsProvider.morningEveningSplitTime}h'),
           trailing: const Icon(Icons.edit),
           onTap: () async {
             final TimeOfDay? picked = await showTimePicker(
               context: context,
-              initialTime: TimeOfDay(hour: settingsProvider.morningEveningSplitTime, minute: 0),
+              initialTime: TimeOfDay(
+                  hour: settingsProvider.morningEveningSplitTime, minute: 0),
             );
-            if (picked != null) {
-              context.read<SettingsProvider>().setMorningEveningSplitTime(picked.hour);
+            if (picked != null && context.mounted) {
+              context
+                  .read<SettingsProvider>()
+                  .setMorningEveningSplitTime(picked.hour);
             }
           },
         ),
         ListTile(
           title: const Text('Début du jour de service'),
-          subtitle: Text('Heure de départ du premier train de la journée : ${settingsProvider.serviceDayStartTime}h'),
+          subtitle: Text(
+              'Heure de départ du premier train de la journée : ${settingsProvider.serviceDayStartTime}h'),
           trailing: const Icon(Icons.edit),
           onTap: () async {
             final TimeOfDay? picked = await showTimePicker(
               context: context,
-              initialTime: TimeOfDay(hour: settingsProvider.serviceDayStartTime, minute: 0),
+              initialTime: TimeOfDay(
+                  hour: settingsProvider.serviceDayStartTime, minute: 0),
             );
-            if (picked != null) {
-              context.read<SettingsProvider>().setServiceDayStartTime(picked.hour);
+            if (picked != null && context.mounted) {
+              context
+                  .read<SettingsProvider>()
+                  .setServiceDayStartTime(picked.hour);
             }
           },
         ),

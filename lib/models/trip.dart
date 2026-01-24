@@ -12,7 +12,8 @@ class Trip {
     required this.id,
     required this.stationA,
     required this.stationB,
-    this.morningDirection = MorningDirection.aToB, // Default to A->B as morning trip
+    this.morningDirection =
+        MorningDirection.aToB, // Default to A->B as morning trip
   });
 
   Trip copyWith({

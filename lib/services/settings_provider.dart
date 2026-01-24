@@ -9,7 +9,7 @@ class SettingsProvider with ChangeNotifier {
   static const String _dayStartTimeKey = 'dayStartTime';
 
   late SharedPreferences _prefs;
-  
+
   // State
   late AppThemeMode _themeMode;
   late int _morningEveningSplitTime; // Hour of the day (0-23)
@@ -30,9 +30,10 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
-    
+
     // Load theme
-    final themeIndex = _prefs.getInt(_themeModeKey) ?? AppThemeMode.system.index;
+    final themeIndex =
+        _prefs.getInt(_themeModeKey) ?? AppThemeMode.system.index;
     _themeMode = AppThemeMode.values[themeIndex];
 
     // Load split time
@@ -40,7 +41,7 @@ class SettingsProvider with ChangeNotifier {
 
     // Load service day start time
     _serviceDayStartTime = _prefs.getInt(_dayStartTimeKey) ?? 4;
-    
+
     notifyListeners();
   }
 
@@ -72,7 +73,6 @@ class SettingsProvider with ChangeNotifier {
       case AppThemeMode.dark:
         return ThemeMode.dark;
       case AppThemeMode.system:
-      default:
         return ThemeMode.system;
     }
   }
