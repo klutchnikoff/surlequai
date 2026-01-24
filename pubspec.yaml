@@ -32,6 +32,7 @@ dependencies:
   # Utilitaires
   intl: ^0.19.0                 # Internationalisation et formatage dates
   uuid: ^4.2.0                  # Génération d'IDs pour trajets
+  home_widget: ^0.6.0           # Widget écran d'accueil iOS/Android
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,163 @@
+import 'package:home_widget/home_widget.dart';
+import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/utils/formatters.dart';
+
+/// Service de gestion du widget écran d'accueil
+///
+/// Prépare et envoie les données du trajet actif au widget natif
+/// (iOS WidgetKit / Android App Widget)
+class WidgetService {
+  // Clés pour les données partagées avec le widget natif
+  static const String _keyTripName = 'trip_name';
+  static const String _keyDirection1Title = 'direction1_title';
+  static const String _keyDirection1Time = 'direction1_time';
+  static const String _keyDirection1Platform = 'direction1_platform';
+  static const String _keyDirection1Status = 'direction1_status';
+  static const String _keyDirection1StatusColor = 'direction1_status_color';
+  static const String _keyDirection2Title = 'direction2_title';
+  static const String _keyDirection2Time = 'direction2_time';
+  static const String _keyDirection2Platform = 'direction2_platform';
+  static const String _keyDirection2Status = 'direction2_status';
+  static const String _keyDirection2StatusColor = 'direction2_status_color';
+  static const String _keyLastUpdate = 'last_update';
+
+  // Nom du widget (Android uniquement)
+  static const String _androidWidgetName = 'SurLeQuaiWidget';
+
+  // Nom du App Group (iOS uniquement)
+  static const String _iOSAppGroupId = 'group.com.surlequai.app';
+
+  /// Met à jour les données du widget avec le trajet actif
+  ///
+  /// Prend les deux directions (go et return) et écrit les données
+  /// du prochain train pour chaque direction dans le stockage partagé.
+  Future<void> updateWidget({
+    required Trip activeTrip,
+    required List<Departure> departuresGo,
+    required List<Departure> departuresReturn,
+    required String direction1Title,
+    required String direction2Title,
+  }) async {
+    try {
+      // Configure le App Group pour iOS
+      await HomeWidget.setAppGroupId(_iOSAppGroupId);
+
+      // Nom du trajet
+      final tripName =
+          '${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}';
+      await HomeWidget.saveWidgetData<String>(_keyTripName, tripName);
+
+      // Direction 1 (premier train futur)
+      final nextDep1 = _getNextDeparture(departuresGo);
+      if (nextDep1 != null) {
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1Title, direction1Title);
+        await HomeWidget.saveWidgetData<String>(_keyDirection1Time,
+            TimeFormatter.formatTime(nextDep1.scheduledTime));
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1Platform, 'Voie ${nextDep1.platform}');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1Status, _getStatusText(nextDep1));
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1StatusColor, _getStatusColorHex(nextDep1.status));
+      } else {
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1Title, direction1Title);
+        await HomeWidget.saveWidgetData<String>(_keyDirection1Time, '__:__');
+        await HomeWidget.saveWidgetData<String>(_keyDirection1Platform, '');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1Status, 'Aucun train');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection1StatusColor, 'secondary');
+      }
+
+      // Direction 2
+      final nextDep2 = _getNextDeparture(departuresReturn);
+      if (nextDep2 != null) {
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2Title, direction2Title);
+        await HomeWidget.saveWidgetData<String>(_keyDirection2Time,
+            TimeFormatter.formatTime(nextDep2.scheduledTime));
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2Platform, 'Voie ${nextDep2.platform}');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2Status, _getStatusText(nextDep2));
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2StatusColor, _getStatusColorHex(nextDep2.status));
+      } else {
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2Title, direction2Title);
+        await HomeWidget.saveWidgetData<String>(_keyDirection2Time, '__:__');
+        await HomeWidget.saveWidgetData<String>(_keyDirection2Platform, '');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2Status, 'Aucun train');
+        await HomeWidget.saveWidgetData<String>(
+            _keyDirection2StatusColor, 'secondary');
+      }
+
+      // Timestamp de la dernière mise à jour
+      final now = DateTime.now();
+      await HomeWidget.saveWidgetData<String>(
+          _keyLastUpdate, TimeFormatter.formatTime(now));
+
+      // Déclenche le refresh du widget natif
+      await HomeWidget.updateWidget(
+        androidName: _androidWidgetName,
+        iOSName: 'SurLeQuaiWidget',
+      );
+    } catch (e) {
+      // Log l'erreur (en production, utiliser un logger)
+      // ignore: avoid_print
+      print('Erreur lors de la mise à jour du widget : $e');
+    }
+  }
+
+  /// Récupère le prochain départ futur dans une liste
+  Departure? _getNextDeparture(List<Departure> departures) {
+    final now = DateTime.now();
+    try {
+      return departures.firstWhere((d) => d.scheduledTime.isAfter(now));
+    } catch (e) {
+      return null; // Aucun départ futur
+    }
+  }
+
+  /// Retourne le texte du statut pour affichage
+  String _getStatusText(Departure departure) {
+    switch (departure.status) {
+      case DepartureStatus.onTime:
+        return 'À l\'heure';
+      case DepartureStatus.delayed:
+        return '+${departure.delayMinutes} min';
+      case DepartureStatus.cancelled:
+        return 'Supprimé';
+      case DepartureStatus.offline:
+        return 'Horaire prévu';
+    }
+  }
+
+  /// Retourne la couleur du statut en code (pour parsing côté natif)
+  ///
+  /// Codes : onTime, delayed, cancelled, offline, secondary
+  /// Le code natif mappera ces codes vers les vraies couleurs
+  String _getStatusColorHex(DepartureStatus status) {
+    switch (status) {
+      case DepartureStatus.onTime:
+        return 'onTime';
+      case DepartureStatus.delayed:
+        return 'delayed';
+      case DepartureStatus.cancelled:
+        return 'cancelled';
+      case DepartureStatus.offline:
+        return 'offline';
+    }
+  }
+
+  /// Configure le callback pour ouvrir l'app quand on tap sur le widget
+  ///
+  /// Cette méthode doit être appelée dans main() pour écouter les taps
+  static Future<void> registerBackgroundCallback() async {
+    await HomeWidget.setAppGroupId(_iOSAppGroupId);
+  }
+}

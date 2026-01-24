@@ -13,6 +13,7 @@ import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/storage_service.dart';
 import 'package:surlequai/services/timetable_service.dart';
+import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
@@ -46,6 +47,7 @@ class TripProvider with ChangeNotifier {
   late final StorageService _storageService;
   late final TimetableService _timetableService;
   late final RealtimeService _realtimeService;
+  late final WidgetService _widgetService;
 
   // Public getters - now nullable
   List<Trip> get trips => _trips;
@@ -70,6 +72,7 @@ class TripProvider with ChangeNotifier {
       apiService: _apiService,
       timetableService: _timetableService,
     );
+    _widgetService = WidgetService();
 
     _loadTrips();
   }
@@ -199,6 +202,26 @@ class TripProvider with ChangeNotifier {
       _departuresGo = rawDeparturesGo;
       _departuresReturn = rawDeparturesReturn;
     }
+
+    // Met à jour le widget écran d'accueil avec les nouvelles données
+    _updateWidget();
+  }
+
+  /// Met à jour le widget écran d'accueil
+  Future<void> _updateWidget() async {
+    if (_activeTrip == null ||
+        _directionGoViewModel == null ||
+        _directionReturnViewModel == null) {
+      return;
+    }
+
+    await _widgetService.updateWidget(
+      activeTrip: _activeTrip!,
+      departuresGo: _departuresGo,
+      departuresReturn: _departuresReturn,
+      direction1Title: _directionGoViewModel!.title,
+      direction2Title: _directionReturnViewModel!.title,
+    );
   }
 
   bool _shouldSwapOrder() {
