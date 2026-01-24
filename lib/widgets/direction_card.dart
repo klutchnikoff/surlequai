@@ -35,13 +35,16 @@ class DirectionCard extends StatelessWidget {
                 children: [
                   Text(
                     viewModel.title,
-                    style: AppTextStyles.medium.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.medium
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  if (viewModel.hasDepartures)
-                    _buildDepartureInfo(context)
-                  else
-                    _buildNoDeparturesInfo(context),
+                  switch (viewModel) {
+                    DirectionCardWithDepartures vm =>
+                      _buildDepartureInfo(context, vm),
+                    DirectionCardNoDepartures vm =>
+                      _buildNoDeparturesInfo(context, vm),
+                  },
                 ],
               ),
             ),
@@ -51,47 +54,54 @@ class DirectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDepartureInfo(BuildContext context) {
+  Widget _buildDepartureInfo(
+    BuildContext context,
+    DirectionCardWithDepartures viewModel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(viewModel.time ?? '', style: AppTextStyles.huge),
-            Text(viewModel.platform ?? '', style: AppTextStyles.large),
+            Text(viewModel.time, style: AppTextStyles.huge),
+            Text(viewModel.platform, style: AppTextStyles.large),
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          viewModel.statusText ?? '',
+          viewModel.statusText,
           style: AppTextStyles.medium.copyWith(color: viewModel.statusColor),
         ),
         const SizedBox(height: 24),
         if (viewModel.subsequentDepartures != null)
           Text(
-            viewModel.subsequentDepartures!, // This one is safe due to the check
+            viewModel.subsequentDepartures!,
             style: AppTextStyles.small.copyWith(color: AppColors.secondary),
           ),
       ],
     );
   }
 
-  Widget _buildNoDeparturesInfo(BuildContext context) {
+  Widget _buildNoDeparturesInfo(
+    BuildContext context,
+    DirectionCardNoDepartures viewModel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(viewModel.noTrainTimeDisplay ?? '--:--', style: AppTextStyles.huge),
+            Text(viewModel.noTrainTimeDisplay, style: AppTextStyles.huge),
             // No platform for "no departures" state, keep it empty or add placeholder
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          viewModel.noTrainStatusDisplay ?? 'Aucun train prévu pour l\'instant',
-          style: AppTextStyles.medium.copyWith(color: viewModel.noTrainStatusColor ?? AppColors.secondary),
+          viewModel.noTrainStatusDisplay,
+          style: AppTextStyles.medium
+              .copyWith(color: viewModel.noTrainStatusColor),
         ),
         const SizedBox(height: 24),
         // No subsequent departures for "no departures" state

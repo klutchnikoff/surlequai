@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:surlequai/screens/home_screen.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/trip_provider.dart';
+import 'package:surlequai/theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -29,12 +30,9 @@ class MyApp extends StatelessWidget {
       builder: (context, settingsProvider, child) {
         return MaterialApp(
           title: 'SurLeQuai',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData.dark(useMaterial3: true),
-          themeMode: settingsProvider.currentThemeMode, // Use theme from provider
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: settingsProvider.currentThemeMode,
           home: const HomeScreen(),
         );
       },

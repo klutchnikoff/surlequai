@@ -1,19 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
-import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/theme/colors.dart';
+import 'package:surlequai/utils/constants.dart';
+import 'package:surlequai/utils/formatters.dart';
 import 'package:surlequai/utils/mock_data.dart';
 
 class TripProvider with ChangeNotifier {
-  // SharedPreferences key
-  static const String _tripsKey = 'trips';
-
   // Public loading state
   bool isLoading = true;
 
@@ -22,9 +21,12 @@ class TripProvider with ChangeNotifier {
   Trip? _activeTrip;
   DirectionCardViewModel? _directionGoViewModel;
   DirectionCardViewModel? _directionReturnViewModel;
-  
+
   List<Departure> _departuresGo = [];
   List<Departure> _departuresReturn = [];
+
+  // Timestamp de la dernière mise à jour
+  DateTime? _lastUpdate;
 
   // Dependencies
   final SettingsProvider _settingsProvider;
@@ -33,9 +35,11 @@ class TripProvider with ChangeNotifier {
   List<Trip> get trips => _trips;
   Trip? get activeTrip => _activeTrip;
   DirectionCardViewModel? get directionGoViewModel => _directionGoViewModel;
-  DirectionCardViewModel? get directionReturnViewModel => _directionReturnViewModel;
+  DirectionCardViewModel? get directionReturnViewModel =>
+      _directionReturnViewModel;
   List<Departure> get departuresGo => _departuresGo;
   List<Departure> get departuresReturn => _departuresReturn;
+  DateTime? get lastUpdate => _lastUpdate;
 
   TripProvider(this._settingsProvider) {
     _loadTrips();
@@ -43,7 +47,7 @@ class TripProvider with ChangeNotifier {
 
   Future<void> _loadTrips() async {
     final prefs = await SharedPreferences.getInstance();
-    final tripsJson = prefs.getString(_tripsKey);
+    final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
 
     if (tripsJson != null) {
       final List<dynamic> tripsData = jsonDecode(tripsJson);
@@ -55,8 +59,9 @@ class TripProvider with ChangeNotifier {
     if (_trips.isNotEmpty) {
       _activeTrip = _trips.first;
       _buildViewModels();
+      _lastUpdate = DateTime.now();
     }
-    
+
     isLoading = false;
     notifyListeners();
   }
@@ -64,7 +69,7 @@ class TripProvider with ChangeNotifier {
   Future<void> _saveTrips() async {
     final prefs = await SharedPreferences.getInstance();
     final tripsJson = jsonEncode(_trips.map((trip) => trip.toJson()).toList());
-    await prefs.setString(_tripsKey, tripsJson);
+    await prefs.setString(AppConstants.tripsStorageKey, tripsJson);
   }
 
   void update() {
@@ -74,11 +79,38 @@ class TripProvider with ChangeNotifier {
     }
   }
 
+  /// Rafraîchit les données de départs (temps réel)
+  ///
+  /// Pour l'instant, recharge les mock data.
+  /// TODO: Remplacer par un appel API une fois le service API implémenté
+  Future<void> refreshDepartures() async {
+    // Simule un délai réseau (à retirer une fois l'API réelle en place)
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // TODO: Une fois l'API implémentée, remplacer par :
+    // final departures = await apiService.fetchDepartures(
+    //   fromStationId: _activeTrip!.stationA.id,
+    //   toStationId: _activeTrip!.stationB.id,
+    // );
+    // _departuresGo = departures;
+    // etc.
+
+    // Pour l'instant, on reconstruit juste les ViewModels avec les mock data
+    _buildViewModels();
+    _lastUpdate = DateTime.now();
+    notifyListeners();
+
+    // Feedback haptique pour indiquer que le rafraîchissement est terminé
+    HapticFeedback.mediumImpact();
+  }
+
   void _buildViewModels() {
     if (_activeTrip == null) return;
 
-    final rawDeparturesGo = InitialMockData.departuresData['${_activeTrip!.id}_go'] ?? [];
-    final rawDeparturesReturn = InitialMockData.departuresData['${_activeTrip!.id}_return'] ?? [];
+    final rawDeparturesGo =
+        InitialMockData.departuresData['${_activeTrip!.id}_go'] ?? [];
+    final rawDeparturesReturn =
+        InitialMockData.departuresData['${_activeTrip!.id}_return'] ?? [];
 
     final goViewModel = _createViewModel(
       title: '${_activeTrip!.stationA.name} → ${_activeTrip!.stationB.name}',
@@ -88,7 +120,7 @@ class TripProvider with ChangeNotifier {
       title: '${_activeTrip!.stationB.name} → ${_activeTrip!.stationA.name}',
       departures: rawDeparturesReturn,
     );
-    
+
     if (_shouldSwapOrder()) {
       _directionGoViewModel = returnViewModel;
       _directionReturnViewModel = goViewModel;
@@ -107,7 +139,7 @@ class TripProvider with ChangeNotifier {
 
     final hour = DateTime.now().hour;
     final splitTime = _settingsProvider.morningEveningSplitTime;
-    
+
     final isEvening = hour >= splitTime && hour < 22;
 
     if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
@@ -120,9 +152,10 @@ class TripProvider with ChangeNotifier {
     return false;
   }
 
-  DirectionCardViewModel _createViewModel({required String title, required List<Departure> departures}) {
+  DirectionCardViewModel _createViewModel(
+      {required String title, required List<Departure> departures}) {
     if (departures.isEmpty) {
-      return DirectionCardViewModel.noDepartures(title: title);
+      return DirectionCardNoDepartures.defaultEmpty(title: title);
     }
 
     final nextDeparture = departures.first;
@@ -150,16 +183,15 @@ class TripProvider with ChangeNotifier {
         break;
     }
 
-    return DirectionCardViewModel(
+    return DirectionCardWithDepartures(
       title: title,
       statusBarColor: statusBarColor,
-      hasDepartures: true,
-      time: '${nextDeparture.scheduledTime.hour.toString().padLeft(2, '0')}:${nextDeparture.scheduledTime.minute.toString().padLeft(2, '0')}',
+      time: TimeFormatter.formatTime(nextDeparture.scheduledTime),
       platform: 'Voie ${nextDeparture.platform}',
       statusText: statusText,
       statusColor: statusBarColor,
       subsequentDepartures: subsequentDepartures.isNotEmpty
-          ? 'Puis: ${subsequentDepartures.map((d) => '${d.scheduledTime.hour.toString().padLeft(2, '0')}:${d.scheduledTime.minute.toString().padLeft(2, '0')}').join('  ')}'
+          ? 'Puis: ${TimeFormatter.formatTimeList(subsequentDepartures.map((d) => d.scheduledTime).toList())}'
           : null,
     );
   }
@@ -172,11 +204,14 @@ class TripProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateActiveTripMorningDirection(MorningDirection direction) async {
-    if (_activeTrip == null || _activeTrip!.morningDirection == direction) return;
+  Future<void> updateActiveTripMorningDirection(
+      MorningDirection direction) async {
+    if (_activeTrip == null || _activeTrip!.morningDirection == direction) {
+      return;
+    }
 
     final updatedTrip = _activeTrip!.copyWith(morningDirection: direction);
-    
+
     final tripIndex = _trips.indexWhere((t) => t.id == updatedTrip.id);
     if (tripIndex != -1) {
       _trips[tripIndex] = updatedTrip;
@@ -187,4 +222,3 @@ class TripProvider with ChangeNotifier {
     }
   }
 }
-

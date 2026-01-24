@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/services/trip_provider.dart';
+import 'package:surlequai/theme/colors.dart';
 
 class TripsDrawer extends StatelessWidget {
   const TripsDrawer({super.key});
@@ -18,7 +19,7 @@ class TripsDrawer extends StatelessWidget {
         children: [
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: AppColors.primary,
             ),
             child: Text(
               'Mes trajets',
@@ -37,7 +38,8 @@ class TripsDrawer extends StatelessWidget {
               ),
               title: Text('${trip.stationA.name} ⟷ ${trip.stationB.name}'),
               selected: trip.id == activeTrip?.id,
-              selectedTileColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              selectedTileColor:
+                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
               onTap: () {
                 // Using `read` here as we are in a callback, not the build method
                 context.read<TripProvider>().setActiveTrip(trip);
@@ -58,4 +60,3 @@ class TripsDrawer extends StatelessWidget {
     );
   }
 }
-
