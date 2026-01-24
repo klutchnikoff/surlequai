@@ -75,6 +75,15 @@ class AppConstants {
   /// Clé pour le trajet actif
   static const String activeTripIdKey = 'activeTripId';
 
+  /// Clé pour le mode de thème (clair/sombre/système)
+  static const String themeModeKey = 'themeMode';
+
+  /// Clé pour l'heure de bascule matin/soir
+  static const String splitTimeKey = 'splitTime';
+
+  /// Clé pour l'heure de début de journée
+  static const String dayStartTimeKey = 'dayStartTime';
+
   /// Taille estimée du cache SQLite par région (en bytes)
   /// 50 MB = 50 * 1024 * 1024
   static const int estimatedCacheSizePerRegion = 52428800;
@@ -101,4 +110,7 @@ class AppConstants {
   /// Utiliser les mock data au lieu de l'API réelle
   static const bool useMockData =
       true; // TODO: Passer à false une fois API configurée
+
+  /// Délai de simulation réseau pour les mock data (en millisecondes)
+  static const Duration mockNetworkDelay = Duration(milliseconds: 500);
 }

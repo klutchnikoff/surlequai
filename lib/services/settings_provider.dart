@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
+import 'package:surlequai/utils/constants.dart';
 
 class SettingsProvider with ChangeNotifier {
-  // Keys
-  static const String _themeModeKey = 'themeMode';
-  static const String _splitTimeKey = 'splitTime';
-  static const String _dayStartTimeKey = 'dayStartTime';
-
   late SharedPreferences _prefs;
 
   // State
@@ -23,8 +19,8 @@ class SettingsProvider with ChangeNotifier {
   SettingsProvider() {
     // Default values
     _themeMode = AppThemeMode.system;
-    _morningEveningSplitTime = 12; // 12 PM
-    _serviceDayStartTime = 4; // 4 AM
+    _morningEveningSplitTime = AppConstants.defaultMorningEveningSplitHour;
+    _serviceDayStartTime = AppConstants.defaultServiceDayStartHour;
     _loadSettings();
   }
 
@@ -33,14 +29,16 @@ class SettingsProvider with ChangeNotifier {
 
     // Load theme
     final themeIndex =
-        _prefs.getInt(_themeModeKey) ?? AppThemeMode.system.index;
+        _prefs.getInt(AppConstants.themeModeKey) ?? AppThemeMode.system.index;
     _themeMode = AppThemeMode.values[themeIndex];
 
     // Load split time
-    _morningEveningSplitTime = _prefs.getInt(_splitTimeKey) ?? 12;
+    _morningEveningSplitTime = _prefs.getInt(AppConstants.splitTimeKey) ??
+        AppConstants.defaultMorningEveningSplitHour;
 
     // Load service day start time
-    _serviceDayStartTime = _prefs.getInt(_dayStartTimeKey) ?? 4;
+    _serviceDayStartTime = _prefs.getInt(AppConstants.dayStartTimeKey) ??
+        AppConstants.defaultServiceDayStartHour;
 
     notifyListeners();
   }
@@ -48,21 +46,21 @@ class SettingsProvider with ChangeNotifier {
   Future<void> setThemeMode(AppThemeMode mode) async {
     if (_themeMode == mode) return;
     _themeMode = mode;
-    await _prefs.setInt(_themeModeKey, mode.index);
+    await _prefs.setInt(AppConstants.themeModeKey, mode.index);
     notifyListeners();
   }
 
   Future<void> setMorningEveningSplitTime(int hour) async {
     if (_morningEveningSplitTime == hour) return;
     _morningEveningSplitTime = hour;
-    await _prefs.setInt(_splitTimeKey, hour);
+    await _prefs.setInt(AppConstants.splitTimeKey, hour);
     notifyListeners();
   }
 
   Future<void> setServiceDayStartTime(int hour) async {
     if (_serviceDayStartTime == hour) return;
     _serviceDayStartTime = hour;
-    await _prefs.setInt(_dayStartTimeKey, hour);
+    await _prefs.setInt(AppConstants.dayStartTimeKey, hour);
     notifyListeners();
   }
 

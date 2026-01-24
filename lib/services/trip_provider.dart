@@ -85,7 +85,7 @@ class TripProvider with ChangeNotifier {
   /// TODO: Remplacer par un appel API une fois le service API implémenté
   Future<void> refreshDepartures() async {
     // Simule un délai réseau (à retirer une fois l'API réelle en place)
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(AppConstants.mockNetworkDelay);
 
     // TODO: Une fois l'API implémentée, remplacer par :
     // final departures = await apiService.fetchDepartures(
@@ -140,7 +140,8 @@ class TripProvider with ChangeNotifier {
     final hour = DateTime.now().hour;
     final splitTime = _settingsProvider.morningEveningSplitTime;
 
-    final isEvening = hour >= splitTime && hour < 22;
+    final isEvening =
+        hour >= splitTime && hour < AppConstants.serviceDayEndHour;
 
     if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
       return true;
