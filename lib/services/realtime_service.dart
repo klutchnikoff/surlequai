@@ -33,6 +33,7 @@ class RealtimeService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    String? tripId, // Phase 1: pour accéder aux mocks
   }) async {
     // 1. Charge horaires théoriques (toujours disponible)
     final theoreticalDepartures =
@@ -40,6 +41,7 @@ class RealtimeService {
       fromStationId: fromStationId,
       toStationId: toStationId,
       datetime: datetime,
+      tripId: tripId, // Passé en Phase 1 pour les mocks
     );
 
     // 2. Tente de récupérer temps réel

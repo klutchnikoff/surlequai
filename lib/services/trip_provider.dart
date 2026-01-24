@@ -161,6 +161,7 @@ class TripProvider with ChangeNotifier {
       fromStationId: _activeTrip!.stationA.id,
       toStationId: _activeTrip!.stationB.id,
       datetime: now,
+      tripId: _activeTrip!.id, // Phase 1: pour accéder aux mocks
     );
 
     final rawDeparturesReturn =
@@ -168,6 +169,7 @@ class TripProvider with ChangeNotifier {
       fromStationId: _activeTrip!.stationB.id,
       toStationId: _activeTrip!.stationA.id,
       datetime: now,
+      tripId: _activeTrip!.id, // Phase 1: pour accéder aux mocks
     );
 
     final goViewModel = _createViewModel(

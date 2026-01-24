@@ -107,26 +107,20 @@ class TimetableService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    String? tripId, // Phase 1: utilisé pour les mocks
   }) async {
-    // Phase 1 : Mode mock
-    // On utilise InitialMockData pour avoir des données réalistes
-
-    // Logique simplifiée : Identifie le trajet par les IDs de stations
-    // Dans la vraie implémentation, on ferait une requête SQL
-
-    // Pour Rennes → Nantes
-    if (fromStationId == 'stop_area:SNCF:87471003' &&
-        toStationId == 'stop_area:SNCF:87481002') {
-      return InitialMockData.departuresData['trip-rennes-nantes_go'] ?? [];
+    // Phase 1 : Mode mock - utilise tripId si fourni
+    // En Phase 1, on utilise directement l'ID du trip car les données
+    // sont stockées par trip ID dans InitialMockData
+    if (tripId != null) {
+      // Détermine la direction (go ou return) en comparant les IDs de stations
+      // avec le premier trip dans InitialMockData pour déterminer le sens
+      final isGo = _isGoDirection(tripId, fromStationId, toStationId);
+      final suffix = isGo ? '_go' : '_return';
+      return InitialMockData.departuresData['$tripId$suffix'] ?? [];
     }
 
-    // Pour Nantes → Rennes
-    if (fromStationId == 'stop_area:SNCF:87481002' &&
-        toStationId == 'stop_area:SNCF:87471003') {
-      return InitialMockData.departuresData['trip-rennes-nantes_return'] ?? [];
-    }
-
-    // Trajet inconnu → retourne vide
+    // Trajet inconnu ou pas de tripId → retourne vide
     return [];
 
     // TODO Phase 2: Vraie requête SQLite
@@ -142,4 +136,18 @@ class TimetableService {
 
   /// Vérifie si une grille horaire locale existe
   bool get hasLocalTimetable => _currentVersion != null;
+
+  /// Détermine si c'est la direction "go" (A→B) ou "return" (B→A)
+  ///
+  /// Phase 1 helper pour les mocks
+  bool _isGoDirection(String tripId, String fromId, String toId) {
+    // Trouve le trip correspondant dans InitialMockData
+    final trip = InitialMockData.initialTrips.firstWhere(
+      (t) => t.id == tripId,
+      orElse: () => InitialMockData.initialTrips.first,
+    );
+
+    // Direction "go" si fromId correspond à stationA
+    return trip.stationA.id == fromId;
+  }
 }
