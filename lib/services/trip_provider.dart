@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surlequai/models/connection_status.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/station.dart';
@@ -30,6 +31,9 @@ class TripProvider with ChangeNotifier {
   // Timestamp de la dernière mise à jour
   DateTime? _lastUpdate;
 
+  // État de la connexion
+  ConnectionStatus _connectionStatus = ConnectionStatus.offline;
+
   // Dependencies
   final SettingsProvider _settingsProvider;
 
@@ -42,6 +46,7 @@ class TripProvider with ChangeNotifier {
   List<Departure> get departuresGo => _departuresGo;
   List<Departure> get departuresReturn => _departuresReturn;
   DateTime? get lastUpdate => _lastUpdate;
+  ConnectionStatus get connectionStatus => _connectionStatus;
 
   TripProvider(this._settingsProvider) {
     _loadTrips();
@@ -86,24 +91,45 @@ class TripProvider with ChangeNotifier {
   /// Pour l'instant, recharge les mock data.
   /// TODO: Remplacer par un appel API une fois le service API implémenté
   Future<void> refreshDepartures() async {
-    // Simule un délai réseau (à retirer une fois l'API réelle en place)
-    await Future.delayed(AppConstants.mockNetworkDelay);
-
-    // TODO: Une fois l'API implémentée, remplacer par :
-    // final departures = await apiService.fetchDepartures(
-    //   fromStationId: _activeTrip!.stationA.id,
-    //   toStationId: _activeTrip!.stationB.id,
-    // );
-    // _departuresGo = departures;
-    // etc.
-
-    // Pour l'instant, on reconstruit juste les ViewModels avec les mock data
-    _buildViewModels();
-    _lastUpdate = DateTime.now();
+    // Passer en mode synchronisation
+    _connectionStatus = ConnectionStatus.syncing;
     notifyListeners();
 
-    // Feedback haptique pour indiquer que le rafraîchissement est terminé
-    HapticFeedback.mediumImpact();
+    try {
+      // Simule un délai réseau (à retirer une fois l'API réelle en place)
+      await Future.delayed(AppConstants.mockNetworkDelay);
+
+      // TODO: Une fois l'API implémentée, remplacer par :
+      // final departures = await apiService.fetchDepartures(
+      //   fromStationId: _activeTrip!.stationA.id,
+      //   toStationId: _activeTrip!.stationB.id,
+      // );
+      // _departuresGo = departures;
+      // etc.
+
+      // Pour l'instant, on reconstruit juste les ViewModels avec les mock data
+      _buildViewModels();
+      _lastUpdate = DateTime.now();
+
+      // Succès : mode online
+      _connectionStatus = ConnectionStatus.online;
+      notifyListeners();
+
+      // Feedback haptique pour indiquer que le rafraîchissement est terminé
+      HapticFeedback.mediumImpact();
+    } catch (e) {
+      // En cas d'erreur, passer en mode erreur
+      _connectionStatus = ConnectionStatus.error;
+      notifyListeners();
+
+      // Revenir en mode offline après 3 secondes
+      Future.delayed(const Duration(seconds: 3), () {
+        if (_connectionStatus == ConnectionStatus.error) {
+          _connectionStatus = ConnectionStatus.offline;
+          notifyListeners();
+        }
+      });
+    }
   }
 
   void _buildViewModels() {

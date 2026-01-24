@@ -6,6 +6,7 @@ import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/widgets/direction_card.dart';
 import 'package:surlequai/widgets/last_update_indicator.dart';
 import 'package:surlequai/widgets/schedules_modal.dart';
+import 'package:surlequai/widgets/status_banner.dart';
 import 'package:surlequai/widgets/trips_drawer.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -80,25 +81,34 @@ class HomeScreen extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return RefreshIndicator(
-      onRefresh: () => tripProvider.refreshDepartures(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: ListView(
-          children: [
-            DirectionCard(
-              viewModel: viewModelGo,
-              onTap: () => _showSchedulesModal(
-                  context, viewModelGo.title, tripProvider.departuresGo),
+    return Column(
+      children: [
+        // Bandeau d'état
+        StatusBanner(status: tripProvider.connectionStatus),
+        // Contenu principal
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => tripProvider.refreshDepartures(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ListView(
+                children: [
+                  DirectionCard(
+                    viewModel: viewModelGo,
+                    onTap: () => _showSchedulesModal(
+                        context, viewModelGo.title, tripProvider.departuresGo),
+                  ),
+                  DirectionCard(
+                    viewModel: viewModelReturn,
+                    onTap: () => _showSchedulesModal(context,
+                        viewModelReturn.title, tripProvider.departuresReturn),
+                  ),
+                ],
+              ),
             ),
-            DirectionCard(
-              viewModel: viewModelReturn,
-              onTap: () => _showSchedulesModal(context, viewModelReturn.title,
-                  tripProvider.departuresReturn),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
