@@ -148,15 +148,43 @@ class _SchedulesModalState extends State<SchedulesModal> {
                       platformStyle = AppTextStyles.medium;
                     }
 
+                    // Afficher le statut textuel pour certains cas
+                    String? statusText;
+                    if (departure.status == DepartureStatus.delayed) {
+                      statusText = '+${departure.delayMinutes} min';
+                    } else if (departure.status == DepartureStatus.cancelled) {
+                      statusText = 'Supprimé';
+                    } else if (departure.status == DepartureStatus.offline) {
+                      statusText = 'Horaire prévu';
+                    }
+
                     return ListTile(
                       dense: true,
                       leading: isNext
                           ? Icon(Icons.arrow_forward_ios,
                               color: statusColor, size: 16)
                           : const SizedBox(width: 24),
-                      title: Text(
-                        TimeFormatter.formatTime(departure.scheduledTime),
-                        style: timeStyle,
+                      title: Row(
+                        children: [
+                          Text(
+                            TimeFormatter.formatTime(departure.scheduledTime),
+                            style: timeStyle,
+                          ),
+                          if (statusText != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              statusText,
+                              style: AppTextStyles.small.copyWith(
+                                color: statusColor,
+                                fontWeight: isNext ? FontWeight.bold : null,
+                                decoration: departure.status ==
+                                        DepartureStatus.cancelled
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       trailing: Text('Voie ${departure.platform}',
                           style: platformStyle),
