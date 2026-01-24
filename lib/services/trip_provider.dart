@@ -8,7 +8,11 @@ import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/services/api_service.dart';
+import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
+import 'package:surlequai/services/storage_service.dart';
+import 'package:surlequai/services/timetable_service.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
@@ -37,6 +41,12 @@ class TripProvider with ChangeNotifier {
   // Dependencies
   final SettingsProvider _settingsProvider;
 
+  // Services (Phase 1 : avec mocks, Phase 2 : API réelle)
+  late final ApiService _apiService;
+  late final StorageService _storageService;
+  late final TimetableService _timetableService;
+  late final RealtimeService _realtimeService;
+
   // Public getters - now nullable
   List<Trip> get trips => _trips;
   Trip? get activeTrip => _activeTrip;
@@ -49,10 +59,26 @@ class TripProvider with ChangeNotifier {
   ConnectionStatus get connectionStatus => _connectionStatus;
 
   TripProvider(this._settingsProvider) {
+    // Initialise les services
+    _apiService = ApiService();
+    _storageService = StorageService();
+    _timetableService = TimetableService(
+      apiService: _apiService,
+      storageService: _storageService,
+    );
+    _realtimeService = RealtimeService(
+      apiService: _apiService,
+      timetableService: _timetableService,
+    );
+
     _loadTrips();
   }
 
   Future<void> _loadTrips() async {
+    // Initialise les services (SQLite, etc.)
+    await _storageService.init();
+    await _timetableService.init();
+
     final prefs = await SharedPreferences.getInstance();
     final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
 
@@ -65,7 +91,7 @@ class TripProvider with ChangeNotifier {
 
     if (_trips.isNotEmpty) {
       _activeTrip = _trips.first;
-      _buildViewModels();
+      await _buildViewModels();
       _lastUpdate = DateTime.now();
     }
 
@@ -79,36 +105,28 @@ class TripProvider with ChangeNotifier {
     await prefs.setString(AppConstants.tripsStorageKey, tripsJson);
   }
 
-  void update() {
+  Future<void> update() async {
     if (!isLoading) {
-      _buildViewModels();
+      await _buildViewModels();
       notifyListeners();
     }
   }
 
   /// Rafraîchit les données de départs (temps réel)
   ///
-  /// Pour l'instant, recharge les mock data.
-  /// TODO: Remplacer par un appel API une fois le service API implémenté
+  /// Phase 1 : Utilise RealtimeService avec mock data
+  /// Phase 2 : Fera de vrais appels API SNCF via le service
   Future<void> refreshDepartures() async {
+    if (_activeTrip == null) return;
+
     // Passer en mode synchronisation
     _connectionStatus = ConnectionStatus.syncing;
     notifyListeners();
 
     try {
-      // Simule un délai réseau (à retirer une fois l'API réelle en place)
-      await Future.delayed(AppConstants.mockNetworkDelay);
-
-      // TODO: Une fois l'API implémentée, remplacer par :
-      // final departures = await apiService.fetchDepartures(
-      //   fromStationId: _activeTrip!.stationA.id,
-      //   toStationId: _activeTrip!.stationB.id,
-      // );
-      // _departuresGo = departures;
-      // etc.
-
-      // Pour l'instant, on reconstruit juste les ViewModels avec les mock data
-      _buildViewModels();
+      // Utilise RealtimeService pour obtenir les départs avec temps réel
+      // (Phase 1 : retourne les mocks, Phase 2 : fera le vrai appel API)
+      await _buildViewModels();
       _lastUpdate = DateTime.now();
 
       // Succès : mode online
@@ -132,13 +150,25 @@ class TripProvider with ChangeNotifier {
     }
   }
 
-  void _buildViewModels() {
+  Future<void> _buildViewModels() async {
     if (_activeTrip == null) return;
 
-    final rawDeparturesGo =
-        InitialMockData.departuresData['${_activeTrip!.id}_go'] ?? [];
+    // Phase 1 : RealtimeService utilise les mocks depuis InitialMockData
+    // Phase 2 : RealtimeService fera les vrais appels API
+    final now = DateTime.now();
+
+    final rawDeparturesGo = await _realtimeService.getDeparturesWithRealtime(
+      fromStationId: _activeTrip!.stationA.id,
+      toStationId: _activeTrip!.stationB.id,
+      datetime: now,
+    );
+
     final rawDeparturesReturn =
-        InitialMockData.departuresData['${_activeTrip!.id}_return'] ?? [];
+        await _realtimeService.getDeparturesWithRealtime(
+      fromStationId: _activeTrip!.stationB.id,
+      toStationId: _activeTrip!.stationA.id,
+      datetime: now,
+    );
 
     final goViewModel = _createViewModel(
       title: '${_activeTrip!.stationA.name} → ${_activeTrip!.stationB.name}',
@@ -236,10 +266,10 @@ class TripProvider with ChangeNotifier {
     );
   }
 
-  void setActiveTrip(Trip trip) {
+  Future<void> setActiveTrip(Trip trip) async {
     if (_activeTrip?.id != trip.id) {
       _activeTrip = trip;
-      _buildViewModels();
+      await _buildViewModels();
       notifyListeners();
     }
   }
@@ -257,7 +287,7 @@ class TripProvider with ChangeNotifier {
       _trips[tripIndex] = updatedTrip;
       _activeTrip = updatedTrip;
       await _saveTrips();
-      _buildViewModels();
+      await _buildViewModels();
       notifyListeners();
     }
   }
@@ -326,7 +356,7 @@ class TripProvider with ChangeNotifier {
     // Si le trajet supprimé était le trajet actif, basculer vers le premier
     if (_activeTrip?.id == tripId) {
       _activeTrip = _trips.first;
-      _buildViewModels();
+      await _buildViewModels();
     }
 
     await _saveTrips();

@@ -14,4 +14,20 @@ class Departure {
     this.status = DepartureStatus.offline,
     this.delayMinutes = 0,
   });
+
+  Departure copyWith({
+    String? id,
+    DateTime? scheduledTime,
+    String? platform,
+    DepartureStatus? status,
+    int? delayMinutes,
+  }) {
+    return Departure(
+      id: id ?? this.id,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
+      platform: platform ?? this.platform,
+      status: status ?? this.status,
+      delayMinutes: delayMinutes ?? this.delayMinutes,
+    );
+  }
 }

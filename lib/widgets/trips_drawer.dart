@@ -120,10 +120,12 @@ class TripsDrawer extends StatelessWidget {
               selected: trip.id == activeTrip?.id,
               selectedTileColor:
                   Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              onTap: () {
+              onTap: () async {
                 // Using `read` here as we are in a callback, not the build method
-                context.read<TripProvider>().setActiveTrip(trip);
-                Navigator.pop(context); // Close the drawer
+                await context.read<TripProvider>().setActiveTrip(trip);
+                if (context.mounted) {
+                  Navigator.pop(context); // Close the drawer
+                }
               },
             ),
           const Divider(),
