@@ -157,12 +157,23 @@ class TripProvider with ChangeNotifier {
 
   DirectionCardViewModel _createViewModel(
       {required String title, required List<Departure> departures}) {
-    if (departures.isEmpty) {
+    // Filtrer uniquement les départs futurs
+    final now = DateTime.now();
+    final futureDepartures =
+        departures.where((d) => d.scheduledTime.isAfter(now)).toList();
+
+    // Si aucun départ futur, afficher l'état "Aucun train"
+    if (futureDepartures.isEmpty) {
       return DirectionCardNoDepartures.defaultEmpty(title: title);
     }
 
-    final nextDeparture = departures.first;
-    final subsequentDepartures = departures.skip(1).toList();
+    final nextDeparture = futureDepartures.first;
+
+    // Limiter le nombre de départs suivants à afficher
+    final subsequentDepartures = futureDepartures
+        .skip(1)
+        .take(AppConstants.subsequentDeparturesCount)
+        .toList();
 
     Color statusBarColor;
     String statusText;
