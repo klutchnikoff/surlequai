@@ -21,13 +21,29 @@ class WidgetService {
   static const String _iOSAppGroupId = 'group.com.surlequai.app';
 
   /// Récupère le prochain départ futur dans une liste
+  ///
+  /// Prend en compte le retard pour déterminer le train qui partira réellement en premier.
+  /// Exemple : Si train A (17:00 +30 min) et train B (17:20), affiche train B car il part avant.
   Departure? _getNextDeparture(List<Departure> departures) {
     final now = DateTime.now();
-    try {
-      return departures.firstWhere((d) => d.scheduledTime.isAfter(now));
-    } catch (e) {
-      return null; // Aucun départ futur
-    }
+
+    // Filtrer les trains dont l'heure réelle de départ est dans le futur
+    final futureTrains = departures.where((d) {
+      final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
+      return actualDepartureTime.isAfter(now);
+    }).toList();
+
+    if (futureTrains.isEmpty) return null;
+
+    // Trier par heure réelle de départ (heure prévue + retard)
+    futureTrains.sort((a, b) {
+      final aActual = a.scheduledTime.add(Duration(minutes: a.delayMinutes));
+      final bActual = b.scheduledTime.add(Duration(minutes: b.delayMinutes));
+      return aActual.compareTo(bActual);
+    });
+
+    // Retourner le train qui part réellement le plus tôt
+    return futureTrains.first;
   }
 
   /// Retourne le texte du statut pour affichage

@@ -299,11 +299,19 @@ class TripProvider with ChangeNotifier {
     }
 
     // Filtre les trains "aujourd'hui" (avant la fin de journée de service)
-    final trainsToday = departures
-        .where((d) =>
-            d.scheduledTime.isAfter(now) &&
-            d.scheduledTime.isBefore(endOfServiceDay))
-        .toList();
+    // IMPORTANT : On compare l'heure RÉELLE de départ (heure prévue + retard)
+    final trainsToday = departures.where((d) {
+      final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
+      return actualDepartureTime.isAfter(now) &&
+             d.scheduledTime.isBefore(endOfServiceDay);
+    }).toList();
+
+    // Trier par heure réelle de départ (gère les retards importants)
+    trainsToday.sort((a, b) {
+      final aActual = a.scheduledTime.add(Duration(minutes: a.delayMinutes));
+      final bActual = b.scheduledTime.add(Duration(minutes: b.delayMinutes));
+      return aActual.compareTo(bActual);
+    });
 
     // Filtre les trains "demain" (après la fin de journée de service)
     final trainsTomorrow =
@@ -323,6 +331,7 @@ class TripProvider with ChangeNotifier {
     }
 
     // Cas 3 : Il y a des trains aujourd'hui
+    // Le premier de la liste est celui qui part réellement le plus tôt
     final nextDeparture = trainsToday.first;
 
     // Limiter le nombre de départs suivants à afficher
