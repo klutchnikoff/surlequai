@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/trip.dart';
@@ -22,7 +23,7 @@ class WidgetService {
   static const String _keyDirection2StatusColor = 'direction2_status_color';
   static const String _keyLastUpdate = 'last_update';
 
-  // Nom du widget (Android uniquement) - Juste le nom de la classe (package ajouté auto)
+  // Nom du widget (Android uniquement) - Nom de la classe
   static const String _androidWidgetName = 'SurLeQuaiWidgetProvider';
 
   // Nom du App Group (iOS uniquement)
@@ -40,9 +41,6 @@ class WidgetService {
     required String direction2Title,
   }) async {
     try {
-      // ignore: avoid_print
-      print('📱 WidgetService.updateWidget called');
-
       // Configure le App Group pour iOS
       await HomeWidget.setAppGroupId(_iOSAppGroupId);
 
@@ -50,13 +48,9 @@ class WidgetService {
       final tripName =
           '${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}';
       await HomeWidget.saveWidgetData<String>(_keyTripName, tripName);
-      // ignore: avoid_print
-      print('   Trip name: $tripName');
 
       // Direction 1 (premier train futur)
       final nextDep1 = _getNextDeparture(departuresGo);
-      // ignore: avoid_print
-      print('   Direction 1: ${nextDep1 != null ? "Train found" : "No train"}');
       if (nextDep1 != null) {
         final time = TimeFormatter.formatTime(nextDep1.scheduledTime);
         final platform = 'Voie ${nextDep1.platform}';
@@ -70,9 +64,6 @@ class WidgetService {
         await HomeWidget.saveWidgetData<String>(_keyDirection1Status, status);
         await HomeWidget.saveWidgetData<String>(
             _keyDirection1StatusColor, statusColor);
-
-        // ignore: avoid_print
-        print('      $direction1Title - $time - $platform - $status ($statusColor)');
       } else {
         await HomeWidget.saveWidgetData<String>(
             _keyDirection1Title, direction1Title);
@@ -82,15 +73,10 @@ class WidgetService {
             _keyDirection1Status, 'Aucun train');
         await HomeWidget.saveWidgetData<String>(
             _keyDirection1StatusColor, 'secondary');
-
-        // ignore: avoid_print
-        print('      $direction1Title - No train available');
       }
 
       // Direction 2
       final nextDep2 = _getNextDeparture(departuresReturn);
-      // ignore: avoid_print
-      print('   Direction 2: ${nextDep2 != null ? "Train found" : "No train"}');
       if (nextDep2 != null) {
         final time = TimeFormatter.formatTime(nextDep2.scheduledTime);
         final platform = 'Voie ${nextDep2.platform}';
@@ -104,9 +90,6 @@ class WidgetService {
         await HomeWidget.saveWidgetData<String>(_keyDirection2Status, status);
         await HomeWidget.saveWidgetData<String>(
             _keyDirection2StatusColor, statusColor);
-
-        // ignore: avoid_print
-        print('      $direction2Title - $time - $platform - $status ($statusColor)');
       } else {
         await HomeWidget.saveWidgetData<String>(
             _keyDirection2Title, direction2Title);
@@ -116,9 +99,6 @@ class WidgetService {
             _keyDirection2Status, 'Aucun train');
         await HomeWidget.saveWidgetData<String>(
             _keyDirection2StatusColor, 'secondary');
-
-        // ignore: avoid_print
-        print('      $direction2Title - No train available');
       }
 
       // Timestamp de la dernière mise à jour
@@ -127,18 +107,14 @@ class WidgetService {
           _keyLastUpdate, TimeFormatter.formatTime(now));
 
       // Déclenche le refresh du widget natif
-      // ignore: avoid_print
-      print('   Triggering native widget update...');
       await HomeWidget.updateWidget(
         androidName: _androidWidgetName,
         iOSName: 'SurLeQuaiWidget',
       );
-      // ignore: avoid_print
-      print('📱 Widget update completed');
     } catch (e) {
-      // Log l'erreur (en production, utiliser un logger)
-      // ignore: avoid_print
-      print('❌ Erreur lors de la mise à jour du widget : $e');
+      // En cas d'erreur, on ignore silencieusement
+      // Le widget continuera d'afficher les anciennes données
+      debugPrint('Erreur lors de la mise à jour du widget : $e');
     }
   }
 

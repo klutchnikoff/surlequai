@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/screens/home_screen.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/theme/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure le widget callback
+  await HomeWidget.setAppGroupId('group.com.surlequai.app');
+
   runApp(
     MultiProvider(
       providers: [

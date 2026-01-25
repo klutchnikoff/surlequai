@@ -43,15 +43,15 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
 
         // Nom du trajet
-        val tripName = prefs.getString("flutter.trip_name", "SurLeQuai") ?: "SurLeQuai"
+        val tripName = prefs.getString("trip_name", "SurLeQuai") ?: "SurLeQuai"
         views.setTextViewText(R.id.widget_trip_name, tripName)
 
         // Direction 1
-        val dir1Title = prefs.getString("flutter.direction1_title", "Direction 1") ?: "Direction 1"
-        val dir1Time = prefs.getString("flutter.direction1_time", "__:__") ?: "__:__"
-        val dir1Platform = prefs.getString("flutter.direction1_platform", "") ?: ""
-        val dir1Status = prefs.getString("flutter.direction1_status", "") ?: ""
-        val dir1StatusColor = prefs.getString("flutter.direction1_status_color", "secondary") ?: "secondary"
+        val dir1Title = prefs.getString("direction1_title", "Direction 1") ?: "Direction 1"
+        val dir1Time = prefs.getString("direction1_time", "__:__") ?: "__:__"
+        val dir1Platform = prefs.getString("direction1_platform", "") ?: ""
+        val dir1Status = prefs.getString("direction1_status", "") ?: ""
+        val dir1StatusColor = prefs.getString("direction1_status_color", "secondary") ?: "secondary"
 
         views.setTextViewText(R.id.widget_direction1_title, dir1Title)
         views.setTextViewText(R.id.widget_direction1_time, dir1Time)
@@ -61,11 +61,11 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.widget_direction1_status, getStatusColor(dir1StatusColor))
 
         // Direction 2
-        val dir2Title = prefs.getString("flutter.direction2_title", "Direction 2") ?: "Direction 2"
-        val dir2Time = prefs.getString("flutter.direction2_time", "__:__") ?: "__:__"
-        val dir2Platform = prefs.getString("flutter.direction2_platform", "") ?: ""
-        val dir2Status = prefs.getString("flutter.direction2_status", "") ?: ""
-        val dir2StatusColor = prefs.getString("flutter.direction2_status_color", "secondary") ?: "secondary"
+        val dir2Title = prefs.getString("direction2_title", "Direction 2") ?: "Direction 2"
+        val dir2Time = prefs.getString("direction2_time", "__:__") ?: "__:__"
+        val dir2Platform = prefs.getString("direction2_platform", "") ?: ""
+        val dir2Status = prefs.getString("direction2_status", "") ?: ""
+        val dir2StatusColor = prefs.getString("direction2_status_color", "secondary") ?: "secondary"
 
         views.setTextViewText(R.id.widget_direction2_title, dir2Title)
         views.setTextViewText(R.id.widget_direction2_time, dir2Time)
@@ -75,7 +75,7 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.widget_direction2_status, getStatusColor(dir2StatusColor))
 
         // Dernière mise à jour
-        val lastUpdate = prefs.getString("flutter.last_update", "—") ?: "—"
+        val lastUpdate = prefs.getString("last_update", "—") ?: "—"
         views.setTextViewText(R.id.widget_last_update, "Mis à jour: $lastUpdate")
 
         // Configure le tap pour ouvrir l'app

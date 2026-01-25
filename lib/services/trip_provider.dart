@@ -212,23 +212,8 @@ class TripProvider with ChangeNotifier {
     if (_activeTrip == null ||
         _directionGoViewModel == null ||
         _directionReturnViewModel == null) {
-      // ignore: avoid_print
-      print('🔴 Widget update skipped - null data');
       return;
     }
-
-    // ignore: avoid_print
-    print('🟢 Updating widget with:');
-    // ignore: avoid_print
-    print('   Trip: ${_activeTrip!.stationA.name} ⟷ ${_activeTrip!.stationB.name}');
-    // ignore: avoid_print
-    print('   Dir1: ${_directionGoViewModel!.title}');
-    // ignore: avoid_print
-    print('   Dir2: ${_directionReturnViewModel!.title}');
-    // ignore: avoid_print
-    print('   Departures Go: ${_departuresGo.length}');
-    // ignore: avoid_print
-    print('   Departures Return: ${_departuresReturn.length}');
 
     await _widgetService.updateWidget(
       activeTrip: _activeTrip!,
@@ -237,9 +222,6 @@ class TripProvider with ChangeNotifier {
       direction1Title: _directionGoViewModel!.title,
       direction2Title: _directionReturnViewModel!.title,
     );
-
-    // ignore: avoid_print
-    print('✅ Widget updated successfully');
   }
 
   bool _shouldSwapOrder() {
@@ -247,9 +229,14 @@ class TripProvider with ChangeNotifier {
 
     final hour = DateTime.now().hour;
     final splitTime = _settingsProvider.morningEveningSplitTime;
+    final dayStartTime = _settingsProvider.serviceDayStartTime;
 
+    // Considère comme "soirée" :
+    // - Entre splitTime (13h) et serviceDayEndHour (22h)
+    // - OU entre minuit et dayStartTime (4h) car encore dans la journée de service précédente
     final isEvening =
-        hour >= splitTime && hour < AppConstants.serviceDayEndHour;
+        (hour >= splitTime && hour < AppConstants.serviceDayEndHour) ||
+            (hour >= 0 && hour < dayStartTime);
 
     if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
       return true;
@@ -263,20 +250,49 @@ class TripProvider with ChangeNotifier {
 
   DirectionCardViewModel _createViewModel(
       {required String title, required List<Departure> departures}) {
-    // Filtrer uniquement les départs futurs
     final now = DateTime.now();
-    final futureDepartures =
-        departures.where((d) => d.scheduledTime.isAfter(now)).toList();
+    final dayStartTime = _settingsProvider.serviceDayStartTime;
 
-    // Si aucun départ futur, afficher l'état "Aucun train"
-    if (futureDepartures.isEmpty) {
+    // Calcule la fin de la "journée de service actuelle"
+    DateTime endOfServiceDay;
+    if (now.hour < dayStartTime) {
+      // Entre minuit et dayStartTime (ex: 1h du matin)
+      // → La journée de service se termine à dayStartTime (4h)
+      endOfServiceDay = DateTime(now.year, now.month, now.day, dayStartTime);
+    } else {
+      // Après dayStartTime → journée se termine à serviceDayEndHour (22h)
+      endOfServiceDay = DateTime(now.year, now.month, now.day, AppConstants.serviceDayEndHour);
+    }
+
+    // Filtre les trains "aujourd'hui" (avant la fin de journée de service)
+    final trainsToday = departures
+        .where((d) =>
+            d.scheduledTime.isAfter(now) &&
+            d.scheduledTime.isBefore(endOfServiceDay))
+        .toList();
+
+    // Filtre les trains "demain" (après la fin de journée de service)
+    final trainsTomorrow =
+        departures.where((d) => d.scheduledTime.isAfter(endOfServiceDay)).toList();
+
+    // Cas 1 : Aucun train aujourd'hui, mais il y en a demain
+    if (trainsToday.isEmpty && trainsTomorrow.isNotEmpty) {
+      return DirectionCardNoDepartures.nextTrainTomorrow(
+        title: title,
+        tomorrowTime: TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime),
+      );
+    }
+
+    // Cas 2 : Aucun train du tout
+    if (trainsToday.isEmpty && trainsTomorrow.isEmpty) {
       return DirectionCardNoDepartures.defaultEmpty(title: title);
     }
 
-    final nextDeparture = futureDepartures.first;
+    // Cas 3 : Il y a des trains aujourd'hui
+    final nextDeparture = trainsToday.first;
 
     // Limiter le nombre de départs suivants à afficher
-    final subsequentDepartures = futureDepartures
+    final subsequentDepartures = trainsToday
         .skip(1)
         .take(AppConstants.subsequentDeparturesCount)
         .toList();

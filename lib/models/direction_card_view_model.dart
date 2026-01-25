@@ -51,4 +51,17 @@ class DirectionCardNoDepartures extends DirectionCardViewModel {
       noTrainStatusColor: AppColors.secondary,
     );
   }
+
+  factory DirectionCardNoDepartures.nextTrainTomorrow({
+    required String title,
+    required String tomorrowTime,
+  }) {
+    return DirectionCardNoDepartures(
+      title: title,
+      statusBarColor: AppColors.secondary,
+      noTrainTimeDisplay: '__ : __',
+      noTrainStatusDisplay: 'Aucun train aujourd\'hui\nPremier train demain: $tomorrowTime',
+      noTrainStatusColor: AppColors.secondary,
+    );
+  }
 }
