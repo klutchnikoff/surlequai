@@ -95,7 +95,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await HomeWidget.setAppGroupId('group.com.surlequai.app');
-  await HomeWidget.registerBackgroundCallback(backgroundCallback);
+  await HomeWidget.registerInteractivityCallback(backgroundCallback);
 
   runApp(
     MultiProvider(
