@@ -45,14 +45,6 @@ class AppConstants {
   /// Heure de fin de la journée de service (après, on affiche les trains du lendemain)
   static const int serviceDayEndHour = 22;
 
-  /// === NOTIFICATIONS ===
-
-  /// Délai par défaut avant le départ pour notification (en minutes)
-  static const int defaultNotificationMinutesBefore = 10;
-
-  /// Délais disponibles pour les notifications (en minutes)
-  static const List<int> notificationMinutesOptions = [5, 10, 15, 20];
-
   /// === INTERFACE UTILISATEUR ===
 
   /// Durée des animations rapides (transitions légères)

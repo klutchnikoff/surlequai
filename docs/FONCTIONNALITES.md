@@ -128,13 +128,10 @@ Accessible via icône `☰` en haut à gauche.
 ├──────────────────────────┤
 │                          │
 │ ▶ Rennes ⟷ Nantes       │ ← Actif (flèche)
-│   14:12 dans 23 min      │ ← Info prochain
 │                          │
 │   Paris ⟷ Lyon          │
-│   16:30 dans 2h15        │
 │                          │
 │   Bordeaux ⟷ Toulouse   │
-│   --:--                  │ ← Pas d'horaire dispo
 │                          │
 ├──────────────────────────┤
 │                          │
@@ -147,8 +144,8 @@ Accessible via icône `☰` en haut à gauche.
 - Tap sur trajet → Bascule sur ce trajet (écran principal se met à jour)
 - Long press → Menu : Modifier / Supprimer
 - Swipe gauche → Suppression rapide
-- Info prochain train pour chaque trajet (aperçu rapide)
 - Maximum 10 trajets favoris (pour garder simple)
+- Interface épurée : pas d'info supplémentaire pour éviter la surcharge visuelle
 
 **Ajout d'un trajet** :
 1. Tap sur "+ Ajouter un trajet"
@@ -290,7 +287,7 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 
 ---
 
-### 5. Widget écran d'accueil ⭐⭐ SHOULD-HAVE
+### 5. Widget écran d'accueil ⭐⭐⭐ MUST-HAVE
 
 #### Widget Android/iOS
 
@@ -312,16 +309,65 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 ```
 
 **Comportement** :
-- Affiche le trajet actif (celui sélectionné dans le drawer)
-- Mise à jour toutes les 5-10 minutes (économie batterie)
 - Tap sur widget → Ouvre l'app
 - Tap sur une direction → Ouvre l'app avec modal horaires de cette direction
 
-**Gestion multi-trajets** :
-- Option 1 : Widget affiche le trajet marqué comme "favori principal"
-- Option 2 : Un widget par trajet (l'utilisateur en ajoute plusieurs)
+#### Widgets multiples ⭐⭐⭐ MUST-HAVE
 
-**Recommandation** : Option 1 pour v1.0 (simple)
+**Fonctionnalité** :
+- L'utilisateur peut ajouter **plusieurs widgets** sur son écran d'accueil
+- Chaque widget affiche un trajet différent parmi les trajets favoris
+- **Cas d'usage** : Trajet avec correspondance (ex: Bruz → Rennes + Rennes → Betton)
+
+**Configuration** :
+- Lors de l'ajout d'un widget, une **Activity de configuration** s'affiche
+- L'utilisateur choisit quel trajet ce widget doit afficher
+- Chaque widget conserve sa configuration de manière indépendante
+
+**Implémentation Android** :
+- Utilisation de `appWidgetId` pour identifier chaque instance
+- Stockage : `widget_{appWidgetId}_trip_id` → "trip-uuid-xxx"
+- Configuration Activity Android standard
+
+#### Stratégie de rafraîchissement intelligente ⭐⭐⭐ MUST-HAVE
+
+**Principe** : Économie de batterie maximale tout en ayant les infos quand il faut.
+
+**Logique de rafraîchissement** :
+
+1. **Après le départ du train** (heure H passée) :
+   - Pas de rafraîchissement jusqu'à **H-20** du prochain train
+   - Économie batterie maximale pendant les périodes creuses
+
+2. **Approche du prochain départ** :
+   ```
+   H-20 min : Rafraîchissement (premier check)
+   H-15 min : Rafraîchissement
+   H-10 min : Rafraîchissement
+   H-5 min  : Rafraîchissement
+   H (départ) : Rafraîchissement final
+   ```
+
+3. **Gestion des retards** :
+   - Si retard détecté : H ← H + retard prévu
+   - Exemple : Train prévu 14:12, retard +5min → H = 14:17
+   - Les rafraîchissements s'adaptent : H-20 = 13:57, H-15 = 14:02, etc.
+
+4. **Cas particuliers** :
+   - **Nuit** (0h-5h) : Pas de rafraîchissement (pas de trains)
+   - **Dernier train passé** : Pas de rafraîchissement jusqu'au lendemain matin
+   - **Aucun train** : Rafraîchissement uniquement à H-20 du prochain train (même si c'est demain)
+
+**Avantages** :
+- ✅ Batterie économisée (pas de poll constant)
+- ✅ Infos fraîches quand l'utilisateur en a besoin
+- ✅ Adaptation dynamique aux retards
+- ✅ Expérience utilisateur optimale
+
+**Implémentation technique** :
+- Utilisation de `WorkManager` (Android) pour planification dynamique
+- Calcul du prochain rafraîchissement à chaque update
+- Annulation/reprogrammation automatique selon le contexte
 
 **Indicateurs visuels** :
 - Pastilles colorées 🟢🟠🔴🔵 selon état
@@ -648,14 +694,6 @@ Response:
 │                                     │
 ├─────────────────────────────────────┤
 │                                     │
-│ NOTIFICATIONS (optionnel v1.0)      │
-│                                     │
-│ Alerte départ imminent              │
-│ [ ] Activer                         │
-│     M'alerter [10] min avant        │
-│                                     │
-├─────────────────────────────────────┤
-│                                     │
 │ INTERFACE                           │
 │                                     │
 │ Retour haptique                     │
@@ -725,15 +763,6 @@ Response:
 
 **Valeur par défaut** : 60 secondes
 
-#### Notifications (optionnel v1.0)
-
-Si implémenté :
-- Désactivé par défaut
-- Alerte X minutes avant le départ
-- Valeurs : 5, 10, 15, 20 minutes
-- Notification silencieuse (vibration uniquement)
-- Pas de notification si l'app est ouverte
-
 #### Retour haptique
 - Activé par défaut
 - Vibrations légères sur interactions (tap, swipe, etc.)
@@ -741,36 +770,39 @@ Si implémenté :
 
 ---
 
-## 🔔 Notifications (optionnel v1.0)
+## 🚨 Informations de trafic (optionnel, à explorer)
 
-### Notification de départ imminent
+### Perturbations et incidents
 
-**Déclenchement** :
-- X minutes avant le prochain train du trajet actif
-- Uniquement si l'app est en arrière-plan (pas si ouverte)
-- Uniquement pour la direction pertinente selon l'heure
+L'API Navitia (base de l'API SNCF) fournit des informations sur les perturbations en temps réel.
 
-**Contenu** :
+**Endpoint** : `/disruptions` ou `/traffic_reports`
+
+**Types d'informations disponibles** :
+- Travaux prévus sur la ligne
+- Incidents en cours
+- Messages d'information voyageurs
+- Perturbations sur le réseau
+
+### Affichage potentiel
+
+**Bandeau d'information** (si perturbation affectant le trajet actif) :
 ```
-🚂 Train dans 10 min
-
-Rennes → Nantes
-14:12 - Voie 3
-À l'heure
+┌─────────────────────────────────────┐
+│ ⚠ Trafic perturbé                   │
+│   Travaux sur la ligne - Retards    │
+│   possibles de 10 à 15 min          │
+│   [Plus d'infos]                    │
+└─────────────────────────────────────┘
 ```
 
-**Actions rapides** (Android) :
-- [Voir tous les horaires] → Ouvre app
-- [Ignorer]
+**Principe** :
+- Affichage uniquement si perturbation significative
+- Lien vers détails (modal ou navigateur)
+- Pas de spam d'informations mineures
+- Respect de la philosophie minimaliste
 
-**Comportement** :
-- Vibration uniquement (pas de son)
-- Une seule notification (pas de spam)
-- Annulée si l'utilisateur ouvre l'app
-
-**Configuration** :
-- Opt-in (désactivé par défaut)
-- Choix du délai : 5, 10, 15, 20 minutes
+**Note** : À implémenter après la mise en production des fonctionnalités core, car ajoute de la complexité. L'application doit d'abord fonctionner parfaitement sans ces infos.
 
 ---
 
@@ -1044,45 +1076,47 @@ id = "..."
 ### Must-Have (Priorité absolue)
 
 #### Interface
-- [ ] Écran principal avec 2 directions
-- [ ] États visuels (vert/orange/rouge/bleu)
-- [ ] Bandeau hors connexion
-- [ ] Indicateur "Mis à jour il y a X" ⭐⭐⭐
-- [ ] État "Aucun train" ⭐⭐⭐
-- [ ] Mode sombre + clair
-- [ ] Animations transitions ⭐⭐
+- [x] Écran principal avec 2 directions **FAIT**
+- [x] États visuels (vert/orange/rouge/bleu) **FAIT**
+- [x] Bandeau hors connexion **FAIT**
+- [x] Indicateur "Mis à jour il y a X" ⭐⭐⭐ **FAIT**
+- [x] État "Aucun train" ⭐⭐⭐ **FAIT**
+- [x] Mode sombre + clair **FAIT**
+- [x] Animations transitions ⭐⭐ **FAIT**
 
 #### Multi-trajets
-- [ ] Drawer latéral
-- [ ] Ajout/suppression trajets
-- [ ] Info prochain train par trajet
-- [ ] Changement trajet actif
+- [x] Drawer latéral **FAIT**
+- [x] Ajout/suppression trajets **FAIT**
+- [x] Changement trajet actif **FAIT**
+- [x] Interface épurée (pas d'info supplémentaire dans drawer) **FAIT**
 
 #### Modal
-- [ ] Modal horaires complets
-- [ ] Scroll vers prochain train
-- [ ] Horaires passés grisés
+- [x] Modal horaires complets **FAIT**
+- [x] Scroll vers prochain train **FAIT**
+- [x] Horaires passés grisés **FAIT**
 
 #### Données
-- [ ] Cache SQLite horaires théoriques
-- [ ] API temps réel
-- [ ] Mode hors-ligne
+- [ ] Cache SQLite horaires théoriques (infrastructure prête, en attente clé API)
+- [ ] API temps réel (infrastructure prête avec mocks, en attente clé API SNCF)
+- [x] Mode hors-ligne **FAIT**
 - [ ] Détection version grille
-- [ ] Rafraîchissement auto
+- [x] Rafraîchissement auto **FAIT**
 
 #### Ordre auto ⭐⭐⭐
-- [ ] Détection plage horaire
-- [ ] Inversion auto matin/soir
-- [ ] Configuration personnalisée
+- [x] Détection plage horaire **FAIT**
+- [x] Inversion auto matin/soir **FAIT**
+- [x] Configuration personnalisée **FAIT**
 
 #### Gestes
-- [ ] Pull-to-refresh
-- [ ] Feedback haptique ⭐⭐
+- [x] Pull-to-refresh **FAIT**
+- [x] Feedback haptique ⭐⭐ **FAIT**
 
 ### Should-Have (Important mais pas bloquant)
 
-- [ ] Widget écran d'accueil ⭐⭐
-- [ ] Notifications départ imminent (opt-in)
+- [x] Widget écran d'accueil ⭐⭐ **FAIT**
+- [ ] Widget multiples configurables ⭐⭐⭐ **MUST-HAVE** (un widget par trajet)
+- [ ] Stratégie rafraîchissement intelligente widget ⭐⭐⭐ **MUST-HAVE**
+- [ ] Informations de trafic (perturbations via API Navitia)
 
 ### Nice-to-Have (Bonus si temps)
 
@@ -1091,37 +1125,59 @@ id = "..."
 
 ---
 
-## 🚀 Prochaines étapes immédiates
+## 🚀 Prochaines étapes
 
-1. **Setup projet Flutter**
-   - Créer projet
-   - Configurer dépendances
-   - Structure de dossiers
+### En attente de clé API SNCF
 
-2. **Tests API SNCF**
-   - Créer compte API
-   - Obtenir clé
-   - Tester endpoints
-   - Identifier codes gares
+**Statut** : Demande de clé API en cours de traitement
 
-3. **Déployer proxy Cloudflare**
-   - Setup Worker
-   - Implémenter endpoints
-   - Tester rate limiting
+Une fois la clé obtenue :
+1. **Intégrer API SNCF réelle**
+   - Configurer clé dans proxy Cloudflare
+   - Tester endpoints temps réel
+   - Remplacer mocks par vraies données
 
-4. **Prototyper UI**
-   - Écran principal (mock data)
-   - Drawer
-   - Modal
-   - Valider gestes
+2. **Cache SQLite production**
+   - Télécharger grilles horaires GTFS
+   - Import dans SQLite
+   - Détection de nouvelles versions
 
-5. **Implémenter cache**
-   - Setup SQLite
-   - Import grille horaire
-   - Requêtes optimisées
+### Développement possible sans API
+
+**Priorité MUST-HAVE** (fonctionnalités essentielles) :
+
+1. **Widget multiples configurables** ⭐⭐⭐ (3-4h)
+   - Configuration Activity Android
+   - Sélection du trajet à afficher par widget
+   - Support multi-instances
+   - **Cas d'usage** : Trajets avec correspondance (ex: Bruz → Rennes + Rennes → Betton)
+
+2. **Stratégie rafraîchissement intelligente** ⭐⭐⭐ (3-4h)
+   - Logique H-20, H-15, H-10, H-5, H
+   - Adaptation dynamique aux retards (H ← H + retard)
+   - Pause après départ jusqu'à H-20 du prochain
+   - WorkManager pour planification
+   - **Impact** : Économie batterie maximale + UX optimale
+
+**Priorité Nice-to-Have** :
+
+3. **Shake to refresh** (30min)
+   - Détection du geste
+   - Feedback haptique
+   - Quick win sympathique
+
+4. **Informations de trafic** (exploration, 2-3h)
+   - Étudier API Navitia disruptions
+   - Design de l'affichage
+   - Implémentation si temps
+
+5. **Polish & optimisations**
+   - Mode tablette/paysage
+   - Tests unitaires
+   - Documentation code
 
 ---
 
-**Document à jour au** : 23 janvier 2026
+**Document à jour au** : 25 janvier 2026
 **Auteur** : Nicolas
-**Version** : 1.0
+**Version** : 1.1 (état des lieux post-développement UI)

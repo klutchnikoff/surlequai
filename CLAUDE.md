@@ -492,7 +492,8 @@ Prochaine étape suggérée : [Y]
 
 **Should-Have (important)** :
 - Widget écran d'accueil
-- Notifications départ imminent (opt-in)
+- Widget multiples configurables
+- Informations de trafic (perturbations)
 
 **Nice-to-Have (bonus)** :
 - Shake to refresh
