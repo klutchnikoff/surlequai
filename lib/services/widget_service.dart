@@ -44,10 +44,8 @@ class WidgetService {
       // Configure le App Group pour iOS
       await HomeWidget.setAppGroupId(_iOSAppGroupId);
 
-      // Nom du trajet
-      final tripName =
-          '${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}';
-      await HomeWidget.saveWidgetData<String>(_keyTripName, tripName);
+      // Nom de l'app (branding)
+      await HomeWidget.saveWidgetData<String>(_keyTripName, 'SurLeQuai');
 
       // Direction 1 (premier train futur)
       final nextDep1 = _getNextDeparture(departuresGo);
