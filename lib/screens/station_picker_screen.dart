@@ -92,7 +92,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
                       children: [
                         const Icon(Icons.search_off, size: 64),
                         const SizedBox(height: 16),
-                        Text(
+                        const Text(
                           'Aucune gare trouvée',
                           style: AppTextStyles.medium,
                         ),

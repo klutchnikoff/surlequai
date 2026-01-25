@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_service.dart';
@@ -93,8 +94,7 @@ class TimetableService {
       return true;
     } catch (e) {
       // Log l'erreur (en production, on utiliserait un logger)
-      // ignore: avoid_print
-      print('Erreur lors du téléchargement de la grille : $e');
+      debugPrint('Erreur lors du téléchargement de la grille : $e');
       return false;
     }
   }
