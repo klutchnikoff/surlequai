@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/screens/home_screen.dart';
@@ -26,8 +27,48 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  static const platform = MethodChannel('com.surlequai.app/widget');
+
+  @override
+  void initState() {
+    super.initState();
+    _setupWidgetTapHandler();
+  }
+
+  /// Configure le handler pour basculer vers un trajet quand on tap sur un widget
+  void _setupWidgetTapHandler() {
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'switchToTrip') {
+        final tripId = call.arguments as String?;
+        if (tripId != null) {
+          _switchToTrip(tripId);
+        }
+      }
+    });
+  }
+
+  /// Bascule vers le trajet correspondant au tripId
+  void _switchToTrip(String tripId) {
+    // Récupérer le TripProvider depuis le context
+    final tripProvider = context.read<TripProvider>();
+
+    // Trouver le trajet correspondant au tripId
+    final trip = tripProvider.trips.firstWhere(
+      (t) => t.id == tripId,
+      orElse: () => tripProvider.trips.first,
+    );
+
+    // Basculer vers ce trajet
+    tripProvider.setActiveTrip(trip);
+  }
 
   @override
   Widget build(BuildContext context) {

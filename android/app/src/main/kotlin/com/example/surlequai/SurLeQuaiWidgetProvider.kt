@@ -19,6 +19,20 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+
+        // Nettoyer la configuration des widgets supprimés
+        val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+
+        for (appWidgetId in appWidgetIds) {
+            editor.remove("widget_${appWidgetId}_trip_id")
+        }
+
+        editor.apply()
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
@@ -32,7 +46,7 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun updateAppWidget(
+    fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
@@ -42,16 +56,40 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         // Récupère les données depuis SharedPreferences (écrites par Flutter via home_widget)
         val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
 
-        // Nom du trajet
-        val tripName = prefs.getString("trip_name", "SurLeQuai") ?: "SurLeQuai"
+        // Récupérer l'ID du trajet configuré pour ce widget spécifique
+        val tripId = prefs.getString("widget_${appWidgetId}_trip_id", null)
+
+        if (tripId == null) {
+            // Widget pas encore configuré (ne devrait pas arriver car config obligatoire)
+            // ou trajet supprimé
+            views.setTextViewText(R.id.widget_trip_name, "SurLeQuai")
+            views.setTextViewText(R.id.widget_direction1_title, "—")
+            views.setTextViewText(R.id.widget_direction1_time, "__:__")
+            views.setTextViewText(R.id.widget_direction1_platform, "")
+            views.setTextViewText(R.id.widget_direction1_status, "")
+            views.setTextViewText(R.id.widget_direction1_emoji, "")
+            views.setTextViewText(R.id.widget_direction2_title, "—")
+            views.setTextViewText(R.id.widget_direction2_time, "__:__")
+            views.setTextViewText(R.id.widget_direction2_platform, "")
+            views.setTextViewText(R.id.widget_direction2_status, "")
+            views.setTextViewText(R.id.widget_direction2_emoji, "")
+            views.setTextViewText(R.id.widget_last_update, "Non configuré")
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+            return
+        }
+
+        // Charger les données de ce trajet spécifique
+        // Format de la clé : "trip_{tripId}_..."
+        val tripName = prefs.getString("trip_${tripId}_name", "SurLeQuai") ?: "SurLeQuai"
         views.setTextViewText(R.id.widget_trip_name, tripName)
 
         // Direction 1
-        val dir1Title = prefs.getString("direction1_title", "Direction 1") ?: "Direction 1"
-        val dir1Time = prefs.getString("direction1_time", "__:__") ?: "__:__"
-        val dir1Platform = prefs.getString("direction1_platform", "") ?: ""
-        val dir1Status = prefs.getString("direction1_status", "") ?: ""
-        val dir1StatusColor = prefs.getString("direction1_status_color", "secondary") ?: "secondary"
+        val dir1Title = prefs.getString("trip_${tripId}_direction1_title", "Direction 1") ?: "Direction 1"
+        val dir1Time = prefs.getString("trip_${tripId}_direction1_time", "__:__") ?: "__:__"
+        val dir1Platform = prefs.getString("trip_${tripId}_direction1_platform", "") ?: ""
+        val dir1Status = prefs.getString("trip_${tripId}_direction1_status", "") ?: ""
+        val dir1StatusColor = prefs.getString("trip_${tripId}_direction1_status_color", "secondary") ?: "secondary"
 
         views.setTextViewText(R.id.widget_direction1_title, dir1Title)
         views.setTextViewText(R.id.widget_direction1_time, dir1Time)
@@ -61,11 +99,11 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.widget_direction1_status, getStatusColor(dir1StatusColor))
 
         // Direction 2
-        val dir2Title = prefs.getString("direction2_title", "Direction 2") ?: "Direction 2"
-        val dir2Time = prefs.getString("direction2_time", "__:__") ?: "__:__"
-        val dir2Platform = prefs.getString("direction2_platform", "") ?: ""
-        val dir2Status = prefs.getString("direction2_status", "") ?: ""
-        val dir2StatusColor = prefs.getString("direction2_status_color", "secondary") ?: "secondary"
+        val dir2Title = prefs.getString("trip_${tripId}_direction2_title", "Direction 2") ?: "Direction 2"
+        val dir2Time = prefs.getString("trip_${tripId}_direction2_time", "__:__") ?: "__:__"
+        val dir2Platform = prefs.getString("trip_${tripId}_direction2_platform", "") ?: ""
+        val dir2Status = prefs.getString("trip_${tripId}_direction2_status", "") ?: ""
+        val dir2StatusColor = prefs.getString("trip_${tripId}_direction2_status_color", "secondary") ?: "secondary"
 
         views.setTextViewText(R.id.widget_direction2_title, dir2Title)
         views.setTextViewText(R.id.widget_direction2_time, dir2Time)
@@ -75,13 +113,22 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.widget_direction2_status, getStatusColor(dir2StatusColor))
 
         // Dernière mise à jour
-        val lastUpdate = prefs.getString("last_update", "—") ?: "—"
+        val lastUpdate = prefs.getString("trip_${tripId}_last_update", "—") ?: "—"
         views.setTextViewText(R.id.widget_last_update, "Mis à jour: $lastUpdate")
 
-        // Configure le tap pour ouvrir l'app
-        val intent = Intent(context, MainActivity::class.java)
+        // Configure le tap pour ouvrir l'app ET basculer vers ce trajet
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            // Passer le tripId dans l'Intent
+            putExtra("widget_trip_id", tripId)
+        }
+
+        // Utiliser appWidgetId comme requestCode pour différencier les PendingIntents
         val pendingIntent = android.app.PendingIntent.getActivity(
-            context, 0, intent,
+            context,
+            appWidgetId,
+            intent,
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)

@@ -7,16 +7,16 @@
     android:padding="16dp"
     android:background="@android:color/white">
 
-    <!-- Header -->
+    <!-- Header - Nom du trajet -->
     <TextView
         android:id="@+id/widget_trip_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SurLeQuai"
-        android:textSize="12sp"
+        android:text="Rennes ⟷ Nantes"
+        android:textSize="13sp"
         android:textStyle="bold"
-        android:textColor="#6B7280"
-        android:paddingBottom="8dp" />
+        android:textColor="#374151"
+        android:paddingBottom="12dp" />
 
     <!-- Direction 1 -->
     <LinearLayout
@@ -25,62 +25,66 @@
         android:orientation="vertical"
         android:paddingBottom="12dp">
 
+        <!-- Titre direction -->
         <TextView
             android:id="@+id/widget_direction1_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Rennes → Nantes"
-            android:textSize="11sp"
-            android:textColor="#9CA3AF"
+            android:text="→ Nantes"
+            android:textSize="12sp"
+            android:textColor="#6B7280"
             android:paddingBottom="4dp" />
 
-        <LinearLayout
+        <!-- Info sur une ligne -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content">
 
+            <!-- Heure à gauche -->
             <TextView
                 android:id="@+id/widget_direction1_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
                 android:text="14:12"
-                android:textSize="24sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#111827" />
 
+            <!-- Emoji + Statut au milieu -->
             <TextView
                 android:id="@+id/widget_direction1_emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/widget_direction1_time"
+                android:layout_marginStart="10dp"
                 android:text="🟢"
-                android:textSize="18sp"
-                android:paddingLeft="8dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="4dp">
-
-            <TextView
-                android:id="@+id/widget_direction1_platform"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Voie 3"
-                android:textSize="11sp"
-                android:textColor="#6B7280"
-                android:paddingRight="12dp" />
+                android:textSize="16sp"
+                android:layout_centerVertical="true" />
 
             <TextView
                 android:id="@+id/widget_direction1_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/widget_direction1_emoji"
+                android:layout_marginStart="6dp"
                 android:text="À l'heure"
-                android:textSize="11sp"
-                android:textColor="#22C55E" />
-        </LinearLayout>
+                android:textSize="12sp"
+                android:textColor="#22C55E"
+                android:layout_centerVertical="true" />
+
+            <!-- Voie à droite -->
+            <TextView
+                android:id="@+id/widget_direction1_platform"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Voie 3"
+                android:textSize="12sp"
+                android:textColor="#6B7280"
+                android:textStyle="bold"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
     </LinearLayout>
 
     <!-- Direction 2 -->
@@ -88,64 +92,68 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="12dp">
+        android:paddingTop="8dp">
 
+        <!-- Titre direction -->
         <TextView
             android:id="@+id/widget_direction2_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nantes → Rennes"
-            android:textSize="11sp"
-            android:textColor="#9CA3AF"
+            android:text="→ Rennes"
+            android:textSize="12sp"
+            android:textColor="#6B7280"
             android:paddingBottom="4dp" />
 
-        <LinearLayout
+        <!-- Info sur une ligne -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content">
 
+            <!-- Heure à gauche -->
             <TextView
                 android:id="@+id/widget_direction2_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
                 android:text="14:27"
-                android:textSize="24sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#111827" />
 
+            <!-- Emoji + Statut au milieu -->
             <TextView
                 android:id="@+id/widget_direction2_emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/widget_direction2_time"
+                android:layout_marginStart="10dp"
                 android:text="🟠"
-                android:textSize="18sp"
-                android:paddingLeft="8dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="4dp">
-
-            <TextView
-                android:id="@+id/widget_direction2_platform"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Voie 1"
-                android:textSize="11sp"
-                android:textColor="#6B7280"
-                android:paddingRight="12dp" />
+                android:textSize="16sp"
+                android:layout_centerVertical="true" />
 
             <TextView
                 android:id="@+id/widget_direction2_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/widget_direction2_emoji"
+                android:layout_marginStart="6dp"
                 android:text="+5 min"
-                android:textSize="11sp"
-                android:textColor="#F59E0B" />
-        </LinearLayout>
+                android:textSize="12sp"
+                android:textColor="#F59E0B"
+                android:layout_centerVertical="true" />
+
+            <!-- Voie à droite -->
+            <TextView
+                android:id="@+id/widget_direction2_platform"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Voie 1"
+                android:textSize="12sp"
+                android:textColor="#6B7280"
+                android:textStyle="bold"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
     </LinearLayout>
 
     <!-- Footer -->
@@ -156,6 +164,7 @@
         android:text="Mis à jour: 14:05"
         android:textSize="10sp"
         android:textColor="#9CA3AF"
-        android:paddingTop="12dp" />
+        android:paddingTop="12dp"
+        android:gravity="end" />
 
 </LinearLayout>

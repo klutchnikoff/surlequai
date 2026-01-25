@@ -215,6 +215,42 @@ class TripProvider with ChangeNotifier {
       return;
     }
 
+    // Sauvegarder la liste de tous les trajets pour la configuration du widget
+    await _widgetService.saveAllTrips(_trips);
+
+    // IMPORTANT : Mettre à jour les données de TOUS les trajets
+    // pour que les widgets configurés avec différents trajets fonctionnent
+    for (final trip in _trips) {
+      try {
+        final now = DateTime.now();
+
+        // Récupérer les départs pour ce trajet
+        final departuresGo = await _realtimeService.getDeparturesWithRealtime(
+          fromStationId: trip.stationA.id,
+          toStationId: trip.stationB.id,
+          datetime: now,
+          tripId: trip.id,
+        );
+
+        final departuresReturn = await _realtimeService.getDeparturesWithRealtime(
+          fromStationId: trip.stationB.id,
+          toStationId: trip.stationA.id,
+          datetime: now,
+          tripId: trip.id,
+        );
+
+        // Sauvegarder les données de ce trajet pour les widgets
+        await _widgetService.updateWidgetForTrip(
+          trip: trip,
+          departuresGo: departuresGo,
+          departuresReturn: departuresReturn,
+        );
+      } catch (e) {
+        debugPrint('Erreur lors de la mise à jour du trajet ${trip.id}: $e');
+      }
+    }
+
+    // Déclencher le rafraîchissement de tous les widgets natifs
     await _widgetService.updateWidget(
       activeTrip: _activeTrip!,
       departuresGo: _departuresGo,
