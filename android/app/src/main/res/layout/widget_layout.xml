@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -17,18 +18,12 @@
         android:textColor="#6B7280"
         android:paddingBottom="8dp" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E5E7EB"
-        android:layout_marginBottom="8dp" />
-
     <!-- Direction 1 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/widget_direction1_title"
@@ -60,8 +55,7 @@
                 android:layout_height="wrap_content"
                 android:text="🟢"
                 android:textSize="18sp"
-                android:paddingStart="8dp"
-                android:paddingEnd="0dp" />
+                android:paddingLeft="8dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -77,7 +71,7 @@
                 android:text="Voie 3"
                 android:textSize="11sp"
                 android:textColor="#6B7280"
-                android:paddingEnd="12dp" />
+                android:paddingRight="12dp" />
 
             <TextView
                 android:id="@+id/widget_direction1_status"
@@ -89,19 +83,12 @@
         </LinearLayout>
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E5E7EB"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp" />
-
     <!-- Direction 2 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="12dp">
 
         <TextView
             android:id="@+id/widget_direction2_title"
@@ -133,8 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="🟠"
                 android:textSize="18sp"
-                android:paddingStart="8dp"
-                android:paddingEnd="0dp" />
+                android:paddingLeft="8dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -150,7 +136,7 @@
                 android:text="Voie 1"
                 android:textSize="11sp"
                 android:textColor="#6B7280"
-                android:paddingEnd="12dp" />
+                android:paddingRight="12dp" />
 
             <TextView
                 android:id="@+id/widget_direction2_status"
@@ -170,6 +156,6 @@
         android:text="Mis à jour: 14:05"
         android:textSize="10sp"
         android:textColor="#9CA3AF"
-        android:paddingTop="8dp" />
+        android:paddingTop="12dp" />
 
 </LinearLayout>

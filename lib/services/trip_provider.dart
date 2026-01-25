@@ -212,8 +212,23 @@ class TripProvider with ChangeNotifier {
     if (_activeTrip == null ||
         _directionGoViewModel == null ||
         _directionReturnViewModel == null) {
+      // ignore: avoid_print
+      print('🔴 Widget update skipped - null data');
       return;
     }
+
+    // ignore: avoid_print
+    print('🟢 Updating widget with:');
+    // ignore: avoid_print
+    print('   Trip: ${_activeTrip!.stationA.name} ⟷ ${_activeTrip!.stationB.name}');
+    // ignore: avoid_print
+    print('   Dir1: ${_directionGoViewModel!.title}');
+    // ignore: avoid_print
+    print('   Dir2: ${_directionReturnViewModel!.title}');
+    // ignore: avoid_print
+    print('   Departures Go: ${_departuresGo.length}');
+    // ignore: avoid_print
+    print('   Departures Return: ${_departuresReturn.length}');
 
     await _widgetService.updateWidget(
       activeTrip: _activeTrip!,
@@ -222,6 +237,9 @@ class TripProvider with ChangeNotifier {
       direction1Title: _directionGoViewModel!.title,
       direction2Title: _directionReturnViewModel!.title,
     );
+
+    // ignore: avoid_print
+    print('✅ Widget updated successfully');
   }
 
   bool _shouldSwapOrder() {
