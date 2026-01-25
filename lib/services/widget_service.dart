@@ -8,115 +8,17 @@ import 'package:surlequai/utils/formatters.dart';
 
 /// Service de gestion du widget écran d'accueil
 ///
-/// Prépare et envoie les données du trajet actif au widget natif
+/// Prépare et envoie les données de tous les trajets aux widgets natifs
 /// (iOS WidgetKit / Android App Widget)
+///
+/// Utilise un système de clés préfixées par trip ID pour permettre
+/// à plusieurs widgets d'afficher des trajets différents.
 class WidgetService {
-  // Clés pour les données partagées avec le widget natif
-  static const String _keyTripName = 'trip_name';
-  static const String _keyDirection1Title = 'direction1_title';
-  static const String _keyDirection1Time = 'direction1_time';
-  static const String _keyDirection1Platform = 'direction1_platform';
-  static const String _keyDirection1Status = 'direction1_status';
-  static const String _keyDirection1StatusColor = 'direction1_status_color';
-  static const String _keyDirection2Title = 'direction2_title';
-  static const String _keyDirection2Time = 'direction2_time';
-  static const String _keyDirection2Platform = 'direction2_platform';
-  static const String _keyDirection2Status = 'direction2_status';
-  static const String _keyDirection2StatusColor = 'direction2_status_color';
-  static const String _keyLastUpdate = 'last_update';
-
   // Nom du widget (Android uniquement) - Nom de la classe
   static const String _androidWidgetName = 'SurLeQuaiWidgetProvider';
 
   // Nom du App Group (iOS uniquement)
   static const String _iOSAppGroupId = 'group.com.surlequai.app';
-
-  /// Met à jour les données du widget avec le trajet actif
-  ///
-  /// Prend les deux directions (go et return) et écrit les données
-  /// du prochain train pour chaque direction dans le stockage partagé.
-  Future<void> updateWidget({
-    required Trip activeTrip,
-    required List<Departure> departuresGo,
-    required List<Departure> departuresReturn,
-    required String direction1Title,
-    required String direction2Title,
-  }) async {
-    try {
-      // Configure le App Group pour iOS
-      await HomeWidget.setAppGroupId(_iOSAppGroupId);
-
-      // Nom de l'app (branding)
-      await HomeWidget.saveWidgetData<String>(_keyTripName, 'SurLeQuai');
-
-      // Direction 1 (premier train futur)
-      final nextDep1 = _getNextDeparture(departuresGo);
-      if (nextDep1 != null) {
-        final time = TimeFormatter.formatTime(nextDep1.scheduledTime);
-        final platform = 'Voie ${nextDep1.platform}';
-        final status = _getStatusText(nextDep1);
-        final statusColor = _getStatusColorHex(nextDep1.status);
-
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection1Title, direction1Title);
-        await HomeWidget.saveWidgetData<String>(_keyDirection1Time, time);
-        await HomeWidget.saveWidgetData<String>(_keyDirection1Platform, platform);
-        await HomeWidget.saveWidgetData<String>(_keyDirection1Status, status);
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection1StatusColor, statusColor);
-      } else {
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection1Title, direction1Title);
-        await HomeWidget.saveWidgetData<String>(_keyDirection1Time, '__:__');
-        await HomeWidget.saveWidgetData<String>(_keyDirection1Platform, '');
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection1Status, 'Aucun train');
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection1StatusColor, 'secondary');
-      }
-
-      // Direction 2
-      final nextDep2 = _getNextDeparture(departuresReturn);
-      if (nextDep2 != null) {
-        final time = TimeFormatter.formatTime(nextDep2.scheduledTime);
-        final platform = 'Voie ${nextDep2.platform}';
-        final status = _getStatusText(nextDep2);
-        final statusColor = _getStatusColorHex(nextDep2.status);
-
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection2Title, direction2Title);
-        await HomeWidget.saveWidgetData<String>(_keyDirection2Time, time);
-        await HomeWidget.saveWidgetData<String>(_keyDirection2Platform, platform);
-        await HomeWidget.saveWidgetData<String>(_keyDirection2Status, status);
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection2StatusColor, statusColor);
-      } else {
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection2Title, direction2Title);
-        await HomeWidget.saveWidgetData<String>(_keyDirection2Time, '__:__');
-        await HomeWidget.saveWidgetData<String>(_keyDirection2Platform, '');
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection2Status, 'Aucun train');
-        await HomeWidget.saveWidgetData<String>(
-            _keyDirection2StatusColor, 'secondary');
-      }
-
-      // Timestamp de la dernière mise à jour
-      final now = DateTime.now();
-      await HomeWidget.saveWidgetData<String>(
-          _keyLastUpdate, TimeFormatter.formatTime(now));
-
-      // Déclenche le refresh du widget natif
-      await HomeWidget.updateWidget(
-        androidName: _androidWidgetName,
-        iOSName: 'SurLeQuaiWidget',
-      );
-    } catch (e) {
-      // En cas d'erreur, on ignore silencieusement
-      // Le widget continuera d'afficher les anciennes données
-      debugPrint('Erreur lors de la mise à jour du widget : $e');
-    }
-  }
 
   /// Récupère le prochain départ futur dans une liste
   Departure? _getNextDeparture(List<Departure> departures) {

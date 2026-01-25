@@ -107,9 +107,8 @@ class SurLeQuaiWidgetConfigureActivity : Activity() {
 
         // Mettre à jour le widget immédiatement
         val appWidgetManager = AppWidgetManager.getInstance(this)
-        SurLeQuaiWidgetProvider().apply {
-            updateAppWidget(this@SurLeQuaiWidgetConfigureActivity, appWidgetManager, appWidgetId)
-        }
+        SurLeQuaiWidgetProvider.updateAppWidget(this, appWidgetManager, appWidgetId)
+        SurLeQuaiWidgetProvider.scheduleNextUpdate(this, appWidgetId)
 
         // Retourner OK pour confirmer la configuration
         val resultValue = Intent().apply {

@@ -215,11 +215,10 @@ class TripProvider with ChangeNotifier {
       return;
     }
 
-    // Sauvegarder la liste de tous les trajets pour la configuration du widget
-    await _widgetService.saveAllTrips(_trips);
+    // Préparer les données de tous les trajets pour les widgets
+    final departuresGoByTrip = <String, List<Departure>>{};
+    final departuresReturnByTrip = <String, List<Departure>>{};
 
-    // IMPORTANT : Mettre à jour les données de TOUS les trajets
-    // pour que les widgets configurés avec différents trajets fonctionnent
     for (final trip in _trips) {
       try {
         final now = DateTime.now();
@@ -239,24 +238,23 @@ class TripProvider with ChangeNotifier {
           tripId: trip.id,
         );
 
-        // Sauvegarder les données de ce trajet pour les widgets
-        await _widgetService.updateWidgetForTrip(
-          trip: trip,
-          departuresGo: departuresGo,
-          departuresReturn: departuresReturn,
-        );
+        departuresGoByTrip[trip.id] = departuresGo;
+        departuresReturnByTrip[trip.id] = departuresReturn;
       } catch (e) {
         debugPrint('Erreur lors de la mise à jour du trajet ${trip.id}: $e');
+        // En cas d'erreur, ajouter des listes vides pour ce trajet
+        departuresGoByTrip[trip.id] = [];
+        departuresReturnByTrip[trip.id] = [];
       }
     }
 
-    // Déclencher le rafraîchissement de tous les widgets natifs
-    await _widgetService.updateWidget(
-      activeTrip: _activeTrip!,
-      departuresGo: _departuresGo,
-      departuresReturn: _departuresReturn,
-      direction1Title: _directionGoViewModel!.title,
-      direction2Title: _directionReturnViewModel!.title,
+    // Mettre à jour tous les widgets (sauvegarde + déclenchement du refresh)
+    // Cela va sauvegarder les données ET déclencher onUpdate() côté Android
+    // qui va planifier le WorkManager pour les mises à jour automatiques
+    await _widgetService.updateAllWidgets(
+      allTrips: _trips,
+      departuresGoByTrip: departuresGoByTrip,
+      departuresReturnByTrip: departuresReturnByTrip,
     );
   }
 

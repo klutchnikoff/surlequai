@@ -1,17 +1,101 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/screens/home_screen.dart';
+import 'package:surlequai/services/api_service.dart';
+import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
+import 'package:surlequai/services/storage_service.dart';
+import 'package:surlequai/services/timetable_service.dart';
 import 'package:surlequai/services/trip_provider.dart';
+import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/app_theme.dart';
+import 'package:surlequai/utils/constants.dart';
+import 'package:surlequai/utils/mock_data.dart';
+
+/// Callback pour les mises à jour en arrière-plan du widget
+@pragma('vm:entry-point')
+void backgroundCallback(Uri? uri) async {
+  // Indispensable pour utiliser les plugins (SharedPreferences, SQFlite) en background
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  debugPrint('--- Background Callback Started ---');
+
+  // --- Initialisation des services ---
+  final api = ApiService();
+  final storage = StorageService();
+  await storage.init(); 
+  
+  final timetableService = TimetableService(apiService: api, storageService: storage);
+  await timetableService.init();
+
+  final realtimeService = RealtimeService(apiService: api, timetableService: timetableService);
+  final widgetService = WidgetService();
+
+  debugPrint('--- Services Initialized ---');
+
+  // --- Logique de mise à jour ---
+  final prefs = await SharedPreferences.getInstance();
+  final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
+  
+  List<Trip> trips;
+  if (tripsJson != null) {
+    final List<dynamic> tripsData = jsonDecode(tripsJson);
+    trips = tripsData.map((data) => Trip.fromJson(data)).toList();
+  } else {
+    trips = InitialMockData.initialTrips;
+  }
+
+  if (trips.isEmpty) {
+    debugPrint('--- No trips found, stopping ---');
+    return;
+  }
+
+  debugPrint('--- Updating ${trips.length} trips ---');
+
+  // Préparer les données pour updateAllWidgets
+  final departuresGoByTrip = <String, List<Departure>>{};
+  final departuresReturnByTrip = <String, List<Departure>>{};
+
+  for (final trip in trips) {
+    final now = DateTime.now();
+    departuresGoByTrip[trip.id] = await realtimeService.getDeparturesWithRealtime(
+      fromStationId: trip.stationA.id,
+      toStationId: trip.stationB.id,
+      datetime: now,
+      tripId: trip.id,
+    );
+    departuresReturnByTrip[trip.id] = await realtimeService.getDeparturesWithRealtime(
+      fromStationId: trip.stationB.id,
+      toStationId: trip.stationA.id,
+      datetime: now,
+      tripId: trip.id,
+    );
+  }
+  
+  debugPrint('--- Saving data to widgets ---');
+
+  // Appeler la méthode centralisée de WidgetService
+  await widgetService.updateAllWidgets(
+    allTrips: trips,
+    departuresGoByTrip: departuresGoByTrip,
+    departuresReturnByTrip: departuresReturnByTrip,
+  );
+  
+  debugPrint('--- Background Callback Finished ---');
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configure le widget callback
   await HomeWidget.setAppGroupId('group.com.surlequai.app');
+  await HomeWidget.registerBackgroundCallback(backgroundCallback);
 
   runApp(
     MultiProvider(
@@ -40,6 +124,26 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    _handleWidgetLaunch();
+  }
+
+  /// Gère le cas où l'app est lancée depuis un tap sur un widget
+  void _handleWidgetLaunch() {
+    HomeWidget.initiallyLaunchedFromHomeWidget().then(_launchedFromWidget);
+    HomeWidget.widgetClicked.listen(_launchedFromWidget);
+  }
+
+  void _launchedFromWidget(Uri? uri) {
+    if (uri != null) {
+      // Si on utilise des Uris, on peut extraire le tripId
+      // final tripId = uri.queryParameters['tripId'];
+      // if (tripId != null) _switchToTrip(tripId);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _setupWidgetTapHandler();
   }
 
@@ -57,22 +161,26 @@ class _MyAppState extends State<MyApp> {
 
   /// Bascule vers le trajet correspondant au tripId
   void _switchToTrip(String tripId) {
-    // Récupérer le TripProvider depuis le context
+    // Petit délai pour s'assurer que le provider est prêt si l'app vient de se lancer
     final tripProvider = context.read<TripProvider>();
+    if (tripProvider.isLoading) {
+      Future.delayed(const Duration(milliseconds: 500), () => _switchToTrip(tripId));
+      return;
+    }
 
-    // Trouver le trajet correspondant au tripId
-    final trip = tripProvider.trips.firstWhere(
-      (t) => t.id == tripId,
-      orElse: () => tripProvider.trips.first,
-    );
-
-    // Basculer vers ce trajet
-    tripProvider.setActiveTrip(trip);
+    try {
+      final trip = tripProvider.trips.firstWhere(
+        (t) => t.id == tripId,
+        orElse: () => tripProvider.trips.first,
+      );
+      tripProvider.setActiveTrip(trip);
+    } catch (e) {
+      // Ignorer si trip introuvable
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Using a Consumer to get a BuildContext that is a descendant of the provider
     return Consumer<SettingsProvider>(
       builder: (context, settingsProvider, child) {
         return MaterialApp(

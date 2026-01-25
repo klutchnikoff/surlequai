@@ -23,84 +23,67 @@ class InitialMockData {
     ),
   ];
 
-  /// Génère des horaires réalistes pour une journée type TER
+  /// Génère des horaires avec un train toutes les 20 minutes
   ///
-  /// Retourne une liste de départs pour un trajet donné, avec une densité
-  /// plus importante aux heures de pointe (6h-9h et 16h-19h).
-  static List<Departure> _generateRealisticDepartures({
+  /// Utile pour tester le rafraîchissement automatique du widget.
+  /// Génère des trains de 5h00 à 22h00 (toutes les 20 minutes).
+  static List<Departure> _generateEvery20MinutesDepartures({
     required String baseId,
-    required int startHour,
     required List<String> platforms,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final departures = <Departure>[];
 
-    // Horaires avec densité variable
-    // Format: (heure, minute, voie_index, status, delay)
-    final schedule = [
-      // Début de matinée (5h-6h) - 2 trains
-      (5, 42, 0, DepartureStatus.onTime, 0),
-      (6, 12, 1, DepartureStatus.onTime, 0),
-      // Heure de pointe matin (6h-9h) - 8 trains
-      (6, 42, 0, DepartureStatus.onTime, 0),
-      (7, 02, 2, DepartureStatus.delayed, 3),
-      (7, 27, 1, DepartureStatus.onTime, 0),
-      (7, 47, 0, DepartureStatus.onTime, 0),
-      (8, 12, 2, DepartureStatus.onTime, 0),
-      (8, 37, 1, DepartureStatus.delayed, 5),
-      (8, 52, 0, DepartureStatus.onTime, 0),
-      (9, 17, 2, DepartureStatus.onTime, 0),
-      // Mi-journée (9h-16h) - 7 trains
-      (9, 47, 1, DepartureStatus.onTime, 0),
-      (10, 32, 0, DepartureStatus.onTime, 0),
-      (11, 17, 2, DepartureStatus.cancelled, 0),
-      (12, 12, 1, DepartureStatus.onTime, 0),
-      (13, 42, 0, DepartureStatus.onTime, 0),
-      (14, 27, 2, DepartureStatus.delayed, 8),
-      (15, 47, 1, DepartureStatus.onTime, 0),
-      // Heure de pointe soir (16h-19h) - 8 trains
-      (16, 12, 0, DepartureStatus.onTime, 0),
-      (16, 37, 2, DepartureStatus.onTime, 0),
-      (17, 02, 1, DepartureStatus.delayed, 4),
-      (17, 27, 0, DepartureStatus.onTime, 0),
-      (17, 52, 2, DepartureStatus.onTime, 0),
-      (18, 17, 1, DepartureStatus.onTime, 0),
-      (18, 42, 0, DepartureStatus.delayed, 6),
-      (19, 07, 2, DepartureStatus.onTime, 0),
-      // Fin de soirée (19h-22h) - 4 trains
-      (19, 42, 1, DepartureStatus.onTime, 0),
-      (20, 27, 0, DepartureStatus.onTime, 0),
-      (21, 12, 2, DepartureStatus.onTime, 0),
-      (21, 52, 1, DepartureStatus.onTime, 0),
-    ];
+    int trainIndex = 0;
 
-    for (var i = 0; i < schedule.length; i++) {
-      final (hour, minute, platformIndex, status, delay) = schedule[i];
-      final scheduledTime = today.add(Duration(hours: hour, minutes: minute));
+    // De 5h00 à 22h00, un train toutes les 20 minutes
+    for (int hour = 5; hour <= 22; hour++) {
+      for (int minute in [0, 20, 40]) {
+        // Arrêter à 22h00 (pas 22h20, 22h40)
+        if (hour == 22 && minute > 0) break;
 
-      departures.add(Departure(
-        id: '$baseId-$i',
-        scheduledTime: scheduledTime,
-        platform: platforms[platformIndex % platforms.length],
-        status: status,
-        delayMinutes: delay,
-      ));
+        final scheduledTime = today.add(Duration(hours: hour, minutes: minute));
+
+        // Varier un peu les statuts pour le réalisme
+        DepartureStatus status;
+        int delay = 0;
+
+        if (trainIndex % 15 == 7) {
+          // ~7% de trains supprimés
+          status = DepartureStatus.cancelled;
+        } else if (trainIndex % 7 == 3) {
+          // ~14% de trains en retard
+          status = DepartureStatus.delayed;
+          delay = [3, 5, 8, 12][trainIndex % 4];
+        } else {
+          // ~79% de trains à l'heure
+          status = DepartureStatus.onTime;
+        }
+
+        departures.add(Departure(
+          id: '$baseId-$trainIndex',
+          scheduledTime: scheduledTime,
+          platform: platforms[trainIndex % platforms.length],
+          status: status,
+          delayMinutes: delay,
+        ));
+
+        trainIndex++;
+      }
     }
 
     return departures;
   }
 
   static final Map<String, List<Departure>> departuresData = {
-    // Trip 1: Rennes ⟷ Nantes (trajets TER réalistes)
-    'trip-1_go': _generateRealisticDepartures(
+    // Trip 1: Rennes ⟷ Nantes (un train toutes les 20 minutes pour tests)
+    'trip-1_go': _generateEvery20MinutesDepartures(
       baseId: 'd-rennes-nantes',
-      startHour: 5,
       platforms: ['3', '2', '4'],
     ),
-    'trip-1_return': _generateRealisticDepartures(
+    'trip-1_return': _generateEvery20MinutesDepartures(
       baseId: 'd-nantes-rennes',
-      startHour: 5,
       platforms: ['1', '2', '3'],
     ),
     // Trip 2: Paris ⟷ Lyon (quelques trains pour tester)
