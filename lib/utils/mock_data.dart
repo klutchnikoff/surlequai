@@ -8,18 +8,18 @@ class InitialMockData {
   static final List<Trip> initialTrips = [
     const Trip(
       id: 'trip-1',
-      stationA: Station(id: 'rennes', name: 'Rennes'),
-      stationB: Station(id: 'nantes', name: 'Nantes'),
+      stationA: Station(id: 'stop_area:SNCF:87471003', name: 'Rennes'),
+      stationB: Station(id: 'stop_area:SNCF:87481002', name: 'Nantes'),
     ),
     const Trip(
       id: 'trip-2',
-      stationA: Station(id: 'paris', name: 'Paris Montparnasse'),
-      stationB: Station(id: 'lyon', name: 'Lyon Part-Dieu'),
+      stationA: Station(id: 'stop_area:SNCF:87391003', name: 'Paris Montparnasse'),
+      stationB: Station(id: 'stop_area:SNCF:87723197', name: 'Lyon Part-Dieu'),
     ),
     const Trip(
       id: 'trip-3',
-      stationA: Station(id: 'bordeaux', name: 'Bordeaux St-Jean'),
-      stationB: Station(id: 'toulouse', name: 'Toulouse Matabiau'),
+      stationA: Station(id: 'stop_area:SNCF:87581009', name: 'Bordeaux St-Jean'),
+      stationB: Station(id: 'stop_area:SNCF:87611004', name: 'Toulouse Matabiau'),
     ),
   ];
 

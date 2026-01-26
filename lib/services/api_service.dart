@@ -1,154 +1,326 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/utils/constants.dart';
-import 'package:surlequai/utils/mock_data.dart';
+import 'package:surlequai/utils/navitia_config.dart';
 
-/// Service d'accès à l'API SNCF (via proxy Cloudflare)
+/// Service d'accès à l'API SNCF via Navitia
 ///
-/// Phase 1 : Retourne des données mock pour permettre le développement
-/// sans clés API. Les méthodes sont conçues pour être facilement
-/// remplacées par de vrais appels HTTP.
+/// Gère les appels HTTP vers l'API Navitia pour récupérer :
+/// - Les départs en temps réel
+/// - La recherche de gares
+/// - Les versions de grilles horaires
 ///
-/// Phase 2 : Implémentation avec http package et proxy Cloudflare Workers
+/// Gestion d'erreurs incluse :
+/// - SocketException : Pas de connexion réseau
+/// - TimeoutException : Timeout API
+/// - HttpException : Erreurs HTTP (401, 404, 500, etc.)
 class ApiService {
-  // Phase 1 : Mock mode activé par défaut
-  // Phase 2 : Sera remplacé par la vraie base URL du proxy
-  final bool _useMockData = true;
+  final http.Client _client;
+
+  ApiService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Récupère la version actuelle de la grille horaire
   ///
-  /// Endpoint futur : GET /timetable/version?region=bretagne
+  /// Note : Navitia ne fournit pas directement cette info
+  /// Pour l'instant, on retourne une version fictive
+  /// TODO: Implémenter un endpoint custom si nécessaire
   Future<TimetableVersion> getTimetableVersion({String? region}) async {
-    // Simule délai réseau
-    await Future.delayed(AppConstants.mockNetworkDelay);
-
-    if (_useMockData) {
-      // Mock : Grille horaire fictive v2026-A
-      return TimetableVersion(
-        version: '2026-A',
-        region: region ?? 'bretagne',
-        validFrom: DateTime(2025, 12, 15),
-        validUntil: DateTime(2026, 6, 14),
-        downloadedAt: DateTime.now().subtract(const Duration(days: 30)),
-        sizeBytes: 15728640, // ~15 MB
-      );
-    }
-
-    // TODO Phase 2: Vrai appel HTTP
-    // final response = await http.get(
-    //   Uri.parse('https://proxy.surlequai.app/timetable/version'),
-    //   queryParameters: {'region': region ?? 'bretagne'},
-    // );
-    // return TimetableVersion.fromJson(jsonDecode(response.body));
-
-    throw UnimplementedError('API réelle non encore implémentée');
+    // L'API Navitia ne fournit pas de metadata sur les versions
+    // On retourne une version par défaut pour l'instant
+    return TimetableVersion(
+      version: '2026-current',
+      region: region ?? 'france',
+      validFrom: DateTime(2026, 1, 1),
+      validUntil: DateTime(2026, 12, 31),
+      downloadedAt: DateTime.now(),
+      sizeBytes: null,
+    );
   }
 
   /// Récupère les départs en temps réel entre deux gares
   ///
-  /// Endpoint futur : GET /departures/realtime
-  /// Query params : from, to, datetime, count
+  /// [fromStationId] : ID de la gare de départ (format Navitia: stop_area:xxx)
+  /// [toStationId] : ID de la gare d'arrivée (pour filtrer les directions)
+  /// [datetime] : Date/heure de référence pour les départs
+  /// [count] : Nombre maximum de départs à récupérer
+  ///
+  /// Retourne une liste de Departure avec statut temps réel (onTime/delayed/cancelled)
   Future<List<Departure>> getRealtimeDepartures({
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
     int count = 10,
   }) async {
-    // Simule délai réseau
-    await Future.delayed(AppConstants.mockNetworkDelay);
+    try {
+      // Construction de l'URL avec paramètres
+      final url = Uri.parse(NavitiaConfig.departuresUrl(fromStationId)).replace(
+        queryParameters: {
+          'from_datetime': _formatNavitiaDateTime(datetime),
+          'count': count.toString(),
+          'data_freshness': 'realtime', // Force les données temps réel
+        },
+      );
 
-    if (_useMockData) {
-      // Mock : Retourne les données déjà présentes dans InitialMockData
-      // En réalité, on devrait filtrer par fromStationId/toStationId
-      // Pour l'instant, on retourne toutes les données disponibles
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Fetching departures: $url');
+      }
 
-      // Simuler qu'on récupère les données pour le trajet actif
-      // (Dans la vraie implémentation, l'API filtrerait côté serveur)
-      return InitialMockData.initialTrips.first.id == 'trip-rennes-nantes'
-          ? InitialMockData.departuresData['trip-rennes-nantes_go'] ?? []
-          : [];
+      // Appel HTTP avec timeout
+      final response = await _client
+          .get(url, headers: NavitiaConfig.authHeaders)
+          .timeout(AppConstants.apiTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final departures = _parseDepartures(jsonData, toStationId);
+
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Parsed ${departures.length} departures');
+        }
+
+        return departures;
+      } else if (response.statusCode == 401) {
+        throw HttpException('Clé API invalide ou expirée');
+      } else if (response.statusCode == 404) {
+        throw HttpException('Gare non trouvée: $fromStationId');
+      } else {
+        throw HttpException(
+            'Erreur API: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      // Pas de connexion réseau
+      throw SocketException('Pas de connexion Internet');
+    } on TimeoutException {
+      // Timeout API
+      throw TimeoutException('Délai d\'attente dépassé');
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Error: $e');
+      }
+      rethrow;
     }
-
-    // TODO Phase 2: Vrai appel HTTP
-    // final response = await http.get(
-    //   Uri.parse('https://proxy.surlequai.app/departures/realtime'),
-    //   queryParameters: {
-    //     'from': fromStationId,
-    //     'to': toStationId,
-    //     'datetime': datetime.toIso8601String(),
-    //     'count': count.toString(),
-    //   },
-    // );
-    // final json = jsonDecode(response.body);
-    // return (json['departures'] as List)
-    //     .map((d) => Departure.fromJson(d))
-    //     .toList();
-
-    throw UnimplementedError('API réelle non encore implémentée');
   }
 
   /// Recherche des gares par nom (autocomplete)
   ///
-  /// Endpoint futur : GET /stations/search?q=renn&limit=10
+  /// [query] : Terme de recherche (ex: "renn" pour Rennes)
+  /// [limit] : Nombre maximum de résultats
+  ///
+  /// Retourne une liste de Station correspondant à la recherche
   Future<List<Station>> searchStations(
     String query, {
     int limit = 10,
   }) async {
-    // Simule délai réseau (plus court pour autocomplete)
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    if (_useMockData) {
-      // Mock : Utilise StationsData.searchStations (déjà implémenté)
-      // Note : StationsData n'est pas encore importé ici, mais sera
-      // utilisé par station_picker_screen directement
-      // Ce endpoint est pour une future intégration API complète
-      return [];
+    if (query.length < 2) {
+      return []; // Minimum 2 caractères pour la recherche
     }
 
-    // TODO Phase 2: Vrai appel HTTP
-    // final response = await http.get(
-    //   Uri.parse('https://proxy.surlequai.app/stations/search'),
-    //   queryParameters: {
-    //     'q': query,
-    //     'limit': limit.toString(),
-    //   },
-    // );
-    // final json = jsonDecode(response.body);
-    // return (json['stations'] as List)
-    //     .map((s) => Station.fromJson(s))
-    //     .toList();
+    try {
+      // URL de recherche avec filtrage sur stop_area (gares)
+      final url = Uri.parse(NavitiaConfig.searchPlacesUrl(query)).replace(
+        queryParameters: {
+          'q': query,
+          'type[]': 'stop_area',
+          'count': limit.toString(),
+        },
+      );
 
-    throw UnimplementedError('API réelle non encore implémentée');
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Searching stations: $url');
+      }
+
+      final response = await _client
+          .get(url, headers: NavitiaConfig.authHeaders)
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final stations = _parseStations(jsonData);
+
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Found ${stations.length} stations');
+        }
+
+        return stations;
+      } else {
+        throw HttpException('Erreur recherche: ${response.statusCode}');
+      }
+    } on SocketException {
+      throw SocketException('Pas de connexion Internet');
+    } on TimeoutException {
+      throw TimeoutException('Délai d\'attente dépassé');
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Search error: $e');
+      }
+      rethrow;
+    }
   }
 
-  /// Télécharge une grille horaire complète (GTFS ou JSON compressé)
+  /// Parse les départs depuis la réponse JSON Navitia
+  List<Departure> _parseDepartures(
+    Map<String, dynamic> jsonData,
+    String toStationId,
+  ) {
+    final departuresList = jsonData['departures'] as List<dynamic>? ?? [];
+    final departures = <Departure>[];
+
+    for (final depJson in departuresList) {
+      try {
+        // Vérifier si ce train va vers la destination souhaitée
+        final route = depJson['route'] as Map<String, dynamic>?;
+        final direction = route?['direction'] as Map<String, dynamic>?;
+        final directionStopAreaId = direction?['id'] as String?;
+
+        // Filtrer : garder seulement les trains qui vont vers toStationId
+        // Navitia peut retourner le stop_point (quai) ou stop_area (gare)
+        // On compare en retirant le préfixe stop_point: si présent
+        if (directionStopAreaId != null) {
+          final cleanDirectionId = directionStopAreaId.replaceFirst('stop_point:', 'stop_area:');
+          final cleanToStationId = toStationId.replaceFirst('stop_point:', 'stop_area:');
+
+          // Si les IDs ne matchent pas, on ignore ce départ
+          if (!cleanDirectionId.contains(cleanToStationId.split(':').last) &&
+              !cleanToStationId.contains(cleanDirectionId.split(':').last)) {
+            if (AppConstants.enableDebugLogs) {
+              print('[ApiService] Skipping train to $directionStopAreaId (looking for $toStationId)');
+            }
+            continue; // Train ne va pas vers la bonne destination
+          }
+        }
+
+        // Extraire les données de départ
+        final stopDateTime = depJson['stop_date_time'] as Map<String, dynamic>;
+        final displayInfo =
+            depJson['display_informations'] as Map<String, dynamic>?;
+
+        // Heure de départ prévue
+        final baseDateTime = stopDateTime['base_departure_date_time'] as String;
+        final scheduledTime = _parseNavitiaDateTime(baseDateTime);
+
+        // Heure de départ réelle (avec retard si applicable)
+        final actualDateTime = stopDateTime['departure_date_time'] as String;
+        final actualTime = _parseNavitiaDateTime(actualDateTime);
+
+        // Calcul du retard en minutes
+        final delayMinutes = actualTime.difference(scheduledTime).inMinutes;
+
+        // Déterminer le statut
+        DepartureStatus status;
+        if (stopDateTime['data_freshness'] == 'base_schedule' ||
+            delayMinutes == 0) {
+          status = DepartureStatus.onTime;
+        } else if (delayMinutes > 0) {
+          status = DepartureStatus.delayed;
+        } else {
+          status = DepartureStatus.onTime; // Avance rare mais possible
+        }
+
+        // Vérifier si le train est supprimé (disruptions)
+        // TODO: Implémenter la vérification des disruptions
+        // Pour l'instant on suppose qu'il n'y a pas de trains supprimés
+
+        // Voie (si disponible)
+        final platform = stopDateTime['platform'] as String? ?? '?';
+
+        // ID unique du départ
+        final tripId = depJson['display_informations']?['trip_short_name'] ??
+            depJson['route']?['id'] ??
+            'unknown';
+
+        departures.add(Departure(
+          id: '$tripId-${scheduledTime.millisecondsSinceEpoch}',
+          scheduledTime: scheduledTime,
+          platform: platform,
+          status: status,
+          delayMinutes: delayMinutes.abs(),
+        ));
+      } catch (e) {
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Failed to parse departure: $e');
+        }
+        // Continue avec les autres départs
+      }
+    }
+
+    if (AppConstants.enableDebugLogs) {
+      print('[ApiService] Filtered to ${departures.length} departures going to destination');
+    }
+
+    return departures;
+  }
+
+  /// Parse les gares depuis la réponse JSON Navitia
+  List<Station> _parseStations(Map<String, dynamic> jsonData) {
+    final placesList = jsonData['places'] as List<dynamic>? ?? [];
+    final stations = <Station>[];
+
+    for (final placeJson in placesList) {
+      try {
+        // Vérifier que c'est bien une stop_area (gare)
+        if (placeJson['embedded_type'] != 'stop_area') continue;
+
+        final stopArea = placeJson['stop_area'] as Map<String, dynamic>?;
+        if (stopArea == null) continue;
+
+        final id = stopArea['id'] as String;
+        final name = stopArea['name'] as String;
+
+        stations.add(Station(id: id, name: name));
+      } catch (e) {
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Failed to parse station: $e');
+        }
+      }
+    }
+
+    return stations;
+  }
+
+  /// Formate un DateTime au format Navitia (YYYYMMDDTHHmmss)
+  String _formatNavitiaDateTime(DateTime datetime) {
+    return '${datetime.year}'
+        '${datetime.month.toString().padLeft(2, '0')}'
+        '${datetime.day.toString().padLeft(2, '0')}'
+        'T'
+        '${datetime.hour.toString().padLeft(2, '0')}'
+        '${datetime.minute.toString().padLeft(2, '0')}'
+        '${datetime.second.toString().padLeft(2, '0')}';
+  }
+
+  /// Parse une date Navitia (YYYYMMDDTHHmmss) vers DateTime
+  DateTime _parseNavitiaDateTime(String navitiaDate) {
+    // Format: 20260126T143000
+    final year = int.parse(navitiaDate.substring(0, 4));
+    final month = int.parse(navitiaDate.substring(4, 6));
+    final day = int.parse(navitiaDate.substring(6, 8));
+    final hour = int.parse(navitiaDate.substring(9, 11));
+    final minute = int.parse(navitiaDate.substring(11, 13));
+    final second = int.parse(navitiaDate.substring(13, 15));
+
+    return DateTime(year, month, day, hour, minute, second);
+  }
+
+  /// Télécharge une grille horaire complète (non implémenté pour Navitia)
   ///
-  /// Endpoint futur : GET /timetable/download?version=2026-A&region=bretagne
-  /// Retourne les données binaires à parser et importer dans SQLite
+  /// Note: Navitia ne fournit pas de téléchargement GTFS direct
+  /// Cette fonctionnalité nécessiterait un backend custom
   Future<List<int>> downloadTimetable({
     required String version,
     String? region,
   }) async {
-    // Simule délai réseau (téléchargement long ~10-50 MB)
-    await Future.delayed(const Duration(seconds: 2));
+    throw UnimplementedError(
+        'Téléchargement GTFS non disponible avec Navitia. '
+        'Utilisez les données temps réel uniquement.');
+  }
 
-    if (_useMockData) {
-      // Mock : Retourne une liste vide (pas de vraies données GTFS)
-      // En mode mock, on utilisera directement InitialMockData
-      return [];
-    }
-
-    // TODO Phase 2: Vrai appel HTTP avec streaming
-    // final response = await http.get(
-    //   Uri.parse('https://proxy.surlequai.app/timetable/download'),
-    //   queryParameters: {
-    //     'version': version,
-    //     'region': region ?? 'bretagne',
-    //   },
-    // );
-    // return response.bodyBytes;
-
-    throw UnimplementedError('API réelle non encore implémentée');
+  /// Ferme le client HTTP
+  void dispose() {
+    _client.close();
   }
 }

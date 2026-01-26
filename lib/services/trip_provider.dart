@@ -18,6 +18,7 @@ import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
 import 'package:surlequai/utils/mock_data.dart';
+import 'package:surlequai/utils/station_id_migration.dart';
 import 'package:uuid/uuid.dart';
 
 class TripProvider with ChangeNotifier {
@@ -88,6 +89,15 @@ class TripProvider with ChangeNotifier {
     if (tripsJson != null) {
       final List<dynamic> tripsData = jsonDecode(tripsJson);
       _trips = tripsData.map((data) => Trip.fromJson(data)).toList();
+
+      // Migration automatique des anciens IDs vers les IDs Navitia
+      if (StationIdMigration.tripsNeedMigration(_trips)) {
+        debugPrint('[TripProvider] Migration des IDs de gares détectée...');
+        _trips = StationIdMigration.migrateTrips(_trips);
+        // Sauvegarde les trips migrés
+        await _saveTrips();
+        debugPrint('[TripProvider] Migration terminée et sauvegardée');
+      }
     } else {
       _trips = InitialMockData.initialTrips;
     }
