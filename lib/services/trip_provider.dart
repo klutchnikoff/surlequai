@@ -19,6 +19,7 @@ import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
 import 'package:surlequai/utils/mock_data.dart';
 import 'package:surlequai/utils/station_id_migration.dart';
+import 'package:surlequai/utils/trip_sorter.dart';
 import 'package:uuid/uuid.dart';
 
 class TripProvider with ChangeNotifier {
@@ -281,23 +282,12 @@ class TripProvider with ChangeNotifier {
   bool _shouldSwapOrder() {
     if (_activeTrip == null) return false;
 
-    final hour = DateTime.now().hour;
-    final splitTime = _settingsProvider.morningEveningSplitTime;
-    final dayStartTime = _settingsProvider.serviceDayStartTime;
-
-    // Considère comme "soirée" :
-    // - Entre splitTime (13h) et minuit
-    // - OU entre minuit et dayStartTime (4h) car encore dans la journée de service précédente
-    final isEvening = (hour >= splitTime) || (hour >= 0 && hour < dayStartTime);
-
-    if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
-      return true;
-    }
-    if (!isEvening && _activeTrip!.morningDirection == MorningDirection.bToA) {
-      return true;
-    }
-
-    return false;
+    return TripSorter.shouldSwapOrder(
+      currentHour: DateTime.now().hour,
+      morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
+      serviceDayStartHour: _settingsProvider.serviceDayStartTime,
+      morningDirection: _activeTrip!.morningDirection,
+    );
   }
 
   DirectionCardViewModel _createViewModel(
