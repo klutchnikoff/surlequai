@@ -199,6 +199,24 @@ class ApiService {
         final displayInfo =
             depJson['display_informations'] as Map<String, dynamic>?;
 
+        // Filtrer par type de train : garder TER et Intercités
+        // Exclut TGV (trop cher pour usage quotidien)
+        final network = displayInfo?['network'] as String? ?? '';
+        final networkUpper = network.toUpperCase();
+
+        // Accepter : TER, Intercités
+        // Rejeter : TGV, Ouigo, etc.
+        final isTER = networkUpper.contains('TER');
+        final isIntercites = networkUpper.contains('INTERCITÉS') ||
+                            networkUpper.contains('INTERCITES');
+
+        if (!isTER && !isIntercites) {
+          if (AppConstants.enableDebugLogs) {
+            print('[ApiService] Skipping train type: $network');
+          }
+          continue; // Ignorer TGV, Ouigo, etc.
+        }
+
         // Heure de départ prévue
         final baseDateTime = stopDateTime['base_departure_date_time'] as String;
         final scheduledTime = _parseNavitiaDateTime(baseDateTime);
@@ -249,7 +267,7 @@ class ApiService {
     }
 
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] Filtered to ${departures.length} departures going to destination');
+      print('[ApiService] Filtered to ${departures.length} TER departures going to destination');
     }
 
     return departures;

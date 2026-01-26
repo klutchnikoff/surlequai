@@ -4,6 +4,7 @@ import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/storage_service.dart';
 import 'package:surlequai/utils/mock_data.dart';
+import 'package:surlequai/utils/navitia_config.dart';
 
 /// Service de gestion des grilles horaires théoriques
 ///
@@ -101,26 +102,29 @@ class TimetableService {
 
   /// Récupère les horaires théoriques pour un trajet et une date
   ///
-  /// Phase 1 : Retourne les mock data depuis InitialMockData
-  /// Phase 2 : Interrogera la base SQLite locale
+  /// Mode développement (sans clé API) : Retourne mock data
+  /// Mode production (avec clé API) : Retourne liste vide (attente cache GTFS)
+  /// Phase 2 future : Interrogera la base SQLite locale
   Future<List<Departure>> getTheoreticalDepartures({
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
     String? tripId, // Phase 1: utilisé pour les mocks
   }) async {
-    // Phase 1 : Mode mock - utilise tripId si fourni
-    // En Phase 1, on utilise directement l'ID du trip car les données
-    // sont stockées par trip ID dans InitialMockData
+    // Si clé API configurée : ne pas utiliser les mocks
+    // Les données viendront de l'API temps réel
+    if (NavitiaConfig.isConfigured) {
+      // TODO Phase 2: Interroger cache SQLite local (horaires théoriques)
+      return []; // Pas de cache pour l'instant
+    }
+
+    // Mode développement sans clé API : utiliser les mocks
     if (tripId != null) {
-      // Détermine la direction (go ou return) en comparant les IDs de stations
-      // avec le premier trip dans InitialMockData pour déterminer le sens
       final isGo = _isGoDirection(tripId, fromStationId, toStationId);
       final suffix = isGo ? '_go' : '_return';
       return InitialMockData.departuresData['$tripId$suffix'] ?? [];
     }
 
-    // Trajet inconnu ou pas de tripId → retourne vide
     return [];
 
     // TODO Phase 2: Vraie requête SQLite

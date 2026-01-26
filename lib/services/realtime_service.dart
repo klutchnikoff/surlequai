@@ -66,28 +66,29 @@ class RealtimeService {
   /// Fusionne les horaires théoriques avec les données temps réel
   ///
   /// Logique :
-  /// - Pour chaque départ théorique, cherche la correspondance temps réel
-  /// - Si trouvé : Enrichit avec statut, retard, heure estimée
-  /// - Si non trouvé : Garde l'horaire théorique tel quel
-  ///
-  /// Phase 1 : En mode mock, getRealtimeDepartures() retourne vide,
-  /// donc on utilise directement les données théoriques qui contiennent
-  /// déjà les statuts réalistes (onTime, delayed, cancelled)
-  ///
-  /// Phase 2 : Vraie fusion avec matching par trip_id ou scheduled_time
+  /// - Si données temps réel disponibles : les utiliser
+  /// - Si liste vide : retourner liste vide (affichera "Aucun train")
+  /// - Si horaires théoriques disponibles (cache GTFS) : les enrichir avec temps réel
   List<Departure> _mergeDepartures(
     List<Departure> theoretical,
     List<Departure> realtime,
   ) {
-    // Phase 1 : Mode mock - pas de vraies données temps réel
-    // On retourne les données théoriques telles quelles car elles contiennent
-    // déjà des statuts réalistes dans InitialMockData
-    if (realtime.isEmpty) {
-      return theoretical;
+    // Si on a des données temps réel, les utiliser (même si vide)
+    // Liste vide = API OK mais aucun train trouvé → "Aucun train"
+    if (realtime.isNotEmpty) {
+      return realtime;
     }
 
-    // Si on a des données temps réel (Phase 2), les utiliser
-    return realtime;
+    // Si pas de données temps réel mais horaires théoriques disponibles
+    // (futur cache GTFS), les marquer comme "offline"
+    if (theoretical.isNotEmpty) {
+      return theoretical
+          .map((d) => d.copyWith(status: DepartureStatus.offline))
+          .toList();
+    }
+
+    // Aucune donnée disponible
+    return [];
 
     // TODO Phase 2: Vraie logique de fusion
     // final merged = <Departure>[];
