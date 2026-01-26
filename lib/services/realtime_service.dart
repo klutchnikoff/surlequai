@@ -1,5 +1,6 @@
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/services/api_service.dart';
+import 'package:surlequai/services/storage_service.dart';
 import 'package:surlequai/services/timetable_service.dart';
 
 /// Service de gestion des données temps réel
@@ -12,19 +13,37 @@ import 'package:surlequai/services/timetable_service.dart';
 class RealtimeService {
   final ApiService _apiService;
   final TimetableService _timetableService;
+  // Ajout temporaire pour accéder au storage, idéalement via injection
+  // Mais comme TimetableService contient déjà StorageService, on pourrait l'exposer
+  // Pour faire simple et propre, on va supposer que l'appelant nous passe le StorageService ou qu'on le récupère
+  // Dans l'architecture actuelle main.dart injecte tout.
+  
+  // Refactoring: On modifie le constructeur pour accepter StorageService si besoin
+  // Mais pour minimiser l'impact, on va utiliser le fait que TimetableService a déjà une ref vers StorageService
+  // Ah non, _storageService est privé dans TimetableService.
+  
+  // Approche propre : Modifier RealtimeService pour qu'il prenne aussi StorageService
+  // Cela demandera de changer main.dart et background_callback. 
+  // C'est mieux.
+  
+  final StorageService? _storageService; // Optionnel pour compatibilité immédiate
 
   RealtimeService({
     required ApiService apiService,
     required TimetableService timetableService,
+    StorageService? storageService,
   })  : _apiService = apiService,
-        _timetableService = timetableService;
+        _timetableService = timetableService,
+        _storageService = storageService;
 
   /// Récupère les départs avec données temps réel si disponibles
   ///
   /// Stratégie de fusion :
   /// 1. Charge horaires théoriques depuis cache local (toujours disponible)
   /// 2. Tente de récupérer temps réel depuis API
-  /// 3. Si succès : Fusionne théorique + temps réel
+  /// 3. Si succès : 
+  ///    - Sauvegarde dans le cache local (Mise à jour)
+  ///    - Fusionne théorique + temps réel
   /// 4. Si échec : Retourne horaires théoriques avec statut "offline"
   ///
   /// Cette méthode garantit qu'on a toujours des données à afficher,
@@ -50,8 +69,21 @@ class RealtimeService {
         fromStationId: fromStationId,
         toStationId: toStationId,
         datetime: datetime,
-        count: 3, // Écran principal : seulement 3 trains affichés
+        count: 6, // Augmenté à 6 pour avoir un cache un peu plus fourni
       );
+
+      // SAUVEGARDE DANS LE CACHE (Nouveau)
+      if (realtimeDepartures.isNotEmpty && _storageService != null) {
+        // On sauvegarde ces données fraîches comme nouveau référentiel "théorique/offline"
+        // On les convertit en "offline" pour le stockage futur (optionnel, 
+        // ou on les garde tel quel et le getCached les repassera en offline si besoin)
+        // Le mieux est de stocker tel quel.
+        await _storageService!.saveCachedDepartures(
+          fromStationId, 
+          toStationId, 
+          realtimeDepartures
+        );
+      }
 
       // 3. Fusionne théorique + temps réel
       return _mergeDepartures(theoreticalDepartures, realtimeDepartures);

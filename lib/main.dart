@@ -52,7 +52,11 @@ void backgroundCallback(Uri? uri) async {
   final timetableService = TimetableService(apiService: api, storageService: storage);
   await timetableService.init();
 
-  final realtimeService = RealtimeService(apiService: api, timetableService: timetableService);
+  final realtimeService = RealtimeService(
+    apiService: api, 
+    timetableService: timetableService,
+    storageService: storage,
+  );
   final widgetService = WidgetService();
 
   debugPrint('--- Services Initialized ---');
@@ -142,6 +146,7 @@ void main() async {
   final realtimeService = RealtimeService(
     apiService: apiService,
     timetableService: timetableService,
+    storageService: storageService,
   );
 
   runApp(
