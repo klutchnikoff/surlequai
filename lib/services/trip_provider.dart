@@ -17,7 +17,6 @@ import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
-import 'package:surlequai/utils/mock_data.dart';
 import 'package:surlequai/utils/station_id_migration.dart';
 import 'package:surlequai/utils/trip_sorter.dart';
 import 'package:uuid/uuid.dart';
@@ -110,13 +109,15 @@ class TripProvider with ChangeNotifier {
         debugPrint('[TripProvider] Migration terminée et sauvegardée');
       }
     } else {
-      _trips = InitialMockData.initialTrips;
+      _trips = [];
     }
 
     if (_trips.isNotEmpty) {
       _activeTrip = _trips.first;
       await _buildViewModels();
       _lastUpdate = DateTime.now();
+    } else {
+      _activeTrip = null;
     }
 
     isLoading = false;
@@ -460,11 +461,6 @@ class TripProvider with ChangeNotifier {
   ///
   /// Retourne un message d'erreur si la suppression échoue, null sinon.
   Future<String?> removeTrip(String tripId) async {
-    // Validation : au moins un trajet doit rester
-    if (_trips.length <= 1) {
-      return 'Vous devez conserver au moins un trajet';
-    }
-
     final tripIndex = _trips.indexWhere((t) => t.id == tripId);
 
     if (tripIndex == -1) {
@@ -473,14 +469,22 @@ class TripProvider with ChangeNotifier {
 
     _trips.removeAt(tripIndex);
 
-    // Si le trajet supprimé était le trajet actif, basculer vers le premier
-    if (_activeTrip?.id == tripId) {
+    if (_trips.isEmpty) {
+      _activeTrip = null;
+      _directionGoViewModel = null;
+      _directionReturnViewModel = null;
+    } else if (_activeTrip?.id == tripId) {
+      // Si le trajet supprimé était le trajet actif, basculer vers le premier
       _activeTrip = _trips.first;
       await _buildViewModels();
     }
+    // Si on a supprimé un trajet non actif, pas besoin de rebuild les viewModels
+    // mais il faut quand même sauvegarder et notifier.
 
     await _saveTrips();
     notifyListeners();
+    // On met à jour les widgets (pour supprimer celui qui correspond au trajet supprimé)
+    _updateWidget();
 
     return null; // Succès
   }

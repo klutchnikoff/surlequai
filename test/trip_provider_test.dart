@@ -119,10 +119,9 @@ void main() {
 
     expect(provider.isLoading, false);
     
-    // Par défaut, s'il n'y a rien dans SharedPreferences, il charge les mocks initiaux
-    // Vérifions qu'on a bien des trajets par défaut (car InitialMockData est utilisé si prefs vide)
-    expect(provider.trips.isNotEmpty, true);
-    expect(provider.activeTrip, isNotNull);
+    // Par défaut, s'il n'y a rien dans SharedPreferences, la liste est vide (plus de mocks)
+    expect(provider.trips.isEmpty, true);
+    expect(provider.activeTrip, isNull);
   });
 
   test('Ajout d\'un trajet', () async {

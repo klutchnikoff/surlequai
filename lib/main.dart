@@ -21,7 +21,6 @@ import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/app_theme.dart';
 import 'package:surlequai/utils/constants.dart';
-import 'package:surlequai/utils/mock_data.dart';
 
 /// Vérifie si on est sur une plateforme mobile (iOS/Android)
 bool get isMobilePlatform {
@@ -70,7 +69,7 @@ void backgroundCallback(Uri? uri) async {
     final List<dynamic> tripsData = jsonDecode(tripsJson);
     trips = tripsData.map((data) => Trip.fromJson(data)).toList();
   } else {
-    trips = InitialMockData.initialTrips;
+    trips = [];
   }
 
   if (trips.isEmpty) {

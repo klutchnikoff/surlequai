@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/screens/add_trip_screen.dart';
 import 'package:surlequai/screens/settings_screen.dart';
 import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/widgets/direction_card.dart';
@@ -74,11 +75,48 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, TripProvider tripProvider) {
+    // Cas : Aucun trajet configuré (premier lancement ou tout supprimé)
+    if (tripProvider.trips.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.train, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'Bienvenue sur le quai !',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Configurez votre premier trajet\npour voir les prochains départs.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddTripScreen()),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Ajouter mon trajet'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final viewModelGo = tripProvider.directionGoViewModel;
     final viewModelReturn = tripProvider.directionReturnViewModel;
     final activeTrip = tripProvider.activeTrip;
 
-    // The viewModels can be null for a single frame before the provider is ready
+    // Si on a des trajets mais que les viewModels ne sont pas encore prêts (chargement initial)
     if (viewModelGo == null || viewModelReturn == null) {
       return const Center(child: CircularProgressIndicator());
     }

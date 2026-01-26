@@ -2,7 +2,6 @@ import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/storage_service.dart';
-import 'package:surlequai/utils/mock_data.dart';
 import 'package:surlequai/utils/navitia_config.dart';
 
 /// Service de gestion des grilles horaires
@@ -63,13 +62,7 @@ class TimetableService {
       return cachedDepartures;
     }
 
-    // 2. Si pas de cache et pas de clé API (Mode Dev/Mock)
-    if (!NavitiaConfig.isConfigured && tripId != null) {
-      final isGo = _isGoDirection(tripId, fromStationId, toStationId);
-      final suffix = isGo ? '_go' : '_return';
-      return InitialMockData.departuresData['$tripId$suffix'] ?? [];
-    }
-
+    // 2. Si pas de cache, on ne retourne rien (pas de mocks)
     return [];
   }
 
@@ -78,13 +71,4 @@ class TimetableService {
   // Gardé pour compatibilité interface, retourne null
   TimetableVersion? get currentVersion => null;
   bool get hasLocalTimetable => false;
-
-  bool _isGoDirection(String tripId, String fromId, String toId) {
-    // Helper pour mocks
-    final trip = InitialMockData.initialTrips.firstWhere(
-      (t) => t.id == tripId,
-      orElse: () => InitialMockData.initialTrips.first,
-    );
-    return trip.stationA.id == fromId;
-  }
 }
