@@ -276,11 +276,9 @@ class TripProvider with ChangeNotifier {
     final dayStartTime = _settingsProvider.serviceDayStartTime;
 
     // Considère comme "soirée" :
-    // - Entre splitTime (13h) et serviceDayEndHour (22h)
+    // - Entre splitTime (13h) et minuit
     // - OU entre minuit et dayStartTime (4h) car encore dans la journée de service précédente
-    final isEvening =
-        (hour >= splitTime && hour < AppConstants.serviceDayEndHour) ||
-            (hour >= 0 && hour < dayStartTime);
+    final isEvening = (hour >= splitTime) || (hour >= 0 && hour < dayStartTime);
 
     if (isEvening && _activeTrip!.morningDirection == MorningDirection.aToB) {
       return true;
@@ -298,14 +296,16 @@ class TripProvider with ChangeNotifier {
     final dayStartTime = _settingsProvider.serviceDayStartTime;
 
     // Calcule la fin de la "journée de service actuelle"
+    // La journée de service va de dayStartTime (4h) à dayStartTime (4h) du lendemain
     DateTime endOfServiceDay;
     if (now.hour < dayStartTime) {
       // Entre minuit et dayStartTime (ex: 1h du matin)
-      // → La journée de service se termine à dayStartTime (4h)
+      // → La journée de service se termine à dayStartTime (4h) aujourd'hui
       endOfServiceDay = DateTime(now.year, now.month, now.day, dayStartTime);
     } else {
-      // Après dayStartTime → journée se termine à serviceDayEndHour (22h)
-      endOfServiceDay = DateTime(now.year, now.month, now.day, AppConstants.serviceDayEndHour);
+      // Après dayStartTime → journée se termine à dayStartTime (4h) demain
+      final tomorrow = now.add(const Duration(days: 1));
+      endOfServiceDay = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, dayStartTime);
     }
 
     // Filtre les trains "aujourd'hui" (avant la fin de journée de service)
@@ -382,6 +382,7 @@ class TripProvider with ChangeNotifier {
       subsequentDepartures: subsequentDepartures.isNotEmpty
           ? 'Puis: ${TimeFormatter.formatTimeList(subsequentDepartures.map((d) => d.scheduledTime).toList())}'
           : null,
+      durationMinutes: nextDeparture.durationMinutes,
     );
   }
 

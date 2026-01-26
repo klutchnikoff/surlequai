@@ -28,8 +28,8 @@ class AppConstants {
   /// Nombre maximum de trajets favoris autorisés
   static const int maxFavoriteTrips = 10;
 
-  /// Nombre de départs à afficher dans la modal "Tous les horaires"
-  static const int maxDeparturesInModal = 50;
+  /// Nombre maximum de trains à récupérer par journée depuis l'API
+  static const int maxTrainsPerDay = 100;
 
   /// Nombre de départs suivants à afficher sur l'écran principal (après le prochain)
   static const int subsequentDeparturesCount = 2;
@@ -41,9 +41,6 @@ class AppConstants {
 
   /// Heure de début du jour de service (en heures, format 24h)
   static const int defaultServiceDayStartHour = 4;
-
-  /// Heure de fin de la journée de service (après, on affiche les trains du lendemain)
-  static const int serviceDayEndHour = 22;
 
   /// === INTERFACE UTILISATEUR ===
 
