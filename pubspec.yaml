@@ -18,7 +18,6 @@ dependencies:
   provider: ^6.1.1
 
   # Stockage local
-  sqflite: ^2.3.0               # Base de données locale (horaires théoriques)
   shared_preferences: ^2.2.2    # Préférences et trajets favoris
   path_provider: ^2.1.1         # Chemins système pour SQLite
   path: ^1.9.0                  # Manipulation de chemins de fichiers

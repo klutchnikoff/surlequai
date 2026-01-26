@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_service.dart';
@@ -6,19 +5,14 @@ import 'package:surlequai/services/storage_service.dart';
 import 'package:surlequai/utils/mock_data.dart';
 import 'package:surlequai/utils/navitia_config.dart';
 
-/// Service de gestion des grilles horaires théoriques
+/// Service de gestion des grilles horaires
 ///
-/// Responsabilités :
-/// - Vérifier si une nouvelle grille horaire est disponible
-/// - Télécharger et importer les grilles horaires
-/// - Récupérer les horaires théoriques depuis le cache local
-/// - Gérer le cycle de vie des grilles (téléchargement, stockage, expiration)
+/// VERSION SIMPLIFIÉE (v1.0) :
+/// Ne gère plus les grilles GTFS complexes ni SQLite.
+/// Sert de façade pour récupérer les horaires "offline" depuis le cache JSON simple.
 class TimetableService {
   final ApiService _apiService;
   final StorageService _storageService;
-
-  // Cache mémoire de la version actuelle
-  TimetableVersion? _currentVersion;
 
   TimetableService({
     required ApiService apiService,
@@ -26,132 +20,71 @@ class TimetableService {
   })  : _apiService = apiService,
         _storageService = storageService;
 
-  /// Initialise le service (charge la version actuelle depuis SQLite)
+  /// Initialise le service
   Future<void> init() async {
     await _storageService.init();
-    _currentVersion = await _storageService.getCurrentTimetable();
   }
 
-  /// Vérifie s'il existe une nouvelle version de grille horaire
-  ///
-  /// Retourne true si une mise à jour est disponible, false sinon
+  /// (Obsolète/Simplifié) Vérifie les mises à jour
+  /// Retourne toujours false car on n'utilise plus de grilles statiques versionnées
   Future<bool> checkForUpdate({String? region}) async {
-    try {
-      final latestVersion =
-          await _apiService.getTimetableVersion(region: region);
-
-      // Pas de version locale → mise à jour disponible
-      if (_currentVersion == null) return true;
-
-      // Compare les versions
-      return latestVersion.isNewerThan(_currentVersion);
-    } catch (e) {
-      // En cas d'erreur réseau, considère qu'il n'y a pas de mise à jour
-      return false;
-    }
+    return false;
   }
 
-  /// Télécharge et importe une nouvelle grille horaire
-  ///
-  /// Steps :
-  /// 1. Télécharge le fichier GTFS/JSON depuis l'API
-  /// 2. Parse les données
-  /// 3. Importe dans SQLite (table departures)
-  /// 4. Sauvegarde les métadonnées (table timetables)
-  /// 5. Supprime les anciennes grilles expirées
-  ///
-  /// Retourne true en cas de succès, false sinon
+  /// (Obsolète) Télécharge une grille
   Future<bool> downloadAndImportTimetable({
     required String version,
     String? region,
   }) async {
-    try {
-      // 1. Télécharge la grille
-      // ignore: unused_local_variable
-      final data = await _apiService.downloadTimetable(
-        version: version,
-        region: region,
-      );
-
-      // TODO Phase 2: Parser le fichier GTFS ou JSON
-      // final parsedDepartures = _parseGTFS(data);
-
-      // 2. Sauvegarde les métadonnées
-      final timetableVersion = await _apiService.getTimetableVersion(
-        region: region,
-      );
-      // ignore: unused_local_variable
-      final timetableId = await _storageService.saveTimetable(timetableVersion);
-
-      // 3. Importe les départs (Phase 2)
-      // await _storageService.saveDepartures(timetableId, parsedDepartures);
-
-      // 4. Met à jour le cache mémoire
-      _currentVersion = timetableVersion;
-
-      // 5. Nettoie les anciennes grilles
-      await _storageService.clearOldTimetables();
-
-      return true;
-    } catch (e) {
-      // Log l'erreur (en production, on utiliserait un logger)
-      debugPrint('Erreur lors du téléchargement de la grille : $e');
-      return false;
-    }
+    return true; 
   }
 
-  /// Récupère les horaires théoriques pour un trajet et une date
+  /// Récupère les horaires depuis le cache local (Mode Offline)
   ///
-  /// Mode développement (sans clé API) : Retourne mock data
-  /// Mode production (avec clé API) : Retourne liste vide (attente cache GTFS)
-  /// Phase 2 future : Interrogera la base SQLite locale
+  /// Retourne :
+  /// 1. Les données du cache JSON si disponibles
+  /// 2. Les mocks (si mode dev et pas de cache)
+  /// 3. Liste vide sinon
   Future<List<Departure>> getTheoreticalDepartures({
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
-    String? tripId, // Phase 1: utilisé pour les mocks
+    String? tripId,
   }) async {
-    // Si clé API configurée : ne pas utiliser les mocks
-    // Les données viendront de l'API temps réel
-    if (NavitiaConfig.isConfigured) {
-      // TODO Phase 2: Interroger cache SQLite local (horaires théoriques)
-      return []; // Pas de cache pour l'instant
+    // 1. Essayer le cache local (nouveau StorageService)
+    final cachedDepartures = await _storageService.getCachedDepartures(
+      fromStationId, 
+      toStationId
+    );
+
+    if (cachedDepartures.isNotEmpty) {
+      // Filtrer les départs passés ou trop lointains si nécessaire ?
+      // Pour l'instant on retourne tout le cache, le UI filtrera
+      return cachedDepartures;
     }
 
-    // Mode développement sans clé API : utiliser les mocks
-    if (tripId != null) {
+    // 2. Si pas de cache et pas de clé API (Mode Dev/Mock)
+    if (!NavitiaConfig.isConfigured && tripId != null) {
       final isGo = _isGoDirection(tripId, fromStationId, toStationId);
       final suffix = isGo ? '_go' : '_return';
       return InitialMockData.departuresData['$tripId$suffix'] ?? [];
     }
 
     return [];
-
-    // TODO Phase 2: Vraie requête SQLite
-    // return await _storageService.getDepartures(
-    //   fromStationId: fromStationId,
-    //   toStationId: toStationId,
-    //   date: datetime,
-    // );
   }
 
-  /// Retourne la version actuelle de la grille horaire (si disponible)
-  TimetableVersion? get currentVersion => _currentVersion;
+  // --- Helpers ---
 
-  /// Vérifie si une grille horaire locale existe
-  bool get hasLocalTimetable => _currentVersion != null;
+  // Gardé pour compatibilité interface, retourne null
+  TimetableVersion? get currentVersion => null;
+  bool get hasLocalTimetable => false;
 
-  /// Détermine si c'est la direction "go" (A→B) ou "return" (B→A)
-  ///
-  /// Phase 1 helper pour les mocks
   bool _isGoDirection(String tripId, String fromId, String toId) {
-    // Trouve le trip correspondant dans InitialMockData
+    // Helper pour mocks
     final trip = InitialMockData.initialTrips.firstWhere(
       (t) => t.id == tripId,
       orElse: () => InitialMockData.initialTrips.first,
     );
-
-    // Direction "go" si fromId correspond à stationA
     return trip.stationA.id == fromId;
   }
 }
