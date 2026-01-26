@@ -452,8 +452,14 @@ class TripProvider with ChangeNotifier {
 
     _trips.add(newTrip);
     await _saveTrips();
-    notifyListeners();
-
+    
+    // Si c'est le premier trajet, ou pour basculer directement sur le nouveau,
+    // on le définit comme actif. Cela déclenche aussi le chargement des données.
+    await setActiveTrip(newTrip);
+    
+    // notifyListeners() est déjà appelé par setActiveTrip, mais saveTrips a pu changer l'état
+    // setActiveTrip notifie.
+    
     return null; // Succès
   }
 
