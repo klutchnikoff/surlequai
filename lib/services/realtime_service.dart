@@ -44,12 +44,13 @@ class RealtimeService {
       tripId: tripId, // Passé en Phase 1 pour les mocks
     );
 
-    // 2. Tente de récupérer temps réel
+    // 2. Tente de récupérer temps réel (itinéraires directs, SANS cache)
     try {
-      final realtimeDepartures = await _apiService.getRealtimeDepartures(
+      final realtimeDepartures = await _apiService.getDirectJourneys(
         fromStationId: fromStationId,
         toStationId: toStationId,
         datetime: datetime,
+        count: 3, // Écran principal : seulement 3 trains affichés
       );
 
       // 3. Fusionne théorique + temps réel

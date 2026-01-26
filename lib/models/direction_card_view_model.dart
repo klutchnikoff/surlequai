@@ -17,6 +17,7 @@ class DirectionCardWithDepartures extends DirectionCardViewModel {
   final String statusText;
   final Color statusColor;
   final String? subsequentDepartures;
+  final int? durationMinutes; // Durée du trajet en minutes
 
   const DirectionCardWithDepartures({
     required super.title,
@@ -26,6 +27,7 @@ class DirectionCardWithDepartures extends DirectionCardViewModel {
     required this.statusText,
     required this.statusColor,
     this.subsequentDepartures,
+    this.durationMinutes,
   });
 }
 

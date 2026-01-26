@@ -54,4 +54,9 @@ class NavitiaConfig {
   static String departuresUrl(String stopAreaId) {
     return buildUrl('coverage/$coverage/stop_areas/$stopAreaId/departures');
   }
+
+  /// URL pour les itinéraires entre deux gares
+  static String journeysUrl() {
+    return buildUrl('coverage/$coverage/journeys');
+  }
 }

@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   void _showSchedulesModal(
-      BuildContext context, String title, List<Departure> departures) {
+      BuildContext context, String title, String fromStationId, String toStationId) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Important for DraggableScrollableSheet
@@ -23,7 +23,8 @@ class HomeScreen extends StatelessWidget {
       ),
       builder: (context) => SchedulesModal(
         title: title,
-        departures: departures,
+        fromStationId: fromStationId,
+        toStationId: toStationId,
       ),
     );
   }
@@ -75,6 +76,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildContent(BuildContext context, TripProvider tripProvider) {
     final viewModelGo = tripProvider.directionGoViewModel;
     final viewModelReturn = tripProvider.directionReturnViewModel;
+    final activeTrip = tripProvider.activeTrip;
 
     // The viewModels can be null for a single frame before the provider is ready
     if (viewModelGo == null || viewModelReturn == null) {
@@ -95,13 +97,25 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   DirectionCard(
                     viewModel: viewModelGo,
-                    onTap: () => _showSchedulesModal(
-                        context, viewModelGo.title, tripProvider.departuresGo),
+                    onTap: activeTrip != null
+                        ? () => _showSchedulesModal(
+                              context,
+                              viewModelGo.title,
+                              activeTrip.stationA.id,
+                              activeTrip.stationB.id,
+                            )
+                        : null,
                   ),
                   DirectionCard(
                     viewModel: viewModelReturn,
-                    onTap: () => _showSchedulesModal(context,
-                        viewModelReturn.title, tripProvider.departuresReturn),
+                    onTap: activeTrip != null
+                        ? () => _showSchedulesModal(
+                              context,
+                              viewModelReturn.title,
+                              activeTrip.stationB.id,
+                              activeTrip.stationA.id,
+                            )
+                        : null,
                   ),
                 ],
               ),

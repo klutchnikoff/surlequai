@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/services/settings_provider.dart';
@@ -30,11 +31,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               _buildTimeBehaviorSetting(context, settingsProvider),
               const Divider(),
-              // TODO: Add other sections (DONNÉES, NOTIFICATIONS, INTERFACE, À PROPOS)
+              _buildSectionTitle(context, 'DONNÉES'),
+              _buildClearCacheButton(context),
+              const Divider(),
+              // TODO: Add other sections (NOTIFICATIONS, INTERFACE, À PROPOS)
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildClearCacheButton(BuildContext context) {
+    return ListTile(
+      title: const Text('Vider le cache'),
+      subtitle: const Text('Supprime les horaires théoriques en cache'),
+      leading: const Icon(Icons.delete_outline),
+      onTap: () async {
+        // Confirmation
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Vider le cache'),
+            content: const Text(
+                'Cela supprimera tous les horaires théoriques en cache. '
+                'Les données seront rechargées à la prochaine consultation.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Vider'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true && context.mounted) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final keys = prefs.getKeys();
+
+            // Supprimer uniquement les clés de cache (commencent par "journeys_")
+            int removed = 0;
+            for (final key in keys) {
+              if (key.startsWith('journeys_')) {
+                await prefs.remove(key);
+                removed++;
+              }
+            }
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cache vidé ($removed entrée${removed > 1 ? 's' : ''})'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erreur: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        }
+      },
     );
   }
 

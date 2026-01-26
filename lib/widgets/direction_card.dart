@@ -33,10 +33,26 @@ class DirectionCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    viewModel.title,
-                    style: AppTextStyles.medium
-                        .copyWith(fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          viewModel.title,
+                          style: AppTextStyles.medium
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (viewModel is DirectionCardWithDepartures &&
+                          (viewModel as DirectionCardWithDepartures).durationMinutes != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.timer_outlined, size: 18, color: AppColors.secondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${(viewModel as DirectionCardWithDepartures).durationMinutes} min',
+                          style: AppTextStyles.small.copyWith(color: AppColors.secondary),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 16),
                   switch (viewModel) {

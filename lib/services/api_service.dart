@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/timetable_version.dart';
@@ -106,6 +107,244 @@ class ApiService {
     }
   }
 
+  /// Récupère les itinéraires directs entre deux gares (trains sans correspondance)
+  ///
+  /// [fromStationId] : ID de la gare de départ (format Navitia: stop_area:xxx)
+  /// [toStationId] : ID de la gare d'arrivée
+  /// [datetime] : Date/heure de référence pour les départs
+  /// [count] : Nombre maximum d'itinéraires à récupérer
+  ///
+  /// Retourne une liste de Departure correspondant aux trains directs uniquement
+  Future<List<Departure>> getDirectJourneys({
+    required String fromStationId,
+    required String toStationId,
+    required DateTime datetime,
+    int count = 10,
+  }) async {
+    try {
+      // Construction de l'URL avec paramètres
+      final url = Uri.parse(NavitiaConfig.journeysUrl()).replace(
+        queryParameters: {
+          'from': fromStationId,
+          'to': toStationId,
+          'datetime': _formatNavitiaDateTime(datetime),
+          'count': count.toString(),
+          'data_freshness': 'realtime', // Force les données temps réel
+          'min_nb_journeys': count.toString(),
+          'max_nb_transfers': '0', // Trains directs uniquement
+        },
+      );
+
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Fetching journeys: $url');
+      }
+
+      // Appel HTTP avec timeout
+      final response = await _client
+          .get(url, headers: NavitiaConfig.authHeaders)
+          .timeout(AppConstants.apiTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final departures = _parseJourneys(jsonData);
+
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Parsed ${departures.length} direct journeys');
+        }
+
+        return departures;
+      } else if (response.statusCode == 401) {
+        throw HttpException('Clé API invalide ou expirée');
+      } else if (response.statusCode == 404) {
+        throw HttpException('Gare non trouvée: $fromStationId ou $toStationId');
+      } else {
+        throw HttpException(
+            'Erreur API: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      // Pas de connexion réseau
+      throw SocketException('Pas de connexion Internet');
+    } on TimeoutException {
+      // Timeout API
+      throw TimeoutException('Délai d\'attente dépassé');
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Error: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Récupère les horaires théoriques (sans temps réel) - méthode interne
+  ///
+  /// Identique à getDirectJourneys() mais avec data_freshness=base_schedule
+  /// Utilisé par getTheoreticalSchedule() pour le cache
+  Future<List<Departure>> _fetchTheoreticalJourneys({
+    required String fromStationId,
+    required String toStationId,
+    required DateTime datetime,
+    int count = AppConstants.maxTrainsPerDay,
+  }) async {
+    try {
+      // Construction de l'URL avec paramètres
+      final url = Uri.parse(NavitiaConfig.journeysUrl()).replace(
+        queryParameters: {
+          'from': fromStationId,
+          'to': toStationId,
+          'datetime': _formatNavitiaDateTime(datetime),
+          'count': count.toString(),
+          'data_freshness': 'base_schedule', // ⚠️ Horaires théoriques uniquement
+          'max_nb_transfers': '0', // Trains directs uniquement
+        },
+      );
+
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Fetching theoretical schedule: $url');
+      }
+
+      // Appel HTTP avec timeout
+      final response = await _client
+          .get(url, headers: NavitiaConfig.authHeaders)
+          .timeout(AppConstants.apiTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final departures = _parseJourneys(jsonData);
+
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Parsed ${departures.length} theoretical schedules');
+        }
+
+        return departures;
+      } else if (response.statusCode == 401) {
+        throw HttpException('Clé API invalide ou expirée');
+      } else if (response.statusCode == 404) {
+        throw HttpException('Gare non trouvée: $fromStationId ou $toStationId');
+      } else {
+        throw HttpException(
+            'Erreur API: ${response.statusCode} - ${response.body}');
+      }
+    } on SocketException {
+      // Pas de connexion réseau
+      throw SocketException('Pas de connexion Internet');
+    } on TimeoutException {
+      // Timeout API
+      throw TimeoutException('Délai d\'attente dépassé');
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] Error: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Récupère les horaires théoriques avec cache (un appel API par jour maximum)
+  ///
+  /// Utilisé pour la modale "Fiche horaire" : affiche les horaires théoriques
+  /// (pas de temps réel) avec cache journalier.
+  ///
+  /// [count] : Nombre de trains à récupérer (défini par AppConstants.maxTrainsPerDay)
+  ///
+  /// Vérifie d'abord le cache SharedPreferences.
+  /// Si le cache est valide (même jour de service), le retourne.
+  /// Sinon, appelle l'API avec data_freshness=base_schedule et met à jour le cache.
+  ///
+  /// Le jour de service démarre à 4h du matin (AppConstants.defaultServiceDayStartHour)
+  Future<List<Departure>> getTheoreticalSchedule({
+    required String fromStationId,
+    required String toStationId,
+    required DateTime datetime,
+    int count = AppConstants.maxTrainsPerDay,
+  }) async {
+    // Calculer le jour de service (change à 4h du matin, pas à minuit)
+    final serviceDay = _getServiceDay(datetime);
+    final cacheKey = _getCacheKey(fromStationId, toStationId, serviceDay);
+
+    if (AppConstants.enableDebugLogs) {
+      print('[ApiService] Cache key: $cacheKey');
+    }
+
+    // Vérifier le cache
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(cacheKey);
+
+      if (cachedJson != null) {
+        // Cache trouvé, parser et retourner
+        // Maintenant qu'on utilise toujours maxTrainsPerDay, pas besoin de vérifier la taille
+        // (le filtrage par jour se fait côté client dans la modale)
+        final List<dynamic> jsonList = json.decode(cachedJson);
+        final departures = jsonList.map((j) => Departure.fromJson(j)).toList();
+
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] ✅ Cache hit: ${departures.length} departures');
+        }
+
+        return departures;
+      }
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] ⚠️ Cache read error: $e');
+      }
+      // Continue avec l'appel API si erreur de cache
+    }
+
+    // Cache manquant ou invalide → appel API (horaires théoriques)
+    if (AppConstants.enableDebugLogs) {
+      print('[ApiService] ❌ Cache miss, fetching theoretical schedule from API');
+    }
+
+    final departures = await _fetchTheoreticalJourneys(
+      fromStationId: fromStationId,
+      toStationId: toStationId,
+      datetime: datetime,
+      count: count,
+    );
+
+    // Sauvegarder dans le cache
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = departures.map((d) => d.toJson()).toList();
+      final jsonString = json.encode(jsonList);
+      await prefs.setString(cacheKey, jsonString);
+
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] 💾 Cached ${departures.length} departures');
+      }
+    } catch (e) {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] ⚠️ Cache write error: $e');
+      }
+      // Ne pas bloquer si erreur de cache
+    }
+
+    return departures;
+  }
+
+  /// Calcule le jour de service actuel
+  ///
+  /// Le jour de service change à 4h du matin (pas à minuit).
+  /// Exemple : 2h du matin le 27/01 → jour de service = 26/01
+  String _getServiceDay(DateTime datetime) {
+    final hour = datetime.hour;
+
+    // Si avant 4h du matin, on est encore dans le jour de service précédent
+    if (hour < AppConstants.defaultServiceDayStartHour) {
+      final previousDay = datetime.subtract(const Duration(days: 1));
+      return '${previousDay.year}-${previousDay.month.toString().padLeft(2, '0')}-${previousDay.day.toString().padLeft(2, '0')}';
+    }
+
+    return '${datetime.year}-${datetime.month.toString().padLeft(2, '0')}-${datetime.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Génère la clé de cache pour un trajet et un jour de service
+  String _getCacheKey(String fromStationId, String toStationId, String serviceDay) {
+    // Nettoyer les IDs pour le cache (enlever le préfixe stop_area:)
+    final fromId = fromStationId.split(':').last;
+    final toId = toStationId.split(':').last;
+    return 'journeys_${fromId}_${toId}_$serviceDay';
+  }
+
   /// Recherche des gares par nom (autocomplete)
   ///
   /// [query] : Terme de recherche (ex: "renn" pour Rennes)
@@ -172,52 +411,36 @@ class ApiService {
 
     for (final depJson in departuresList) {
       try {
-        // Vérifier si ce train va vers la destination souhaitée
+        // Extraire les infos de base
+        final stopDateTime = depJson['stop_date_time'] as Map<String, dynamic>;
+        final displayInfo = depJson['display_informations'] as Map<String, dynamic>?;
         final route = depJson['route'] as Map<String, dynamic>?;
         final direction = route?['direction'] as Map<String, dynamic>?;
-        final directionStopAreaId = direction?['id'] as String?;
+        final directionName = direction?['name'] as String? ?? 'unknown';
+        final network = displayInfo?['network'] as String? ?? 'unknown';
 
-        // Filtrer : garder seulement les trains qui vont vers toStationId
-        // Navitia peut retourner le stop_point (quai) ou stop_area (gare)
-        // On compare en retirant le préfixe stop_point: si présent
-        if (directionStopAreaId != null) {
-          final cleanDirectionId = directionStopAreaId.replaceFirst('stop_point:', 'stop_area:');
-          final cleanToStationId = toStationId.replaceFirst('stop_point:', 'stop_area:');
+        // ⚠️ FILTRE DESTINATION TEMPORAIREMENT DÉSACTIVÉ
+        // Pour tester avec des gares intermédiaires (ex: Rennes → Bruz → Nantes)
+        // Le filtre par terminus strict ne fonctionne pas pour ces cas
+        //
+        // TODO: Implémenter une vraie vérification avec /journeys ou liste des arrêts
 
-          // Si les IDs ne matchent pas, on ignore ce départ
-          if (!cleanDirectionId.contains(cleanToStationId.split(':').last) &&
-              !cleanToStationId.contains(cleanDirectionId.split(':').last)) {
-            if (AppConstants.enableDebugLogs) {
-              print('[ApiService] Skipping train to $directionStopAreaId (looking for $toStationId)');
-            }
-            continue; // Train ne va pas vers la bonne destination
-          }
-        }
-
-        // Extraire les données de départ
-        final stopDateTime = depJson['stop_date_time'] as Map<String, dynamic>;
-        final displayInfo =
-            depJson['display_informations'] as Map<String, dynamic>?;
-
-        // Filtrer par type de train : garder TER et Intercités
-        // Exclut TGV (trop cher pour usage quotidien)
-        final network = displayInfo?['network'] as String? ?? '';
+        // Filtrer par type de train : rejeter uniquement les trains chers/rapides
+        // Stratégie : Liste noire plutôt que liste blanche
+        // On rejette : TGV (cher), Ouigo (cher), Transilien (banlieue parisienne)
+        // On accepte : TER (toutes marques régionales), Intercités, etc.
         final networkUpper = network.toUpperCase();
 
-        // Accepter : TER, Intercités
-        // Rejeter : TGV, Ouigo, etc.
-        final isTER = networkUpper.contains('TER');
-        final isIntercites = networkUpper.contains('INTERCITÉS') ||
-                            networkUpper.contains('INTERCITES');
+        // Rejeter les trains chers et de banlieue
+        final isExpensiveTrain = networkUpper.contains('TGV') ||
+                                networkUpper.contains('OUIGO') ||
+                                networkUpper.contains('TRANSILIEN');
 
-        if (!isTER && !isIntercites) {
-          if (AppConstants.enableDebugLogs) {
-            print('[ApiService] Skipping train type: $network');
-          }
-          continue; // Ignorer TGV, Ouigo, etc.
+        if (isExpensiveTrain) {
+          continue; // Ignorer TGV, Ouigo, Transilien
         }
 
-        // Heure de départ prévue
+        // Heure de départ prévue (scheduled)
         final baseDateTime = stopDateTime['base_departure_date_time'] as String;
         final scheduledTime = _parseNavitiaDateTime(baseDateTime);
 
@@ -267,7 +490,110 @@ class ApiService {
     }
 
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] Filtered to ${departures.length} TER departures going to destination');
+      print('[ApiService] Parsed ${departures.length} departures (TGV/Ouigo/Transilien exclus)');
+    }
+
+    return departures;
+  }
+
+  /// Parse les itinéraires depuis la réponse JSON Navitia
+  List<Departure> _parseJourneys(Map<String, dynamic> jsonData) {
+    final journeysList = jsonData['journeys'] as List<dynamic>? ?? [];
+    final departures = <Departure>[];
+
+    for (final journeyJson in journeysList) {
+      try {
+        // Vérifier qu'il n'y a pas de correspondances
+        final nbTransfers = journeyJson['nb_transfers'] as int? ?? 0;
+        if (nbTransfers != 0) {
+          continue; // Ignorer les trajets avec correspondances
+        }
+
+        // Extraire la section (il n'y en a qu'une pour un trajet direct)
+        final sections = journeyJson['sections'] as List<dynamic>? ?? [];
+        if (sections.isEmpty) continue;
+
+        // Trouver la section de type "public_transport" (le train)
+        final trainSection = sections.firstWhere(
+          (s) => s['type'] == 'public_transport',
+          orElse: () => null,
+        );
+
+        if (trainSection == null) continue;
+
+        // Informations d'affichage du train
+        final displayInfo = trainSection['display_informations'] as Map<String, dynamic>?;
+        if (displayInfo == null) continue;
+
+        final network = displayInfo['network'] as String? ?? 'unknown';
+
+        // Filtrer par type de train (rejeter TGV, Ouigo, Transilien)
+        final networkUpper = network.toUpperCase();
+        final isExpensiveTrain = networkUpper.contains('TGV') ||
+                                networkUpper.contains('OUIGO') ||
+                                networkUpper.contains('TRANSILIEN');
+
+        if (isExpensiveTrain) {
+          continue;
+        }
+
+        // Informations de départ
+        final departureDateTime = trainSection['departure_date_time'] as String;
+        final scheduledTime = _parseNavitiaDateTime(departureDateTime);
+
+        final baseDepartureDateTime = trainSection['base_departure_date_time'] as String?;
+        final baseScheduledTime = baseDepartureDateTime != null
+            ? _parseNavitiaDateTime(baseDepartureDateTime)
+            : scheduledTime;
+
+        // Informations d'arrivée
+        final arrivalDateTime = trainSection['arrival_date_time'] as String;
+        final arrivalTime = _parseNavitiaDateTime(arrivalDateTime);
+
+        // Calcul de la durée du trajet
+        final durationMinutes = arrivalTime.difference(scheduledTime).inMinutes;
+
+        // Calcul du retard
+        final delayMinutes = scheduledTime.difference(baseScheduledTime).inMinutes;
+
+        // Déterminer le statut
+        DepartureStatus status;
+        if (trainSection['data_freshness'] == 'base_schedule' || delayMinutes == 0) {
+          status = DepartureStatus.onTime;
+        } else if (delayMinutes > 0) {
+          status = DepartureStatus.delayed;
+        } else {
+          status = DepartureStatus.onTime;
+        }
+
+        // Voie de départ
+        final stopDateTime = trainSection['stop_date_times'] as List<dynamic>? ?? [];
+        final firstStop = stopDateTime.isNotEmpty ? stopDateTime.first : null;
+        final platform = firstStop?['departure_stop_point']?['platform'] as String? ?? '?';
+
+        // ID unique
+        final tripId = displayInfo['trip_short_name'] ??
+                      trainSection['id'] ??
+                      'unknown';
+
+        departures.add(Departure(
+          id: '$tripId-${scheduledTime.millisecondsSinceEpoch}',
+          scheduledTime: scheduledTime,
+          platform: platform,
+          status: status,
+          delayMinutes: delayMinutes.abs(),
+          durationMinutes: durationMinutes,
+        ));
+      } catch (e) {
+        if (AppConstants.enableDebugLogs) {
+          print('[ApiService] Failed to parse journey: $e');
+        }
+        // Continue avec les autres journeys
+      }
+    }
+
+    if (AppConstants.enableDebugLogs) {
+      print('[ApiService] Filtered to ${departures.length} direct journeys (TGV/Ouigo/Transilien exclus)');
     }
 
     return departures;

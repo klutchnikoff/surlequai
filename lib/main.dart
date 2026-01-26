@@ -128,9 +128,32 @@ void main() async {
     await HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
 
+  // Initialisation des services (singletons)
+  final apiService = ApiService();
+  final storageService = StorageService();
+  await storageService.init();
+
+  final timetableService = TimetableService(
+    apiService: apiService,
+    storageService: storageService,
+  );
+  await timetableService.init();
+
+  final realtimeService = RealtimeService(
+    apiService: apiService,
+    timetableService: timetableService,
+  );
+
   runApp(
     MultiProvider(
       providers: [
+        // Services (pas de notification de changement, juste des instances partagées)
+        Provider<ApiService>.value(value: apiService),
+        Provider<StorageService>.value(value: storageService),
+        Provider<TimetableService>.value(value: timetableService),
+        Provider<RealtimeService>.value(value: realtimeService),
+
+        // Providers avec état
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
         ChangeNotifierProxyProvider<SettingsProvider, TripProvider>(
           create: (context) => TripProvider(context.read<SettingsProvider>()),
