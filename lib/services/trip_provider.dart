@@ -61,19 +61,29 @@ class TripProvider with ChangeNotifier {
   DateTime? get lastUpdate => _lastUpdate;
   ConnectionStatus get connectionStatus => _connectionStatus;
 
-  TripProvider(this._settingsProvider) {
-    // Initialise les services
-    _apiService = ApiService();
-    _storageService = StorageService();
-    _timetableService = TimetableService(
-      apiService: _apiService,
-      storageService: _storageService,
-    );
-    _realtimeService = RealtimeService(
-      apiService: _apiService,
-      timetableService: _timetableService,
-    );
-    _widgetService = WidgetService();
+  TripProvider(
+    this._settingsProvider, {
+    ApiService? apiService,
+    StorageService? storageService,
+    TimetableService? timetableService,
+    RealtimeService? realtimeService,
+    WidgetService? widgetService,
+  }) {
+    // Initialise les services (ou utilise ceux injectés)
+    _apiService = apiService ?? ApiService();
+    _storageService = storageService ?? StorageService();
+    _timetableService = timetableService ??
+        TimetableService(
+          apiService: _apiService,
+          storageService: _storageService,
+        );
+    _realtimeService = realtimeService ??
+        RealtimeService(
+          apiService: _apiService,
+          timetableService: _timetableService,
+          storageService: _storageService,
+        );
+    _widgetService = widgetService ?? WidgetService();
 
     _loadTrips();
   }
