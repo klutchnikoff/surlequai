@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:surlequai/models/departure.dart';
@@ -10,17 +13,33 @@ import 'package:surlequai/models/timetable_version.dart';
 /// - departures : Départs théoriques (heure, voie, jours de circulation)
 ///
 /// Permet un fonctionnement hors-ligne complet de l'application
+///
+/// Note : SQLite n'est disponible que sur iOS/Android.
+/// Sur Web/Desktop, le service fonctionne en mode dégradé (pas de cache local).
 class StorageService {
   static const String _databaseName = 'surlequai.db';
   static const int _databaseVersion = 1;
 
   Database? _database;
 
+  /// Vérifie si on est sur une plateforme mobile (iOS/Android)
+  bool get _isMobilePlatform {
+    if (kIsWeb) return false;
+    return Platform.isIOS || Platform.isAndroid;
+  }
+
   /// Initialise la base de données SQLite
   ///
   /// Crée les tables si nécessaire, applique les index pour performances
+  ///
+  /// Note : Sur Web/Desktop, cette méthode ne fait rien (SQLite non supporté)
   Future<void> init() async {
     if (_database != null) return; // Déjà initialisée
+
+    // SQLite n'est disponible que sur iOS/Android
+    if (!_isMobilePlatform) {
+      return; // Mode dégradé : pas de cache local sur Web/Desktop
+    }
 
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, _databaseName);
@@ -80,6 +99,7 @@ class StorageService {
   /// Sauvegarde une grille horaire (métadonnées)
   Future<int> saveTimetable(TimetableVersion version) async {
     await _ensureInitialized();
+    if (_database == null) return -1; // Mode dégradé sur Web/Desktop
 
     return await _database!.insert(
       'timetables',
@@ -99,6 +119,7 @@ class StorageService {
   /// Récupère la grille horaire actuelle (la plus récente)
   Future<TimetableVersion?> getCurrentTimetable({String? region}) async {
     await _ensureInitialized();
+    if (_database == null) return null; // Mode dégradé sur Web/Desktop
 
     final List<Map<String, dynamic>> results = await _database!.query(
       'timetables',
@@ -127,6 +148,7 @@ class StorageService {
     List<Departure> departures,
   ) async {
     await _ensureInitialized();
+    if (_database == null) return; // Mode dégradé sur Web/Desktop
 
     final batch = _database!.batch();
 
@@ -182,6 +204,7 @@ class StorageService {
   /// Supprime les anciennes grilles horaires expirées
   Future<void> clearOldTimetables() async {
     await _ensureInitialized();
+    if (_database == null) return; // Mode dégradé sur Web/Desktop
 
     final now = DateTime.now().toIso8601String();
 
@@ -221,7 +244,12 @@ class StorageService {
   }
 
   /// S'assure que la base de données est initialisée
+  ///
+  /// Sur Web/Desktop, ne fait rien (mode dégradé sans cache local)
   Future<void> _ensureInitialized() async {
+    if (!_isMobilePlatform) {
+      return; // Pas de cache local sur Web/Desktop
+    }
     if (_database == null) {
       await init();
     }

@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +21,12 @@ import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/app_theme.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/mock_data.dart';
+
+/// Vérifie si on est sur une plateforme mobile (iOS/Android)
+bool get isMobilePlatform {
+  if (kIsWeb) return false;
+  return Platform.isIOS || Platform.isAndroid;
+}
 
 /// Callback pour les mises à jour en arrière-plan du widget
 @pragma('vm:entry-point')
@@ -92,10 +101,14 @@ void backgroundCallback(Uri? uri) async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  await HomeWidget.setAppGroupId('group.com.surlequai.app');
-  await HomeWidget.registerInteractivityCallback(backgroundCallback);
+  // Configuration des widgets uniquement sur iOS/Android
+  if (isMobilePlatform) {
+    await HomeWidget.setAppGroupId('group.com.surlequai.app');
+    await HomeWidget.registerInteractivityCallback(backgroundCallback);
+  }
 
   runApp(
     MultiProvider(
@@ -125,10 +138,15 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _handleWidgetLaunch();
+    // On retire le splash screen après le premier rendu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
   }
 
   /// Gère le cas où l'app est lancée depuis un tap sur un widget
   void _handleWidgetLaunch() {
+    if (!isMobilePlatform) return;
     HomeWidget.initiallyLaunchedFromHomeWidget().then(_launchedFromWidget);
     HomeWidget.widgetClicked.listen(_launchedFromWidget);
   }
@@ -149,6 +167,7 @@ class _MyAppState extends State<MyApp> {
 
   /// Configure le handler pour basculer vers un trajet quand on tap sur un widget
   void _setupWidgetTapHandler() {
+    if (!isMobilePlatform) return;
     platform.setMethodCallHandler((call) async {
       if (call.method == 'switchToTrip') {
         final tripId = call.arguments as String?;
