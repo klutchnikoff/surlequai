@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.work.*
@@ -43,15 +44,31 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        if (intent.action == "es.antonborri.home_widget.action.UPDATE_WIDGET") {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val componentName = android.content.ComponentName(context, SurLeQuaiWidgetProvider::class.java)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-            onUpdate(context, appWidgetManager, appWidgetIds)
+        when (intent.action) {
+            "es.antonborri.home_widget.action.UPDATE_WIDGET" -> {
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val componentName = android.content.ComponentName(context, SurLeQuaiWidgetProvider::class.java)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+                onUpdate(context, appWidgetManager, appWidgetIds)
+            }
+            ACTION_REFRESH_WIDGET -> {
+                // Déclencher le rafraîchissement manuel via le backgroundCallback
+                val backgroundIntent = Intent(context, MainActivity::class.java)
+                backgroundIntent.action = "es.antonborri.home_widget.action.LAUNCH"
+                backgroundIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                // Appeler le HomeWidgetBackgroundIntent pour déclencher le Dart callback
+                es.antonborri.home_widget.HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("homewidget://refresh")
+                ).send()
+            }
         }
     }
 
     companion object {
+        private const val ACTION_REFRESH_WIDGET = "com.example.surlequai.REFRESH_WIDGET"
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -118,6 +135,19 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+
+            // Bouton de rafraîchissement manuel
+            val refreshIntent = Intent(context, SurLeQuaiWidgetProvider::class.java).apply {
+                action = ACTION_REFRESH_WIDGET
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val refreshPendingIntent = PendingIntent.getBroadcast(
+                context,
+                appWidgetId + 1000, // Offset pour éviter collision avec pendingIntent ci-dessus
+                refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_refresh_button, refreshPendingIntent)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
