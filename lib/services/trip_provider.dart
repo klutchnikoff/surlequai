@@ -277,6 +277,8 @@ class TripProvider with ChangeNotifier {
       allTrips: _trips,
       departuresGoByTrip: departuresGoByTrip,
       departuresReturnByTrip: departuresReturnByTrip,
+      morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
+      serviceDayStartHour: _settingsProvider.serviceDayStartTime,
     );
   }
 

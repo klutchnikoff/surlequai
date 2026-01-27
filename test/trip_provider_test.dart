@@ -73,6 +73,8 @@ class MockWidgetService extends WidgetService {
     required List<Trip> allTrips,
     required Map<String, List<Departure>> departuresGoByTrip,
     required Map<String, List<Departure>> departuresReturnByTrip,
+    int? morningEveningSplitHour,
+    int? serviceDayStartHour,
   }) async {}
 }
 

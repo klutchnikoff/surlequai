@@ -115,6 +115,8 @@ class WidgetService {
     required Trip trip,
     required List<Departure> departuresGo,
     required List<Departure> departuresReturn,
+    int? morningEveningSplitHour,
+    int? serviceDayStartHour,
   }) async {
     try {
       await HomeWidget.setAppGroupId(_iOSAppGroupId);
@@ -123,10 +125,11 @@ class WidgetService {
       final tripName = '${trip.stationA.name} ⟷ ${trip.stationB.name}';
 
       // Déterminer l'ordre d'affichage selon l'heure (logique matin/soir)
+      // Utilise les préférences utilisateur si fournies, sinon les valeurs par défaut
       final shouldSwap = TripSorter.shouldSwapOrder(
         currentHour: DateTime.now().hour,
-        morningEveningSplitHour: AppConstants.defaultMorningEveningSplitHour,
-        serviceDayStartHour: AppConstants.defaultServiceDayStartHour,
+        morningEveningSplitHour: morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour,
+        serviceDayStartHour: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
         morningDirection: trip.morningDirection,
       );
 
@@ -219,6 +222,8 @@ class WidgetService {
     required List<Trip> allTrips,
     required Map<String, List<Departure>> departuresGoByTrip,
     required Map<String, List<Departure>> departuresReturnByTrip,
+    int? morningEveningSplitHour,
+    int? serviceDayStartHour,
   }) async {
     try {
       // Sauvegarder la liste des trajets pour la configuration
@@ -233,6 +238,8 @@ class WidgetService {
           trip: trip,
           departuresGo: departuresGo,
           departuresReturn: departuresReturn,
+          morningEveningSplitHour: morningEveningSplitHour,
+          serviceDayStartHour: serviceDayStartHour,
         );
       }
 

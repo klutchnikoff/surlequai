@@ -105,11 +105,19 @@ void backgroundCallback(Uri? uri) async {
   
   debugPrint('--- Saving data to widgets ---');
 
+  // Charger les préférences utilisateur pour l'ordre matin/soir
+  final morningEveningSplitHour = prefs.getInt(AppConstants.splitTimeKey) ??
+      AppConstants.defaultMorningEveningSplitHour;
+  final serviceDayStartHour = prefs.getInt(AppConstants.dayStartTimeKey) ??
+      AppConstants.defaultServiceDayStartHour;
+
   // Appeler la méthode centralisée de WidgetService
   await widgetService.updateAllWidgets(
     allTrips: trips,
     departuresGoByTrip: departuresGoByTrip,
     departuresReturnByTrip: departuresReturnByTrip,
+    morningEveningSplitHour: morningEveningSplitHour,
+    serviceDayStartHour: serviceDayStartHour,
   );
   
   debugPrint('--- Background Callback Finished ---');
