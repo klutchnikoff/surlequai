@@ -322,8 +322,9 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 ```
 
 **Comportement** :
-- Tap sur widget → Ouvre l'app
-- Tap sur une direction → Ouvre l'app avec modal horaires de cette direction
+- Tap sur widget (zone centrale) → Ouvre l'app
+- Tap sur nom du trajet (header) → Ouvre sélecteur pour changer de trajet ⭐⭐⭐ NOUVEAU
+- Bouton 🔄 rafraîchissement manuel ⭐⭐⭐ NOUVEAU
 
 #### Widgets multiples ⭐⭐⭐ MUST-HAVE
 
@@ -337,10 +338,24 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 - L'utilisateur choisit quel trajet ce widget doit afficher
 - Chaque widget conserve sa configuration de manière indépendante
 
+**Changement de trajet sur widget existant** ⭐⭐⭐ NOUVEAU :
+- Clic sur le nom du trajet dans le header → Ouvre un sélecteur
+- Liste tous les trajets favoris
+- Sélection instantanée → Le widget bascule immédiatement
+- Pas besoin de supprimer/recréer le widget
+- Activity Android native `SurLeQuaiWidgetSwitchTripActivity`
+
+**Gestion des trajets supprimés** ⭐⭐⭐ NOUVEAU :
+- Suppression d'un trajet dans l'app → Nettoyage automatique des widgets
+- Widget affiche "Trajet supprimé - Toucher pour choisir un trajet"
+- Bouton refresh masqué automatiquement
+- Clic sur le widget → Ouvre le sélecteur de trajet
+
 **Implémentation Android** :
 - Utilisation de `appWidgetId` pour identifier chaque instance
 - Stockage : `widget_{appWidgetId}_trip_id` → "trip-uuid-xxx"
 - Configuration Activity Android standard
+- Switch Trip Activity pour changement à la volée
 
 #### Stratégie de rafraîchissement intelligente ⭐⭐⭐ MUST-HAVE
 
@@ -386,6 +401,26 @@ Les trajets domicile-travail ont un sens différent selon l'heure :
 - Pastilles colorées 🟢🟠🔴🔵 selon état
 - Texte du retard si applicable
 - Si hors-ligne : symbole ⚠ + "Horaire prévu"
+
+**Hiérarchie visuelle** ⭐⭐⭐ NOUVEAU (27 janvier 2026) :
+- **Direction principale** (probable selon l'heure) :
+  - Fond blanc
+  - Textes contrastés (noir/gris foncé)
+  - Heure en gras 22sp
+  - Pastilles colorées vives selon statut
+
+- **Direction secondaire** (moins probable) :
+  - Fond gris clair (#F9FAFB) sur toute la largeur
+  - Textes atténués (gris #9CA3AF)
+  - Heure en regular 20sp
+  - Pastille emoji avec alpha 0.6
+  - Statut en gris uniforme (pas de couleur vive)
+  - Voie en gris
+
+**Optimisations layout** :
+- Espacement vertical réduit entre directions (6dp + 2dp)
+- Zone grisée direction secondaire va d'un bord à l'autre (padding redistribué)
+- Timestamp "Mis à jour: HH:MM" visible en bas à droite
 
 ---
 
@@ -1131,6 +1166,24 @@ flutter test test/trip_provider_test.dart
   - Pause après départ jusqu'à H-20 du prochain
   - WidgetRefreshWorker déclenche backgroundCallback Dart
   - Gestion passage minuit
+- ✅ **Bouton de rafraîchissement manuel** :
+  - ImageButton avec icône sync
+  - Déclenche backgroundCallback Dart
+  - Handler + délai 2s pour mise à jour visuelle
+  - Visible uniquement si widget configuré
+- ✅ **Changement de trajet à la volée** (FONCTIONNALITÉ ORIGINALE) :
+  - Clic sur nom du trajet → Sélecteur natif Android
+  - `SurLeQuaiWidgetSwitchTripActivity`
+  - Bascule instantanée sans recréer le widget
+- ✅ **Gestion trajets supprimés** :
+  - Nettoyage automatique via `WidgetService.clearWidgetDataForTrip()`
+  - Affichage "Trajet supprimé - Toucher pour choisir"
+  - Bouton refresh masqué (View.GONE)
+- ✅ **Hiérarchie visuelle** :
+  - Direction principale : fond blanc, textes contrastés
+  - Direction secondaire : fond gris #F9FAFB, textes atténués #9CA3AF
+  - Zone grisée bord à bord
+  - Espacement vertical optimisé (6dp + 2dp)
 
 **Multi-trajets** (95%) :
 - ✅ Provider `TripProvider` avec ChangeNotifier
@@ -1194,7 +1247,19 @@ flutter test test/trip_provider_test.dart
 
 ### ✅ Récemment implémenté
 
-**27 janvier 2026** :
+**27 janvier 2026 (après-midi)** :
+- ✅ **BYOK (Bring Your Own Key)** : Clé API personnalisée dans Keychain/KeyStore
+- ✅ **Proxy Cloudflare Worker** : Déployé avec zero-logging et rate limiting
+- ✅ **Amélioration widgets Android** :
+  - Bouton de rafraîchissement manuel (🔄)
+  - Changement de trajet via clic sur header (fonctionnalité originale !)
+  - Gestion automatique des trajets supprimés
+  - Hiérarchie visuelle direction principale/secondaire
+  - Zone grisée bord à bord pour direction secondaire
+  - Optimisation espacement vertical (6dp + 2dp)
+  - Fix refresh visuel (Handler + délai 2s)
+
+**27 janvier 2026 (matin)** :
 - ✅ **Architecture simplifiée** : Remplacement SQLite → Cache JSON léger
 - ✅ **Mode offline complet** : Cache des réponses API temps réel (6 trains)
 - ✅ **Tests unitaires** : `TripProvider` avec injection de dépendances
@@ -1209,12 +1274,6 @@ flutter test test/trip_provider_test.dart
 - ✅ **Journée de service** : 4h-4h au lieu de 4h-22h
 
 ### 🚧 À implémenter (Avant release)
-
-**Proxy Cloudflare Workers** (Sécurité) :
-- ❌ Déployer Worker pour cacher clé API
-- ❌ Rate limiting par IP
-- ❌ Compression réponses
-- **Impact** : Sécurise l'accès API + améliore perfs
 
 **Polish & tests** :
 - ⚠️ Tests intégration API
@@ -1294,25 +1353,24 @@ flutter test test/trip_provider_test.dart
 
 **Priorité HAUTE** :
 
-1. **Proxy Cloudflare Workers** (Sécurité) 🔒
-   - Déployer Worker pour cacher la clé API Navitia
-   - Rate limiting par IP (100 req/h)
-   - Compression des réponses
-   - Logs et monitoring
-   - **Impact** : Sécurise l'accès API + protège le quota
-
-2. **Tests d'intégration complets** 🧪
+1. **Tests d'intégration complets** 🧪
    - Tests avec API réelle
    - Scénarios offline/online
    - Tests widgets Android
    - Validation toutes plateformes
    - Performance (< 100ms cache, < 1s API)
 
-3. **Documentation utilisateur** 📖
+2. **Documentation utilisateur** 📖
    - Guide d'utilisation
    - FAQ
    - Screenshots
    - Vidéo démo (optionnel)
+
+3. **Build APK signé** 📦
+   - Génération keystore
+   - Configuration Gradle
+   - Build release
+   - Distribution (GitHub Releases)
 
 **Priorité MOYENNE** :
 
@@ -1348,15 +1406,22 @@ flutter test test/trip_provider_test.dart
 
 ## 📈 Avancement global
 
-**État actuel** : ~98% de la v1.0 🎉
+**État actuel** : ~99% de la v1.0 🎉
 
 **Fonctionnel pour production** :
 - ✅ Interface utilisateur complète et fluide
 - ✅ Gestion multi-trajets robuste
 - ✅ Widgets écran d'accueil multi-instances avec rafraîchissement intelligent
 - ✅ WorkManager Android avec échelle H-20/15/10/5/0
+- ✅ **Widgets améliorés** (27 janvier après-midi) :
+  - Bouton rafraîchissement manuel
+  - Changement de trajet via clic header (ORIGINAL !)
+  - Gestion trajets supprimés
+  - Hiérarchie visuelle principale/secondaire
 - ✅ Mode hors-ligne complet avec cache JSON
 - ✅ API Navitia intégrée (temps réel + horaires théoriques)
+- ✅ **Proxy Cloudflare Worker déployé** (sécurité clé API)
+- ✅ **BYOK** (Bring Your Own Key) avec Keychain/KeyStore
 - ✅ Modal "Fiche horaire" avec jour J + J+1
 - ✅ Durée de trajet affichée
 - ✅ Recherche de gares via API
@@ -1365,7 +1430,7 @@ flutter test test/trip_provider_test.dart
 - ✅ Architecture simplifiée (JSON au lieu de SQLite)
 
 **Reste avant production** :
-- ⚠️ Proxy Cloudflare Workers (sécurité clé API)
+- ⚠️ Build APK signé (keystore + configuration Gradle)
 - ⚠️ Tests intégration + validation complète
 - ⚠️ Documentation utilisateur finale
 
