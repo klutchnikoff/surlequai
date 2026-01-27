@@ -252,4 +252,39 @@ class WidgetService {
       debugPrint('Erreur lors de la mise à jour de tous les widgets : $e');
     }
   }
+
+  /// Nettoie les données d'un trajet supprimé pour tous les widgets
+  ///
+  /// Cette méthode supprime toutes les clés SharedPreferences associées
+  /// à un tripId spécifique. Les widgets qui affichaient ce trajet
+  /// passeront automatiquement en mode "Trajet supprimé".
+  Future<void> clearWidgetDataForTrip(String tripId) async {
+    try {
+      await HomeWidget.setAppGroupId(_iOSAppGroupId);
+
+      // Supprimer toutes les clés associées à ce trajet
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_name', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_title', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_time', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_platform', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_status', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_status_color', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_title', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_time', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_platform', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_status', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_status_color', null);
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_last_update', null);
+
+      // Déclencher le refresh des widgets pour qu'ils détectent le trajet supprimé
+      await HomeWidget.updateWidget(
+        androidName: _androidWidgetName,
+        iOSName: 'SurLeQuaiWidget',
+      );
+
+      debugPrint('Données du trajet $tripId nettoyées des widgets');
+    } catch (e) {
+      debugPrint('Erreur lors du nettoyage des données du trajet $tripId : $e');
+    }
+  }
 }

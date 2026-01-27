@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="12dp">
+        android:paddingBottom="6dp">
 
         <!-- Titre direction -->
         <TextView
@@ -113,7 +113,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="8dp">
+        android:paddingTop="2dp">
 
         <!-- Titre direction -->
         <TextView

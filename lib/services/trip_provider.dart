@@ -491,7 +491,11 @@ class TripProvider with ChangeNotifier {
 
     await _saveTrips();
     notifyListeners();
-    // On met à jour les widgets (pour supprimer celui qui correspond au trajet supprimé)
+
+    // Nettoyer les données du trajet supprimé des widgets
+    await _widgetService.clearWidgetDataForTrip(tripId);
+
+    // Mettre à jour les widgets avec les trajets restants
     _updateWidget();
 
     return null; // Succès

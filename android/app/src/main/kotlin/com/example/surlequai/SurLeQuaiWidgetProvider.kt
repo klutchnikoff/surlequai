@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import androidx.work.*
 import java.util.Calendar
@@ -78,17 +79,19 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
             val tripId = prefs.getString("widget_${appWidgetId}_trip_id", null)
 
-            if (tripId == null) {
-                views.setTextViewText(R.id.widget_trip_name, "SurLeQuai")
-                views.setTextViewText(R.id.widget_direction1_title, "—")
-                views.setTextViewText(R.id.widget_direction1_time, "__:__")
-                // ... (reste du code placeholder inchangé, simplifié ici)
-                views.setTextViewText(R.id.widget_last_update, "Non configuré")
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+            // Vérifier si le trajet existe encore
+            val tripName = if (tripId != null) {
+                prefs.getString("trip_${tripId}_name", null)
+            } else {
+                null
+            }
+
+            // Si pas de tripId ou trajet supprimé, afficher état "non configuré"
+            if (tripId == null || tripName == null) {
+                setupNonConfiguredWidget(context, views, appWidgetId, appWidgetManager)
                 return
             }
 
-            val tripName = prefs.getString("trip_${tripId}_name", "SurLeQuai") ?: "SurLeQuai"
             views.setTextViewText(R.id.widget_trip_name, tripName)
 
             // Direction 1
@@ -136,7 +139,8 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
-            // Bouton de rafraîchissement manuel
+            // Bouton de rafraîchissement manuel (visible uniquement si configuré)
+            views.setViewVisibility(R.id.widget_refresh_button, View.VISIBLE)
             val refreshIntent = Intent(context, SurLeQuaiWidgetProvider::class.java).apply {
                 action = ACTION_REFRESH_WIDGET
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -148,6 +152,58 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_refresh_button, refreshPendingIntent)
+
+            // Clic sur le nom du trajet pour changer de trajet
+            val switchTripIntent = Intent(context, SurLeQuaiWidgetSwitchTripActivity::class.java).apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val switchTripPendingIntent = PendingIntent.getActivity(
+                context,
+                appWidgetId + 2000, // Offset différent
+                switchTripIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_trip_name, switchTripPendingIntent)
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        /**
+         * Configure le widget en état "non configuré" ou "trajet supprimé"
+         */
+        private fun setupNonConfiguredWidget(
+            context: Context,
+            views: RemoteViews,
+            appWidgetId: Int,
+            appWidgetManager: AppWidgetManager
+        ) {
+            views.setTextViewText(R.id.widget_trip_name, "Trajet supprimé")
+            views.setTextViewText(R.id.widget_direction1_title, "—")
+            views.setTextViewText(R.id.widget_direction1_time, "__:__")
+            views.setTextViewText(R.id.widget_direction1_platform, "")
+            views.setTextViewText(R.id.widget_direction1_status, "")
+            views.setTextViewText(R.id.widget_direction1_emoji, "")
+            views.setTextViewText(R.id.widget_direction2_title, "—")
+            views.setTextViewText(R.id.widget_direction2_time, "__:__")
+            views.setTextViewText(R.id.widget_direction2_platform, "")
+            views.setTextViewText(R.id.widget_direction2_status, "")
+            views.setTextViewText(R.id.widget_direction2_emoji, "")
+            views.setTextViewText(R.id.widget_last_update, "Toucher pour choisir un trajet")
+
+            // Clic n'importe où sur le widget ouvre le sélecteur de trajet
+            val switchTripIntent = Intent(context, SurLeQuaiWidgetSwitchTripActivity::class.java).apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val switchTripPendingIntent = PendingIntent.getActivity(
+                context,
+                appWidgetId + 2000,
+                switchTripIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_root, switchTripPendingIntent)
+
+            // Masquer le bouton de refresh quand non configuré
+            views.setViewVisibility(R.id.widget_refresh_button, View.GONE)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
