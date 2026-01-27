@@ -136,7 +136,7 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_direction2_platform, dir2Platform)
             views.setTextViewText(R.id.widget_direction2_status, dir2Status)
             views.setTextViewText(R.id.widget_direction2_emoji, getStatusEmoji(dir2StatusColor))
-            views.setTextColor(R.id.widget_direction2_status, getStatusColor(dir2StatusColor))
+            views.setTextColor(R.id.widget_direction2_status, getStatusColorSecondary(dir2StatusColor))
 
             val lastUpdate = prefs.getString("trip_${tripId}_last_update", "—") ?: "—"
             views.setTextViewText(R.id.widget_last_update, "Mis à jour: $lastUpdate")
@@ -242,6 +242,14 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
                 "offline" -> Color.parseColor("#60A5FA")
                 else -> Color.parseColor("#9CA3AF")
             }
+        }
+
+        /**
+         * Retourne une couleur atténuée pour la direction secondaire (moins prioritaire)
+         * Utilise un gris uniforme pour ne pas trop attirer l'attention
+         */
+        private fun getStatusColorSecondary(statusCode: String): Int {
+            return Color.parseColor("#9CA3AF")
         }
 
         fun scheduleNextUpdate(context: Context, appWidgetId: Int) {
