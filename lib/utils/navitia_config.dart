@@ -15,9 +15,8 @@ class NavitiaConfig {
   /// URL de base de l'API SNCF/Navitia DIRECTE
   static const String directApiUrl = 'https://api.sncf.com/v1';
 
-  /// URL de base du proxy Cloudflare (quand déployé)
-  /// TODO: Mettre l'URL réelle après déploiement
-  static const String proxyUrl = 'https://proxy.surlequai.app/api';
+  /// URL de base du proxy Cloudflare Worker
+  static const String proxyUrl = 'https://surlequai.nicolas-klutchnikoff.workers.dev';
 
   /// Coverage SNCF (pour les requêtes spécifiques TER)
   static const String coverage = 'sncf';

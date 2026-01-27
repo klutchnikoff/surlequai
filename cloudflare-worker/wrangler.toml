@@ -1,13 +1,9 @@
-name = "surlequai-proxy"
+name = "surlequai"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
 # Workers Free tier : 100 000 requêtes/jour
 # Largement suffisant pour une app en phase de lancement
-
-[env.production]
-name = "surlequai-proxy"
-route = "proxy.surlequai.app/api/*"
 
 # KV Namespaces pour rate limiting et stats
 # Ces KV sont UNIQUEMENT utilisés pour :
@@ -15,11 +11,11 @@ route = "proxy.surlequai.app/api/*"
 # - Compteur global anonyme de requêtes totales
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "REMPLACER_PAR_VOTRE_KV_ID"
+id = "7c2919fdde1b4456a9900c2d15f2de67"
 
 [[kv_namespaces]]
 binding = "STATS_KV"
-id = "REMPLACER_PAR_VOTRE_KV_ID_2"
+id = "d29ca273952046f2aeb72bd7a09ba64e"
 
 # Variables d'environnement
 # ⚠️ NE JAMAIS commiter la clé API dans le repo !
