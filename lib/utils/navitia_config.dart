@@ -69,25 +69,6 @@ class NavitiaConfig {
   }
 
   /// Headers d'authentification par défaut (compatibilité)
+  @Deprecated('Use getAuthHeaders() with customKey parameter instead')
   static Map<String, String> get authHeaders => getAuthHeaders();
-
-  /// Construit l'URL complète pour un endpoint
-  static String buildUrl(String endpoint) {
-    return '$baseUrl/$endpoint';
-  }
-
-  /// URL pour la recherche de gares
-  static String searchPlacesUrl(String query) {
-    return buildUrl('coverage/$coverage/places?q=$query&type[]=stop_area');
-  }
-
-  /// URL pour les départs depuis une gare
-  static String departuresUrl(String stopAreaId) {
-    return buildUrl('coverage/$coverage/stop_areas/$stopAreaId/departures');
-  }
-
-  /// URL pour les itinéraires entre deux gares
-  static String journeysUrl() {
-    return buildUrl('coverage/$coverage/journeys');
-  }
 }
