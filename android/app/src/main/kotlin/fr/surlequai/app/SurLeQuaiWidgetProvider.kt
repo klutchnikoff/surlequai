@@ -1,4 +1,4 @@
-package com.example.surlequai
+package fr.surlequai.app
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -84,7 +84,7 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        private const val ACTION_REFRESH_WIDGET = "com.example.surlequai.REFRESH_WIDGET"
+        private const val ACTION_REFRESH_WIDGET = "fr.surlequai.app.REFRESH_WIDGET"
 
         fun updateAppWidget(
             context: Context,

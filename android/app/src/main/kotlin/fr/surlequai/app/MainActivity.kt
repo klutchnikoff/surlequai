@@ -1,4 +1,4 @@
-package com.example.surlequai
+package fr.surlequai.app
 
 import android.content.Intent
 import android.os.Bundle

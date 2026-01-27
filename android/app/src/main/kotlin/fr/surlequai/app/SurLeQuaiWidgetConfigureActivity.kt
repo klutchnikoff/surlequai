@@ -1,4 +1,4 @@
-package com.example.surlequai
+package fr.surlequai.app
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager

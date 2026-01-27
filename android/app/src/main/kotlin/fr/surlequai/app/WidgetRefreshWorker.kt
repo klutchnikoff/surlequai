@@ -1,4 +1,4 @@
-package com.example.surlequai
+package fr.surlequai.app
 
 import android.content.Context
 import android.util.Log
