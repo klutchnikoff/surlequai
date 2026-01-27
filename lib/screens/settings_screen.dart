@@ -25,7 +25,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCustomKey();
+    // Charger la clé après le premier frame pour avoir accès au Provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCustomKey();
+    });
   }
 
   @override
@@ -36,8 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Charge la clé personnalisée si elle existe
   Future<void> _loadCustomKey() async {
-    final apiKeyService = ApiKeyService();
-    await apiKeyService.init();
+    final apiKeyService = context.read<ApiKeyService>();
     final customKey = await apiKeyService.getCustomKey();
     if (customKey != null && mounted) {
       setState(() {
@@ -433,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final apiKeyService = ApiKeyService();
+      final apiKeyService = context.read<ApiKeyService>();
       final isValid = await apiKeyService.validateKey(key);
 
       if (mounted) {
@@ -466,7 +468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final apiKeyService = ApiKeyService();
+      final apiKeyService = context.read<ApiKeyService>();
       final key = _apiKeyController.text.trim();
       final success = await apiKeyService.setCustomKey(key);
 
