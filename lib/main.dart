@@ -168,7 +168,13 @@ void main() async {
         // Providers avec état
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
         ChangeNotifierProxyProvider<SettingsProvider, TripProvider>(
-          create: (context) => TripProvider(context.read<SettingsProvider>()),
+          create: (context) => TripProvider(
+            context.read<SettingsProvider>(),
+            apiService: context.read<ApiService>(),
+            storageService: context.read<StorageService>(),
+            timetableService: context.read<TimetableService>(),
+            realtimeService: context.read<RealtimeService>(),
+          ),
           update: (context, settings, previous) => previous!..update(),
         ),
       ],
