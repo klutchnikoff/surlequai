@@ -10,8 +10,36 @@ import 'package:surlequai/widgets/schedules_modal.dart';
 import 'package:surlequai/widgets/status_banner.dart';
 import 'package:surlequai/widgets/trips_drawer.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Quand l'app revient au premier plan, forcer un rafraîchissement
+    if (state == AppLifecycleState.resumed) {
+      final tripProvider = context.read<TripProvider>();
+      tripProvider.refreshDepartures();
+    }
+  }
 
   void _showSchedulesModal(
       BuildContext context, String title, String fromStationId, String toStationId) {
