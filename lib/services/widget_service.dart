@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
+import 'package:surlequai/utils/trip_sorter.dart';
 
 /// Service de gestion du widget écran d'accueil
 ///
@@ -119,15 +121,26 @@ class WidgetService {
 
       final tripId = trip.id;
       final tripName = '${trip.stationA.name} ⟷ ${trip.stationB.name}';
-      // Juste la destination (pas le départ) pour réduire la redondance
-      final direction1Title = '→ ${trip.stationB.name}';
-      final direction2Title = '→ ${trip.stationA.name}';
+
+      // Déterminer l'ordre d'affichage selon l'heure (logique matin/soir)
+      final shouldSwap = TripSorter.shouldSwapOrder(
+        currentHour: DateTime.now().hour,
+        morningEveningSplitHour: AppConstants.defaultMorningEveningSplitHour,
+        serviceDayStartHour: AppConstants.defaultServiceDayStartHour,
+        morningDirection: trip.morningDirection,
+      );
+
+      // Si shouldSwap = true, on inverse : direction1 = B→A, direction2 = A→B
+      final direction1Departures = shouldSwap ? departuresReturn : departuresGo;
+      final direction2Departures = shouldSwap ? departuresGo : departuresReturn;
+      final direction1Title = shouldSwap ? '→ ${trip.stationA.name}' : '→ ${trip.stationB.name}';
+      final direction2Title = shouldSwap ? '→ ${trip.stationB.name}' : '→ ${trip.stationA.name}';
 
       // Nom du trajet
       await HomeWidget.saveWidgetData<String>('trip_${tripId}_name', tripName);
 
-      // Direction 1 (A → B)
-      final nextDep1 = _getNextDeparture(departuresGo);
+      // Direction 1 (priorité selon l'heure)
+      final nextDep1 = _getNextDeparture(direction1Departures);
       if (nextDep1 != null) {
         final time = TimeFormatter.formatTime(nextDep1.scheduledTime);
         final platform = 'Voie ${nextDep1.platform}';
@@ -157,8 +170,8 @@ class WidgetService {
             'trip_${tripId}_direction1_status_color', 'secondary');
       }
 
-      // Direction 2 (B → A)
-      final nextDep2 = _getNextDeparture(departuresReturn);
+      // Direction 2 (secondaire selon l'heure)
+      final nextDep2 = _getNextDeparture(direction2Departures);
       if (nextDep2 != null) {
         final time = TimeFormatter.formatTime(nextDep2.scheduledTime);
         final platform = 'Voie ${nextDep2.platform}';
