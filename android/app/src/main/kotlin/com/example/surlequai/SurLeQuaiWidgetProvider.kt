@@ -54,15 +54,31 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             }
             ACTION_REFRESH_WIDGET -> {
                 // Déclencher le rafraîchissement manuel via le backgroundCallback
-                val backgroundIntent = Intent(context, MainActivity::class.java)
-                backgroundIntent.action = "es.antonborri.home_widget.action.LAUNCH"
-                backgroundIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val appWidgetId = intent.getIntExtra(
+                    AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID
+                )
 
                 // Appeler le HomeWidgetBackgroundIntent pour déclencher le Dart callback
                 es.antonborri.home_widget.HomeWidgetBackgroundIntent.getBroadcast(
                     context,
                     Uri.parse("homewidget://refresh")
                 ).send()
+
+                // Forcer la mise à jour du widget après un court délai pour laisser
+                // le temps au callback Dart de sauvegarder les nouvelles données
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    val appWidgetManager = AppWidgetManager.getInstance(context)
+                    if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                        // Mettre à jour uniquement ce widget
+                        updateAppWidget(context, appWidgetManager, appWidgetId)
+                    } else {
+                        // Mettre à jour tous les widgets
+                        val componentName = android.content.ComponentName(context, SurLeQuaiWidgetProvider::class.java)
+                        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+                        onUpdate(context, appWidgetManager, appWidgetIds)
+                    }
+                }, 2000) // 2 secondes pour laisser le temps au callback Dart
             }
         }
     }
