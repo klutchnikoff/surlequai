@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/trip_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +17,34 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final TextEditingController _apiKeyController = TextEditingController();
+  bool _isTestingKey = false;
+  bool _isSavingKey = false;
+  String? _keyTestResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomKey();
+  }
+
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
+  /// Charge la clé personnalisée si elle existe
+  Future<void> _loadCustomKey() async {
+    final apiKeyService = ApiKeyService();
+    await apiKeyService.init();
+    final customKey = await apiKeyService.getCustomKey();
+    if (customKey != null && mounted) {
+      setState(() {
+        _apiKeyController.text = customKey;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +65,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSectionTitle(context, 'DONNÉES'),
               _buildClearCacheButton(context),
               const Divider(),
-              // TODO: Add other sections (NOTIFICATIONS, INTERFACE, À PROPOS)
+              _buildSectionTitle(context, 'AVANCÉ'),
+              _buildCustomApiKeySetting(context),
+              const Divider(),
+              // TODO: Add other sections (À PROPOS)
             ],
           );
         },
@@ -254,5 +288,266 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildCustomApiKeySetting(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ListTile(
+          title: Text('Clé API personnalisée (BYOK)'),
+          subtitle: Text(
+            'Utilisez votre propre clé API SNCF pour bypasser le proxy.\n'
+            'Recommandé uniquement pour les utilisateurs avancés.',
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: TextField(
+            controller: _apiKeyController,
+            decoration: InputDecoration(
+              labelText: 'Clé API Navitia',
+              hintText: 'Collez votre clé ici (optionnel)',
+              border: const OutlineInputBorder(),
+              suffixIcon: _apiKeyController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _apiKeyController.clear();
+                          _keyTestResult = null;
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            obscureText: true,
+            maxLines: 1,
+            onChanged: (_) {
+              setState(() {
+                _keyTestResult = null; // Reset le test quand on modifie
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (_keyTestResult != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Icon(
+                  _keyTestResult == 'valid'
+                      ? Icons.check_circle
+                      : Icons.error,
+                  color: _keyTestResult == 'valid'
+                      ? Colors.green
+                      : Colors.red,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _keyTestResult == 'valid'
+                        ? 'Clé valide ✓'
+                        : 'Clé invalide ou erreur réseau',
+                    style: TextStyle(
+                      color: _keyTestResult == 'valid'
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isTestingKey || _apiKeyController.text.isEmpty
+                      ? null
+                      : _testApiKey,
+                  icon: _isTestingKey
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.science),
+                  label: const Text('Tester'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isSavingKey ? null : _saveApiKey,
+                  icon: _isSavingKey
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save),
+                  label: const Text('Enregistrer'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: TextButton.icon(
+            onPressed: _openSncfWebsite,
+            icon: const Icon(Icons.open_in_new, size: 16),
+            label: const Text(
+              'Obtenir une clé sur numerique.sncf.com',
+              style: TextStyle(fontSize: 12),
+            ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            'ℹ️ Si configurée, votre clé sera utilisée pour appeler '
+            'directement l\'API SNCF (bypass du proxy). '
+            'Laissez vide pour utiliser le proxy par défaut.',
+            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _testApiKey() async {
+    final key = _apiKeyController.text.trim();
+    if (key.isEmpty) return;
+
+    setState(() {
+      _isTestingKey = true;
+      _keyTestResult = null;
+    });
+
+    try {
+      final apiKeyService = ApiKeyService();
+      final isValid = await apiKeyService.validateKey(key);
+
+      if (mounted) {
+        setState(() {
+          _keyTestResult = isValid ? 'valid' : 'invalid';
+          _isTestingKey = false;
+        });
+
+        // Feedback haptique
+        if (isValid) {
+          HapticFeedback.lightImpact();
+        } else {
+          HapticFeedback.heavyImpact();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _keyTestResult = 'invalid';
+          _isTestingKey = false;
+        });
+        HapticFeedback.heavyImpact();
+      }
+    }
+  }
+
+  Future<void> _saveApiKey() async {
+    setState(() {
+      _isSavingKey = true;
+    });
+
+    try {
+      final apiKeyService = ApiKeyService();
+      final key = _apiKeyController.text.trim();
+      final success = await apiKeyService.setCustomKey(key);
+
+      if (mounted) {
+        setState(() {
+          _isSavingKey = false;
+        });
+
+        if (success) {
+          HapticFeedback.lightImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                key.isEmpty
+                    ? 'Clé personnalisée supprimée'
+                    : 'Clé personnalisée enregistrée',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Demander un redémarrage de l'app pour prendre en compte la nouvelle clé
+          _showRestartDialog();
+        } else {
+          HapticFeedback.heavyImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erreur lors de l\'enregistrement'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSavingKey = false;
+        });
+        HapticFeedback.heavyImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showRestartDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Redémarrage requis'),
+        content: const Text(
+          'Pour que la nouvelle clé API soit prise en compte, '
+          'vous devez redémarrer l\'application.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openSncfWebsite() async {
+    final uri = Uri.parse('https://numerique.sncf.com');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible d\'ouvrir le lien'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
   }
 }

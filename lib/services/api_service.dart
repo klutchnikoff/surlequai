@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/timetable_version.dart';
+import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/navitia_config.dart';
 
@@ -16,14 +17,47 @@ import 'package:surlequai/utils/navitia_config.dart';
 /// - La recherche de gares
 /// - Les versions de grilles horaires
 ///
+/// Supporte BYOK (Bring Your Own Key) :
+/// - Si clé personnalisée configurée → Appel direct à api.sncf.com
+/// - Sinon → Appel via proxy Cloudflare (mode par défaut)
+///
 /// Gestion d'erreurs incluse :
 /// - SocketException : Pas de connexion réseau
 /// - TimeoutException : Timeout API
 /// - HttpException : Erreurs HTTP (401, 404, 500, etc.)
 class ApiService {
   final http.Client _client;
+  final ApiKeyService _apiKeyService;
 
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  // Cache de la clé personnalisée pour éviter lectures répétées
+  String? _customKey;
+  bool _useCustomKey = false;
+
+  ApiService({
+    http.Client? client,
+    ApiKeyService? apiKeyService,
+  })  : _client = client ?? http.Client(),
+        _apiKeyService = apiKeyService ?? ApiKeyService();
+
+  /// Initialise le service (charge la clé personnalisée si configurée)
+  Future<void> init() async {
+    await _apiKeyService.init();
+    _useCustomKey = await _apiKeyService.hasCustomKey();
+    if (_useCustomKey) {
+      _customKey = await _apiKeyService.getCustomKey();
+    }
+  }
+
+  /// Construit l'URL complète selon le mode (BYOK ou proxy)
+  String _buildUrl(String endpoint) {
+    final baseUrl = NavitiaConfig.getBaseUrl(useCustomKey: _useCustomKey);
+    return '$baseUrl/$endpoint';
+  }
+
+  /// Récupère les headers d'authentification selon le mode
+  Map<String, String> _getHeaders() {
+    return NavitiaConfig.getAuthHeaders(customKey: _customKey);
+  }
 
   /// Récupère la version actuelle de la grille horaire
   ///
@@ -59,7 +93,7 @@ class ApiService {
   }) async {
     try {
       // Construction de l'URL avec paramètres
-      final url = Uri.parse(NavitiaConfig.departuresUrl(fromStationId)).replace(
+      final url = Uri.parse(_buildUrl('coverage/${NavitiaConfig.coverage}/stop_areas/$fromStationId/departures')).replace(
         queryParameters: {
           'from_datetime': _formatNavitiaDateTime(datetime),
           'count': count.toString(),
@@ -73,7 +107,7 @@ class ApiService {
 
       // Appel HTTP avec timeout
       final response = await _client
-          .get(url, headers: NavitiaConfig.authHeaders)
+          .get(url, headers: _getHeaders())
           .timeout(AppConstants.apiTimeout);
 
       if (response.statusCode == 200) {
@@ -123,7 +157,7 @@ class ApiService {
   }) async {
     try {
       // Construction de l'URL avec paramètres
-      final url = Uri.parse(NavitiaConfig.journeysUrl()).replace(
+      final url = Uri.parse(_buildUrl('coverage/${NavitiaConfig.coverage}/journeys')).replace(
         queryParameters: {
           'from': fromStationId,
           'to': toStationId,
@@ -141,7 +175,7 @@ class ApiService {
 
       // Appel HTTP avec timeout
       final response = await _client
-          .get(url, headers: NavitiaConfig.authHeaders)
+          .get(url, headers: _getHeaders())
           .timeout(AppConstants.apiTimeout);
 
       if (response.statusCode == 200) {
@@ -187,7 +221,7 @@ class ApiService {
   }) async {
     try {
       // Construction de l'URL avec paramètres
-      final url = Uri.parse(NavitiaConfig.journeysUrl()).replace(
+      final url = Uri.parse(_buildUrl('coverage/${NavitiaConfig.coverage}/journeys')).replace(
         queryParameters: {
           'from': fromStationId,
           'to': toStationId,
@@ -204,7 +238,7 @@ class ApiService {
 
       // Appel HTTP avec timeout
       final response = await _client
-          .get(url, headers: NavitiaConfig.authHeaders)
+          .get(url, headers: _getHeaders())
           .timeout(AppConstants.apiTimeout);
 
       if (response.statusCode == 200) {
@@ -361,7 +395,7 @@ class ApiService {
 
     try {
       // URL de recherche avec filtrage sur stop_area (gares)
-      final url = Uri.parse(NavitiaConfig.searchPlacesUrl(query)).replace(
+      final url = Uri.parse(_buildUrl('coverage/${NavitiaConfig.coverage}/places')).replace(
         queryParameters: {
           'q': query,
           'type[]': 'stop_area',
@@ -374,7 +408,7 @@ class ApiService {
       }
 
       final response = await _client
-          .get(url, headers: NavitiaConfig.authHeaders)
+          .get(url, headers: _getHeaders())
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {

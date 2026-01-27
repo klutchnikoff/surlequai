@@ -19,6 +19,7 @@ dependencies:
 
   # Stockage local
   shared_preferences: ^2.2.2    # Préférences et trajets favoris
+  flutter_secure_storage: ^9.0.0 # Stockage sécurisé (clé API)
   path_provider: ^2.1.1         # Chemins système pour SQLite
   path: ^1.9.0                  # Manipulation de chemins de fichiers
 
@@ -33,6 +34,7 @@ dependencies:
   uuid: ^4.2.0                  # Génération d'IDs pour trajets
   home_widget: ^0.9.0           # Widget écran d'accueil iOS/Android
   flutter_dotenv: ^5.1.0        # Chargement variables d'environnement
+  url_launcher: ^6.2.2          # Ouverture de liens externes
 
 dev_dependencies:
   flutter_test:

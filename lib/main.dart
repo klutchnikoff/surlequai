@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/screens/home_screen.dart';
+import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
@@ -44,7 +45,10 @@ void backgroundCallback(Uri? uri) async {
   debugPrint('--- Background Callback Started ---');
 
   // --- Initialisation des services ---
-  final api = ApiService();
+  final apiKeyService = ApiKeyService();
+  final api = ApiService(apiKeyService: apiKeyService);
+  await api.init(); // Charge la clé personnalisée si configurée
+
   final storage = StorageService();
   await storage.init(); 
   
@@ -132,7 +136,10 @@ void main() async {
   }
 
   // Initialisation des services (singletons)
-  final apiService = ApiService();
+  final apiKeyService = ApiKeyService();
+  final apiService = ApiService(apiKeyService: apiKeyService);
+  await apiService.init(); // Charge la clé personnalisée si configurée
+
   final storageService = StorageService();
   await storageService.init();
 
@@ -152,6 +159,7 @@ void main() async {
     MultiProvider(
       providers: [
         // Services (pas de notification de changement, juste des instances partagées)
+        Provider<ApiKeyService>.value(value: apiKeyService),
         Provider<ApiService>.value(value: apiService),
         Provider<StorageService>.value(value: storageService),
         Provider<TimetableService>.value(value: timetableService),
