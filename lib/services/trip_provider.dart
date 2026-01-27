@@ -43,7 +43,7 @@ class TripProvider with ChangeNotifier {
   // Dependencies
   final SettingsProvider _settingsProvider;
 
-  // Services (Phase 1 : avec mocks, Phase 2 : API réelle)
+  // Services
   late final ApiService _apiService;
   late final StorageService _storageService;
   late final TimetableService _timetableService;
@@ -145,9 +145,6 @@ class TripProvider with ChangeNotifier {
   }
 
   /// Rafraîchit les données de départs (temps réel)
-  ///
-  /// Phase 1 : Utilise RealtimeService avec mock data
-  /// Phase 2 : Fera de vrais appels API SNCF via le service
   Future<void> refreshDepartures() async {
     if (_activeTrip == null) return;
 
@@ -156,8 +153,7 @@ class TripProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Utilise RealtimeService pour obtenir les départs avec temps réel
-      // (Phase 1 : retourne les mocks, Phase 2 : fera le vrai appel API)
+      // Récupère les départs avec temps réel via RealtimeService
       await _buildViewModels();
       _lastUpdate = DateTime.now();
 
@@ -185,15 +181,13 @@ class TripProvider with ChangeNotifier {
   Future<void> _buildViewModels() async {
     if (_activeTrip == null) return;
 
-    // Phase 1 : RealtimeService utilise les mocks depuis InitialMockData
-    // Phase 2 : RealtimeService fera les vrais appels API
     final now = DateTime.now();
 
     final rawDeparturesGo = await _realtimeService.getDeparturesWithRealtime(
       fromStationId: _activeTrip!.stationA.id,
       toStationId: _activeTrip!.stationB.id,
       datetime: now,
-      tripId: _activeTrip!.id, // Phase 1: pour accéder aux mocks
+      tripId: _activeTrip!.id,
     );
 
     final rawDeparturesReturn =
@@ -201,7 +195,7 @@ class TripProvider with ChangeNotifier {
       fromStationId: _activeTrip!.stationB.id,
       toStationId: _activeTrip!.stationA.id,
       datetime: now,
-      tripId: _activeTrip!.id, // Phase 1: pour accéder aux mocks
+      tripId: _activeTrip!.id,
     );
 
     final goViewModel = _createViewModel(

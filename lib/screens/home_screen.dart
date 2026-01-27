@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/screens/add_trip_screen.dart';
 import 'package:surlequai/screens/settings_screen.dart';
 import 'package:surlequai/services/trip_provider.dart';

@@ -82,8 +82,8 @@ class _SchedulesModalState extends State<SchedulesModal> {
       final filteredTomorrow = tomorrow.where((d) => d.scheduledTime.isBefore(dayAfterServiceStart)).toList();
 
       if (AppConstants.enableDebugLogs) {
-        print('[SchedulesModal] Filtered today: ${today.length} → ${filteredToday.length}');
-        print('[SchedulesModal] Filtered tomorrow: ${tomorrow.length} → ${filteredTomorrow.length}');
+        debugPrint('[SchedulesModal] Filtered today: ${today.length} → ${filteredToday.length}');
+        debugPrint('[SchedulesModal] Filtered tomorrow: ${tomorrow.length} → ${filteredTomorrow.length}');
       }
 
       setState(() {

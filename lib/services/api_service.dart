@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
@@ -102,7 +103,7 @@ class ApiService {
       );
 
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Fetching departures: $url');
+        debugPrint('[ApiService] Fetching departures: $url');
       }
 
       // Appel HTTP avec timeout
@@ -115,7 +116,7 @@ class ApiService {
         final departures = _parseDepartures(jsonData, toStationId);
 
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Parsed ${departures.length} departures');
+          debugPrint('[ApiService] Parsed ${departures.length} departures');
         }
 
         return departures;
@@ -135,7 +136,7 @@ class ApiService {
       throw TimeoutException('Délai d\'attente dépassé');
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Error: $e');
+        debugPrint('[ApiService] Error: $e');
       }
       rethrow;
     }
@@ -170,7 +171,7 @@ class ApiService {
       );
 
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Fetching journeys: $url');
+        debugPrint('[ApiService] Fetching journeys: $url');
       }
 
       // Appel HTTP avec timeout
@@ -183,7 +184,7 @@ class ApiService {
         final departures = _parseJourneys(jsonData);
 
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Parsed ${departures.length} direct journeys');
+          debugPrint('[ApiService] Parsed ${departures.length} direct journeys');
         }
 
         return departures;
@@ -203,7 +204,7 @@ class ApiService {
       throw TimeoutException('Délai d\'attente dépassé');
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Error: $e');
+        debugPrint('[ApiService] Error: $e');
       }
       rethrow;
     }
@@ -233,7 +234,7 @@ class ApiService {
       );
 
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Fetching theoretical schedule: $url');
+        debugPrint('[ApiService] Fetching theoretical schedule: $url');
       }
 
       // Appel HTTP avec timeout
@@ -246,7 +247,7 @@ class ApiService {
         final departures = _parseJourneys(jsonData);
 
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Parsed ${departures.length} theoretical schedules');
+          debugPrint('[ApiService] Parsed ${departures.length} theoretical schedules');
         }
 
         return departures;
@@ -266,7 +267,7 @@ class ApiService {
       throw TimeoutException('Délai d\'attente dépassé');
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Error: $e');
+        debugPrint('[ApiService] Error: $e');
       }
       rethrow;
     }
@@ -295,7 +296,7 @@ class ApiService {
     final cacheKey = _getCacheKey(fromStationId, toStationId, serviceDay);
 
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] Cache key: $cacheKey');
+      debugPrint('[ApiService] Cache key: $cacheKey');
     }
 
     // Vérifier le cache
@@ -311,21 +312,21 @@ class ApiService {
         final departures = jsonList.map((j) => Departure.fromJson(j)).toList();
 
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] ✅ Cache hit: ${departures.length} departures');
+          debugPrint('[ApiService] ✅ Cache hit: ${departures.length} departures');
         }
 
         return departures;
       }
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] ⚠️ Cache read error: $e');
+        debugPrint('[ApiService] ⚠️ Cache read error: $e');
       }
       // Continue avec l'appel API si erreur de cache
     }
 
     // Cache manquant ou invalide → appel API (horaires théoriques)
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] ❌ Cache miss, fetching theoretical schedule from API');
+      debugPrint('[ApiService] ❌ Cache miss, fetching theoretical schedule from API');
     }
 
     final departures = await _fetchTheoreticalJourneys(
@@ -343,11 +344,11 @@ class ApiService {
       await prefs.setString(cacheKey, jsonString);
 
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] 💾 Cached ${departures.length} departures');
+        debugPrint('[ApiService] 💾 Cached ${departures.length} departures');
       }
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] ⚠️ Cache write error: $e');
+        debugPrint('[ApiService] ⚠️ Cache write error: $e');
       }
       // Ne pas bloquer si erreur de cache
     }
@@ -404,7 +405,7 @@ class ApiService {
       );
 
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Searching stations: $url');
+        debugPrint('[ApiService] Searching stations: $url');
       }
 
       final response = await _client
@@ -416,7 +417,7 @@ class ApiService {
         final stations = _parseStations(jsonData);
 
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Found ${stations.length} stations');
+          debugPrint('[ApiService] Found ${stations.length} stations');
         }
 
         return stations;
@@ -429,7 +430,7 @@ class ApiService {
       throw TimeoutException('Délai d\'attente dépassé');
     } catch (e) {
       if (AppConstants.enableDebugLogs) {
-        print('[ApiService] Search error: $e');
+        debugPrint('[ApiService] Search error: $e');
       }
       rethrow;
     }
@@ -448,9 +449,6 @@ class ApiService {
         // Extraire les infos de base
         final stopDateTime = depJson['stop_date_time'] as Map<String, dynamic>;
         final displayInfo = depJson['display_informations'] as Map<String, dynamic>?;
-        final route = depJson['route'] as Map<String, dynamic>?;
-        final direction = route?['direction'] as Map<String, dynamic>?;
-        final directionName = direction?['name'] as String? ?? 'unknown';
         final network = displayInfo?['network'] as String? ?? 'unknown';
 
         // ⚠️ FILTRE DESTINATION TEMPORAIREMENT DÉSACTIVÉ
@@ -517,14 +515,14 @@ class ApiService {
         ));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Failed to parse departure: $e');
+          debugPrint('[ApiService] Failed to parse departure: $e');
         }
         // Continue avec les autres départs
       }
     }
 
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] Parsed ${departures.length} departures (TGV/Ouigo/Transilien exclus)');
+      debugPrint('[ApiService] Parsed ${departures.length} departures (TGV/Ouigo/Transilien exclus)');
     }
 
     return departures;
@@ -620,14 +618,14 @@ class ApiService {
         ));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Failed to parse journey: $e');
+          debugPrint('[ApiService] Failed to parse journey: $e');
         }
         // Continue avec les autres journeys
       }
     }
 
     if (AppConstants.enableDebugLogs) {
-      print('[ApiService] Filtered to ${departures.length} direct journeys (TGV/Ouigo/Transilien exclus)');
+      debugPrint('[ApiService] Filtered to ${departures.length} direct journeys (TGV/Ouigo/Transilien exclus)');
     }
 
     return departures;
@@ -652,7 +650,7 @@ class ApiService {
         stations.add(Station(id: id, name: name));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          print('[ApiService] Failed to parse station: $e');
+          debugPrint('[ApiService] Failed to parse station: $e');
         }
       }
     }

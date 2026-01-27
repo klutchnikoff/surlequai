@@ -13,20 +13,7 @@ import 'package:surlequai/services/timetable_service.dart';
 class RealtimeService {
   final ApiService _apiService;
   final TimetableService _timetableService;
-  // Ajout temporaire pour accéder au storage, idéalement via injection
-  // Mais comme TimetableService contient déjà StorageService, on pourrait l'exposer
-  // Pour faire simple et propre, on va supposer que l'appelant nous passe le StorageService ou qu'on le récupère
-  // Dans l'architecture actuelle main.dart injecte tout.
-  
-  // Refactoring: On modifie le constructeur pour accepter StorageService si besoin
-  // Mais pour minimiser l'impact, on va utiliser le fait que TimetableService a déjà une ref vers StorageService
-  // Ah non, _storageService est privé dans TimetableService.
-  
-  // Approche propre : Modifier RealtimeService pour qu'il prenne aussi StorageService
-  // Cela demandera de changer main.dart et background_callback. 
-  // C'est mieux.
-  
-  final StorageService? _storageService; // Optionnel pour compatibilité immédiate
+  final StorageService? _storageService;
 
   RealtimeService({
     required ApiService apiService,
