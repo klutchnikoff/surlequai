@@ -58,7 +58,11 @@ class ApiService {
   /// Construit l'URL complète selon le mode (BYOK ou proxy)
   String _buildUrl(String endpoint) {
     final baseUrl = NavitiaConfig.getBaseUrl(useCustomKey: _useCustomKey);
-    return '$baseUrl/$endpoint';
+    final url = '$baseUrl/$endpoint';
+    if (AppConstants.enableDebugLogs) {
+      print('[ApiService] _buildUrl: _useCustomKey=$_useCustomKey, baseUrl=$baseUrl');
+    }
+    return url;
   }
 
   /// Récupère les headers d'authentification selon le mode
