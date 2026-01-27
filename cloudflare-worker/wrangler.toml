@@ -1,0 +1,28 @@
+name = "surlequai-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Workers Free tier : 100 000 requêtes/jour
+# Largement suffisant pour une app en phase de lancement
+
+[env.production]
+name = "surlequai-proxy"
+route = "proxy.surlequai.app/api/*"
+
+# KV Namespaces pour rate limiting et stats
+# Ces KV sont UNIQUEMENT utilisés pour :
+# - Rate limiting temporaire (TTL 60s, hash d'IP, pas de stockage permanent)
+# - Compteur global anonyme de requêtes totales
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "REMPLACER_PAR_VOTRE_KV_ID"
+
+[[kv_namespaces]]
+binding = "STATS_KV"
+id = "REMPLACER_PAR_VOTRE_KV_ID_2"
+
+# Variables d'environnement
+# ⚠️ NE JAMAIS commiter la clé API dans le repo !
+# Utiliser `wrangler secret put NAVITIA_API_KEY` pour la stocker de manière sécurisée
+[vars]
+# NAVITIA_API_KEY sera défini via wrangler secret

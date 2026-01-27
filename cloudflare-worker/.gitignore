@@ -1,0 +1,15 @@
+# Wrangler
+.wrangler/
+worker/
+
+# Secrets (NE JAMAIS COMMITER)
+.dev.vars
+*.env
+secrets.json
+
+# Node
+node_modules/
+package-lock.json
+
+# Logs
+*.log
