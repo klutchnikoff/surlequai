@@ -161,7 +161,7 @@ Accessible via icône `☰` en haut à gauche.
 
 ---
 
-### 3. Modal "Tous les horaires"
+### 3. Modal "Fiche horaire" ⭐⭐⭐ MUST-HAVE
 
 #### Déclenchement
 Tap sur la zone de direction (ex: "Rennes → Nantes")
@@ -172,46 +172,59 @@ Tap sur la zone de direction (ex: "Rennes → Nantes")
 ┌─────────────────────────────────────┐
 │ ═══                                 │ ← Handle glissant
 │                                     │
-│ Tous les horaires                   │
+│ Fiche horaire                       │
 │ Rennes → Nantes                     │
-│ Vendredi 23 janvier 2026            │
+│ Horaires théoriques                 │
 ├─────────────────────────────────────┤
 │                                     │
-│ ⊘ 06:12  Voie 2  Passé              │ ← Grisé + barré
-│ ⊘ 07:42  Voie 3  Passé              │
-│ ⊘ 08:12  Voie 3  Passé              │
+│ ⊘ 06:12  Voie 2                     │ ← Passés : grisé + barré
+│ ⊘ 07:42  Voie 3                     │
+│ ⊘ 08:12  Voie 3                     │
 │                                     │
-│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │ ← Séparateur
-│                                     │
-│ ▶ 14:12  Voie 3  À l'heure  ◀      │ ← PROCHAIN (highlight)
-│   [Barre verte épaisse]             │
-│                                     │
-│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │
+│ ▶ 14:12  Voie 3  ◀                 │ ← PROCHAIN (highlight + icône)
 │                                     │
 │   14:42  Voie 2                     │ ← Futurs (normaux)
 │   15:12  Voie 3                     │
 │   15:42  Voie 2                     │
-│   16:12  Voie 3  +3 min             │ ← Avec retard
-│   16:42  Voie 2  Supprimé           │ ← Rouge
+│   16:12  Voie 3                     │
 │   17:12  Voie 3                     │
+│   ...                               │
+│                                     │
+│ ──────── Demain ────────            │ ← Séparateur jour J+1
+│                                     │
+│   06:12  Voie 3                     │ ← Trains de demain (grisés)
+│   07:42  Voie 2                     │
 │   ...                               │
 │                                     │
 └─────────────────────────────────────┘
 ```
 
 **Comportement** :
-- Scroll vertical infini
+- Charge les horaires théoriques depuis l'API Navitia (endpoint `/journeys`)
+- Affiche **jour J + jour J+1** avec séparateur visuel
+- Cache SharedPreferences par jour de service (1 appel API max par jour)
+- Filtrage client-side pour respecter les limites de jour (4h-4h)
+- Scroll vertical fluide
 - Swipe vers le bas pour fermer
 - Tap en dehors pour fermer
 - Auto-scroll vers le prochain train au démarrage
 - Horaires passés grisés et barrés
-- Prochain train visuellement distinct (flèches, highlight, barre couleur)
+- Prochain train visuellement distinct (icône flèche + gras)
+- États loading/error gérés
 
 **Données affichées** :
-- Heure de départ
-- Voie
-- État (si retard ou suppression)
+- Heure de départ théorique
+- Voie (si disponible)
+- **PAS de temps réel** (données théoriques uniquement)
 - Distinction claire passé/présent/futur
+- Trains de demain en gris
+
+**Implémentation technique** :
+- Widget `SchedulesModal` stateful
+- Appel API : `getTheoreticalSchedule()` avec `data_freshness=base_schedule`
+- Cache : `journeys_{fromId}_{toId}_{serviceDay}` dans SharedPreferences
+- Limite : 100 trains par jour (`AppConstants.maxTrainsPerDay`)
+- Filtrage : Trains entre 4h aujourd'hui et 4h demain (puis 4h demain et 4h après-demain)
 
 ---
 
@@ -477,187 +490,189 @@ Rouge (retard important)
 
 ## 💾 Gestion des données
 
-### Architecture de stockage
+### Architecture de stockage (Simplifiée)
 
-#### 1. Horaires théoriques (cache local SQLite)
+#### 1. Cache API temps réel (Fichiers JSON locaux) ✅
 
-**Tables** :
+**Service** : `StorageService`
 
-```sql
--- Métadonnées grille horaire
-CREATE TABLE timetables (
-  id INTEGER PRIMARY KEY,
-  version TEXT NOT NULL,           -- "2026-A"
-  region TEXT NOT NULL,             -- "bretagne"
-  valid_from DATE NOT NULL,         -- "2025-12-15"
-  valid_until DATE NOT NULL,        -- "2026-06-14"
-  downloaded_at TIMESTAMP NOT NULL,
-  file_size_bytes INTEGER
-);
-
--- Départs théoriques
-CREATE TABLE departures (
-  id INTEGER PRIMARY KEY,
-  timetable_id INTEGER NOT NULL,
-  from_station_id TEXT NOT NULL,    -- "stop_area:SNCF:87471003"
-  from_station_name TEXT NOT NULL,  -- "Rennes"
-  to_station_id TEXT NOT NULL,
-  to_station_name TEXT NOT NULL,
-  departure_time TEXT NOT NULL,     -- "14:12:00"
-  arrival_time TEXT NOT NULL,       -- "15:28:00"
-  platform TEXT,                    -- "3"
-  days_mask TEXT NOT NULL,          -- "1111100" (Lu-Ve)
-  FOREIGN KEY (timetable_id) REFERENCES timetables(id)
-);
-
--- Index pour recherches rapides
-CREATE INDEX idx_departures_route
-ON departures(from_station_id, to_station_id, departure_time);
-
-CREATE INDEX idx_departures_time
-ON departures(departure_time);
+**Structure** :
+```
+app_documents/
+└── schedules_cache/
+    ├── cache_fromID_toID.json
+    ├── cache_fromID2_toID2.json
+    └── ...
 ```
 
-**Stockage** :
-- SQLite local (`sqflite` package Flutter)
-- Données compressées si possible
-- Taille estimée : 10-50 MB par région
-
-#### 2. Trajets favoris (localStorage)
-
+**Format d'un fichier cache** :
 ```json
 {
-  "trips": [
+  "updated_at": "2026-01-27T14:30:00Z",
+  "departures": [
     {
-      "id": "trip_uuid_1",
-      "stationA": {
-        "id": "stop_area:SNCF:87471003",
-        "name": "Rennes"
-      },
-      "stationB": {
-        "id": "stop_area:SNCF:87481002",
-        "name": "Nantes"
-      },
-      "active": true,
-      "order": 0,
-      "createdAt": "2026-01-20T10:30:00Z"
+      "id": "trip_123-1738072200000",
+      "scheduledTime": "2026-01-27T14:12:00Z",
+      "platform": "3",
+      "status": "onTime",
+      "delayMinutes": 0,
+      "durationMinutes": 76
     }
-  ],
-  "activeTrajetId": "trip_uuid_1"
+  ]
 }
 ```
 
-#### 3. Settings (localStorage)
+**Fonctionnement** :
+- Cache des dernières réponses API temps réel (6 trains)
+- Utilisé en mode offline quand l'API n'est pas joignable
+- Durée de vie : Pas de limite stricte (dernières données disponibles)
+- Mise à jour : À chaque rafraîchissement réussi
+- Taille : ~5-10 KB par trajet (négligeable)
+
+#### 2. Cache horaires théoriques (SharedPreferences) ✅
+
+**Pour la modale "Fiche horaire"**
+
+**Clés de cache** :
+```
+journeys_{fromId}_{toId}_{serviceDay}
+```
+Exemple : `journeys_87471003_87481002_2026-01-27`
+
+**Contenu** : Liste JSON de 100 trains théoriques (jour complet)
+
+**Fonctionnement** :
+- Cache par jour de service (4h-4h)
+- 1 appel API maximum par jour et par trajet
+- Invalidation automatique à 4h du matin
+- Utilisé uniquement pour la modale (pas l'écran principal)
+
+#### 3. Trajets favoris (SharedPreferences) ✅
+
+**Clé** : `trips`
 
 ```json
-{
-  "refreshInterval": 60,              // secondes
-  "darkMode": "auto",                 // "auto" | "light" | "dark"
-  "displayOrder": "auto",             // "auto" | "fixed"
-  "displayOrderMorningStart": "06:00",
-  "displayOrderEveningStart": "13:00",
-  "hapticFeedback": true,
-  "notifications": false,
-  "notificationMinutesBefore": 10
-}
+[
+  {
+    "id": "trip-uuid-xxx",
+    "stationA": {
+      "id": "stop_area:SNCF:87471003",
+      "name": "Rennes"
+    },
+    "stationB": {
+      "id": "stop_area:SNCF:87481002",
+      "name": "Nantes"
+    },
+    "morningDirection": "aToB",
+    "createdAt": "2026-01-20T10:30:00Z"
+  }
+]
 ```
 
-### Flux de données au lancement
+**Clé** : `activeTripId` → ID du trajet actif
+
+#### 4. Settings (SharedPreferences) ✅
+
+**Clés** :
+- `themeMode` : "light" | "dark" | "system"
+- `splitTime` : Heure de bascule matin/soir (int, défaut 13)
+- `dayStartTime` : Heure de début de journée (int, défaut 4)
+
+### Simplification vs version initiale
+
+**Ancienne architecture** (v0.x) :
+- SQLite avec tables complexes
+- Import GTFS
+- Gestion versions de grilles horaires
+- ~50 MB de données
+
+**Nouvelle architecture** (v1.0) :
+- Cache JSON léger (~5-10 KB par trajet)
+- API en temps réel uniquement
+- SharedPreferences pour horaires théoriques
+- Mode offline via cache des dernières données API
+
+### Flux de données au lancement ✅
 
 ```
 1. App démarre
    ├─ Affiche skeleton/placeholder
    │
-2. Charge localStorage (50ms)
+2. Charge SharedPreferences (50ms)
    ├─ Trajets favoris
-   ├─ Settings
+   ├─ Settings (thème, heures bascule)
    └─ Trajet actif
    │
-3. Charge horaires théoriques depuis SQLite (100ms)
+3. Charge cache JSON local (50ms)
    ├─ Filtre par trajet actif
-   ├─ Filtre par heure actuelle (prochains trains)
-   └─ Affiche avec état "Horaire prévu" (bleu)
+   ├─ Lit cache_fromID_toID.json
+   └─ Affiche avec état "Horaire prévu" (bleu) si données présentes
    │
-4. Vérifie réseau
+4. Vérifie réseau et appelle API temps réel
    ├─ [Si réseau disponible]
-   │  ├─ Vérifie version grille horaire (requête HTTP légère)
-   │  │  ├─ Version identique → OK
-   │  │  └─ Version différente → Télécharge nouvelle grille
-   │  │
-   │  └─ Récupère temps réel (API SNCF)
-   │     └─ Met à jour affichage (vert/orange/rouge)
+   │  ├─ Appel API /journeys (data_freshness=realtime)
+   │  ├─ Récupère 6 prochains trains avec retards/suppressions
+   │  ├─ Sauvegarde dans cache JSON (mise à jour)
+   │  └─ Met à jour affichage (vert/orange/rouge)
    │
    └─ [Si pas de réseau]
       ├─ Affiche bandeau "Hors connexion"
-      └─ Reste sur horaires théoriques (bleu)
+      └─ Reste sur cache JSON (bleu) si disponible
 ```
 
 **Objectif temps** :
-- Affichage horaires théoriques : < 200ms
+- Affichage cache local : < 100ms
 - Affichage temps réel : < 1000ms (selon réseau)
 
-### Rafraîchissement automatique
+**Stratégie offline** :
+- Cache JSON permet de fonctionner complètement offline
+- Pas besoin de grilles horaires lourdes
+- Les 6 derniers trains récupérés suffisent pour 90% des cas
+- En cas de cache vide : Message "Aucun train" + recommandation de se connecter
+
+### Rafraîchissement automatique ✅
 
 **En mode online** :
 ```
 Toutes les 60 secondes (configurable):
-├─ Récupère temps réel via API
-├─ Met à jour affichage
+├─ Appel API /journeys (6 trains)
+├─ Sauvegarde dans cache JSON
+├─ Met à jour affichage (vert/orange/rouge)
 └─ Met à jour indicateur "Mis à jour il y a X"
 ```
 
 **En mode offline** :
 ```
 Toutes les 5 minutes:
-├─ Tente de se reconnecter
-├─ Si succès → Bascule en mode online
-└─ Sinon → Reste en mode offline
+├─ Tente de se reconnecter (appel API)
+├─ Si succès → Bascule en mode online + mise à jour
+└─ Sinon → Reste en mode offline (cache JSON)
 ```
 
 **Économie batterie** :
-- App en arrière-plan → Pas de rafraîchissement
-- Écran éteint → Pas de rafraîchissement
-- Sauf si widget actif → Rafraîchissement réduit (toutes les 10 min)
+- App en arrière-plan → Pas de rafraîchissement app
+- Écran éteint → Pas de rafraîchissement app
+- Widget actif → Rafraîchissement intelligent WorkManager (H-20, H-15, H-10, H-5, H-0)
 
-### Gestion des versions de grille horaire
+### Cache et gestion offline ✅
 
-#### Détection de nouvelle version
+**Stratégie simplifiée** :
+- Pas de grilles horaires lourdes à télécharger
+- Cache léger des dernières données API (6 trains)
+- Fonctionne offline avec les dernières données récupérées
+- Modal "Fiche horaire" : Cache SharedPreferences par jour (100 trains)
 
-**Endpoint léger** :
-```
-GET /api/timetable/version?region=bretagne
+**Avantages** :
+- ✅ Pas de téléchargement lourd au premier lancement
+- ✅ Pas de gestion de versions complexe
+- ✅ Stockage minimal (~10 KB par trajet)
+- ✅ Mode offline fonctionnel immédiatement après le premier lancement
+- ✅ Toujours à jour (pas de grilles obsolètes)
 
-Response:
-{
-  "version": "2026-B",
-  "valid_from": "2026-06-15",
-  "valid_until": "2026-12-14",
-  "size_bytes": 15728640,
-  "download_url": "https://..."
-}
-```
-
-**Stratégie** :
-1. Au lancement de l'app : Vérifier version
-2. Si nouvelle version dispo : Afficher bandeau
-3. Utilisateur peut :
-   - Télécharger maintenant (WiFi recommandé)
-   - Reporter (rappel dans 24h)
-   - Ignorer cette version
-
-#### Téléchargement progressif
-
-```
-1. Télécharge fichier GTFS ou JSON (10-50 MB)
-2. Parse et importe dans SQLite
-3. Supprime ancienne version
-4. Notifie utilisateur (succès)
-```
-
-**Gestion erreurs** :
-- Échec téléchargement → Garde ancienne version
-- Échec parsing → Rollback vers ancienne version
-- Pas d'espace disque → Alerte utilisateur
+**Inconvénients acceptés** :
+- ⚠️ Nécessite au moins une connexion au premier lancement
+- ⚠️ Cache limité à 6 trains (suffisant pour 90% des usages)
+- ⚠️ Pas de planification long terme offline (acceptable pour usage quotidien)
 
 ---
 
@@ -675,29 +690,29 @@ Response:
 │ Thème                               │
 │ ○ Clair  ● Auto  ○ Sombre          │
 │                                     │
-│ Ordre d'affichage                   │
-│ ● Auto selon l'heure                │
-│ ○ Toujours A→B puis B→A             │
-│   [Personnaliser les heures]        │
+│ Ordre d'affichage automatique       │
+│ Trajet du matin : Rennes → Nantes  │
+│ [Inverser]                          │
+│                                     │
+├─────────────────────────────────────┤
+│                                     │
+│ COMPORTEMENT HORAIRE                │
+│                                     │
+│ Bascule matin/soir                  │
+│ Heure : 13h                         │
+│ [Modifier]                          │
+│                                     │
+│ Début du jour de service            │
+│ Heure : 4h                          │
+│ [Modifier]                          │
 │                                     │
 ├─────────────────────────────────────┤
 │                                     │
 │ DONNÉES                             │
 │                                     │
-│ Fréquence de rafraîchissement       │
-│ [30s] [60s] [● 2min] [5min]        │
-│                                     │
-│ Grille horaire                      │
-│ Version actuelle: 2026-A            │
-│ Valide jusqu'au: 14/06/2026         │
-│ [Vérifier les mises à jour]         │
-│                                     │
-├─────────────────────────────────────┤
-│                                     │
-│ INTERFACE                           │
-│                                     │
-│ Retour haptique                     │
-│ [✓] Vibrations aux interactions     │
+│ Vider le cache                      │
+│ Supprime les horaires théoriques    │
+│ [Vider]                             │
 │                                     │
 ├─────────────────────────────────────┤
 │                                     │
@@ -873,88 +888,81 @@ L'API Navitia (base de l'API SNCF) fournit des informations sur les perturbation
 
 ## 📡 API et endpoints
 
-### API SNCF - Endpoints nécessaires
+### API Navitia (SNCF Open Data) - Endpoints utilisés ✅
 
-#### 1. Version grille horaire
-
-```
-GET https://proxy.surlequai.app/timetable/version
-Query params:
-  - region: "bretagne" (optionnel, auto-détecté)
-
-Response:
-{
-  "version": "2026-A",
-  "valid_from": "2025-12-15",
-  "valid_until": "2026-06-14",
-  "size_bytes": 15728640,
-  "download_url": "https://..."
-}
-```
-
-#### 2. Téléchargement grille
+#### 1. Itinéraires directs (temps réel) ✅
 
 ```
-GET https://proxy.surlequai.app/timetable/download
-Query params:
-  - version: "2026-A"
-  - region: "bretagne"
-
-Response:
-[Binary file: GTFS ZIP ou JSON compressé]
-```
-
-#### 3. Temps réel
-
-```
-GET https://proxy.surlequai.app/departures/realtime
+GET https://api.sncf.com/v1/coverage/sncf/journeys
 Query params:
   - from: "stop_area:SNCF:87471003"
   - to: "stop_area:SNCF:87481002"
-  - datetime: "2026-01-23T14:00:00Z"
-  - count: 10
+  - datetime: "20260127T140000" (format: YYYYMMDDTHHmmss)
+  - count: 6 (écran principal) ou 100 (modale)
+  - data_freshness: "realtime" (écran principal) ou "base_schedule" (modale)
+  - max_nb_transfers: 0 (trains directs uniquement)
+  - min_nb_journeys: 6
 
-Response:
+Headers:
+  - Authorization: Basic {base64(api_key)}
+
+Response (simplifié):
 {
-  "departures": [
+  "journeys": [
     {
-      "id": "trip_123456",
-      "scheduled_departure": "14:12:00",
-      "estimated_departure": "14:15:00",
-      "delay_minutes": 3,
-      "status": "delayed",  // "on_time" | "delayed" | "canceled"
-      "platform": "3",
-      "platform_changed": false
-    }
-  ],
-  "last_update": "2026-01-23T13:58:30Z"
-}
-```
-
-#### 4. Autocomplete gares
-
-```
-GET https://proxy.surlequai.app/stations/search
-Query params:
-  - q: "renn"
-  - limit: 10
-
-Response:
-{
-  "stations": [
-    {
-      "id": "stop_area:SNCF:87471003",
-      "name": "Rennes",
-      "type": "station"
-    },
-    {
-      "id": "stop_area:SNCF:87471011",
-      "name": "Rennes Pontchaillou",
-      "type": "station"
+      "departure_date_time": "20260127T141200",
+      "arrival_date_time": "20260127T152800",
+      "duration": 4560,
+      "nb_transfers": 0,
+      "sections": [
+        {
+          "type": "public_transport",
+          "departure_date_time": "20260127T141200",
+          "arrival_date_time": "20260127T152800",
+          "display_informations": {
+            "network": "TER Bretagne",
+            "trip_short_name": "857142"
+          },
+          "stop_date_times": [
+            {
+              "departure_stop_point": {
+                "platform": "3"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
 ```
+
+**Utilisé pour** :
+- Écran principal : `data_freshness=realtime`, `count=6`
+- Modal "Fiche horaire" : `data_freshness=base_schedule`, `count=100`
+
+#### 2. Recherche de gares ✅
+
+```
+GET https://api.sncf.com/v1/coverage/sncf/places
+Query params:
+  - q: "renn"
+  - type[]: "stop_area"
+  - count: 50
+
+Response:
+{
+  "places": [
+    {
+      "id": "stop_area:SNCF:87471003",
+      "name": "Gare de Rennes",
+      "embedded_type": "stop_area"
+    }
+  ]
+}
+```
+
+**Utilisé pour** : Recherche de gares dans `StationPickerScreen`
 
 ### Proxy Cloudflare Workers
 
@@ -982,16 +990,32 @@ id = "..."
 
 ## 🧪 Tests et validation
 
+### Tests unitaires implémentés ✅
+
+**Fichier** : `test/trip_provider_test.dart`
+
+**Couverture** :
+- ✅ Tri automatique matin/soir (`_shouldSwapOrder`)
+- ✅ Injection de dépendances (ApiService, StorageService, etc.)
+- ✅ Mocks manuels pour isolation
+- ✅ Tests du comportement selon l'heure (matin/soir/nuit)
+- ✅ Tests avec différentes configurations (morningDirection aToB/bToA)
+
+**Exécution** :
+```bash
+flutter test test/trip_provider_test.dart
+```
+
 ### Tests fonctionnels à effectuer
 
 #### Données
-- [ ] Chargement horaires théoriques depuis SQLite
-- [ ] Récupération temps réel depuis API
-- [ ] Fusion horaires théoriques + temps réel
-- [ ] Gestion perte réseau (passage online → offline)
-- [ ] Gestion récupération réseau (passage offline → online)
-- [ ] Détection nouvelle version grille horaire
-- [ ] Téléchargement et import nouvelle grille
+- [x] Chargement cache JSON local ✅
+- [x] Récupération temps réel depuis API Navitia ✅
+- [x] Sauvegarde cache après appel API ✅
+- [x] Gestion perte réseau (passage online → offline) ✅
+- [x] Gestion récupération réseau (passage offline → online) ✅
+- [x] Cache SharedPreferences horaires théoriques (modale) ✅
+- [ ] Tests intégration complets avec API réelle
 
 #### Interface
 - [ ] Affichage prochain train (toutes les couleurs)
@@ -1119,20 +1143,23 @@ id = "..."
 
 **Interface utilisateur** (100%) :
 - ✅ `DirectionCard` avec variantes (with/without departures)
-- ✅ `SchedulesModal` draggable avec auto-scroll vers prochain train
+- ✅ `SchedulesModal` charge ses données depuis API avec cache
+- ✅ Modal affiche jour J + J+1 avec séparateur
+- ✅ Durée de trajet affichée dans les cartes principales (⏱️ X min)
 - ✅ `StatusBanner` animé (offline/syncing/error)
 - ✅ `LastUpdateIndicator` avec temps relatif et opacité progressive
 - ✅ `TripsDrawer` complet
 - ✅ Layout 2 directions sur `HomeScreen`
 - ✅ Tous les états visuels (vert/orange/rouge/bleu)
+- ✅ Recherche de gares via API avec debouncing
 
-**Mode hors-ligne** (80%) :
-- ✅ `StorageService` avec SQLite (schéma tables + indexes)
+**Mode hors-ligne** (100%) ✅ :
+- ✅ `StorageService` simplifié avec cache JSON (plus de SQLite)
+- ✅ Cache des dernières réponses API (6 trains)
 - ✅ Gestion gracieuse des erreurs réseau
 - ✅ Enum `ConnectionStatus` (offline, syncing, online, error)
-- ✅ Mode dégradé sur Web/Desktop (SQLite non disponible)
-- ✅ Architecture prête pour Phase 2
-- ⚠️ **Phase 2 non implémentée** : Import réel GTFS, `getDepartures()` retourne liste vide
+- ✅ Fonctionne complètement offline après première connexion
+- ✅ Compatible toutes plateformes (pas de dépendance SQLite)
 
 **Thématisation** (100%) :
 - ✅ Thème light + dark complets
@@ -1165,30 +1192,35 @@ id = "..."
 - ✅ Horaires TER réalistes Rennes ⟷ Nantes dans mock data
 - ✅ Auto-scroll modal vers prochain train
 
-### 🚧 À implémenter (Priorité MUST-HAVE)
+### ✅ Récemment implémenté
 
-~~**Rafraîchissement intelligent des widgets**~~ ✅ **FAIT** (commit d5d743d, 25 janvier) :
-- ✅ WorkManager pour planification Android
-- ✅ Logique H-20, H-15, H-10, H-5, H-0
-- ✅ Adaptation dynamique aux retards
-- ✅ Pause après départ jusqu'à H-20 du prochain
-- ✅ WidgetRefreshWorker + logs debug
-- **Impact** : Économie batterie maximale + UX optimale
+**27 janvier 2026** :
+- ✅ **Architecture simplifiée** : Remplacement SQLite → Cache JSON léger
+- ✅ **Mode offline complet** : Cache des réponses API temps réel (6 trains)
+- ✅ **Tests unitaires** : `TripProvider` avec injection de dépendances
+- ✅ **Suppression mock data** : API réelle utilisée partout
+- ✅ **Fix bugs** : Spinner infini, liste trajets vide, tri matin/soir extrait
 
-### 🔜 À implémenter (Phase 2 - Après clé API)
+**25 janvier 2026** :
+- ✅ **Rafraîchissement intelligent widgets** : WorkManager H-20/15/10/5/0
+- ✅ **Modal "Fiche horaire"** : Charge depuis API avec cache SharedPreferences
+- ✅ **Durée de trajet** : Affichée dans les cartes (⏱️ X min)
+- ✅ **Recherche gares** : API Navitia avec debouncing
+- ✅ **Journée de service** : 4h-4h au lieu de 4h-22h
 
-**API SNCF réelle** :
-- ❌ Remplacer mocks dans `ApiService`
-- ❌ Proxy Cloudflare Workers avec clé SNCF
-- ❌ Gestion timeout et retry
-- ❌ Parsing réponses JSON Navitia
+### 🚧 À implémenter (Avant release)
 
-**Cache SQLite production** :
-- ❌ Téléchargement grilles GTFS
-- ❌ Import dans SQLite via `saveDepartures()`
-- ❌ Implémentation `getDepartures()` avec filtres
-- ❌ Détection nouvelles versions
-- ❌ Nettoyage grilles expirées
+**Proxy Cloudflare Workers** (Sécurité) :
+- ❌ Déployer Worker pour cacher clé API
+- ❌ Rate limiting par IP
+- ❌ Compression réponses
+- **Impact** : Sécurise l'accès API + améliore perfs
+
+**Polish & tests** :
+- ⚠️ Tests intégration API
+- ⚠️ Tests widgets Android
+- ⚠️ Tests mode offline complet
+- ⚠️ Validation toutes plateformes
 
 ### 📋 Nice-to-Have (Bonus)
 
@@ -1226,11 +1258,11 @@ id = "..."
 - [x] Horaires passés grisés **FAIT**
 
 #### Données
-- [ ] Cache SQLite horaires théoriques (infrastructure prête, en attente clé API)
-- [ ] API temps réel (infrastructure prête avec mocks, en attente clé API SNCF)
-- [x] Mode hors-ligne **FAIT**
-- [ ] Détection version grille
-- [x] Rafraîchissement auto **FAIT**
+- [x] Cache JSON léger (remplace SQLite) ✅ **FAIT**
+- [x] API temps réel Navitia ✅ **FAIT**
+- [x] Mode hors-ligne complet ✅ **FAIT**
+- [x] Cache SharedPreferences pour horaires théoriques ✅ **FAIT**
+- [x] Rafraîchissement auto ✅ **FAIT**
 
 #### Ordre auto ⭐⭐⭐
 - [x] Détection plage horaire **FAIT**
@@ -1243,9 +1275,10 @@ id = "..."
 
 ### Should-Have (Important mais pas bloquant)
 
-- [x] Widget écran d'accueil ⭐⭐ **FAIT**
-- [x] Widget multiples configurables ⭐⭐⭐ **FAIT** (système de clés par tripId implémenté)
-- [x] Stratégie rafraîchissement intelligente widget ⭐⭐⭐ **FAIT** (WorkManager + échelle H-20/15/10/5/0)
+- [x] Widget écran d'accueil ⭐⭐⭐ ✅ **FAIT**
+- [x] Widget multiples configurables ⭐⭐⭐ ✅ **FAIT**
+- [x] Stratégie rafraîchissement intelligente widget ⭐⭐⭐ ✅ **FAIT**
+- [x] Tests unitaires ⭐⭐ ✅ **FAIT** (TripProvider)
 - [ ] Informations de trafic (perturbations via API Navitia)
 
 ### Nice-to-Have (Bonus si temps)
@@ -1257,83 +1290,103 @@ id = "..."
 
 ## 🚀 Prochaines étapes
 
-### En attente de clé API SNCF
+### Avant release v1.0
 
-**Statut** : Demande de clé API en cours de traitement
+**Priorité HAUTE** :
 
-Une fois la clé obtenue :
-1. **Intégrer API SNCF réelle**
-   - Configurer clé dans proxy Cloudflare
-   - Tester endpoints temps réel
-   - Remplacer mocks par vraies données
+1. **Proxy Cloudflare Workers** (Sécurité) 🔒
+   - Déployer Worker pour cacher la clé API Navitia
+   - Rate limiting par IP (100 req/h)
+   - Compression des réponses
+   - Logs et monitoring
+   - **Impact** : Sécurise l'accès API + protège le quota
 
-2. **Cache SQLite production**
-   - Télécharger grilles horaires GTFS
-   - Import dans SQLite
-   - Détection de nouvelles versions
+2. **Tests d'intégration complets** 🧪
+   - Tests avec API réelle
+   - Scénarios offline/online
+   - Tests widgets Android
+   - Validation toutes plateformes
+   - Performance (< 100ms cache, < 1s API)
 
-### Développement possible sans API
+3. **Documentation utilisateur** 📖
+   - Guide d'utilisation
+   - FAQ
+   - Screenshots
+   - Vidéo démo (optionnel)
 
-**Priorité MUST-HAVE** (fonctionnalités essentielles) :
+**Priorité MOYENNE** :
 
-1. ~~**Widget multiples configurables**~~ ⭐⭐⭐ **FAIT**
-   - ✅ Système de clés par tripId implémenté dans `WidgetService`
-   - ✅ Méthode `updateAllWidgets()` met à jour tous les widgets
-   - ✅ Background callback gère tous les trajets
-   - **Cas d'usage** : Trajets avec correspondance (ex: Bruz → Rennes + Rennes → Betton)
+4. **Polish UI** ✨
+   - Long press menu contextuel drawer
+   - Swipe-to-delete dans drawer
+   - Feedback haptique complet (sélection, erreur)
+   - Transitions fade entre trajets
 
-2. ~~**Stratégie rafraîchissement intelligente**~~ ⭐⭐⭐ **FAIT** (commit d5d743d)
-   - ✅ Logique H-20, H-15, H-10, H-5, H-0
-   - ✅ Adaptation dynamique aux retards (H ← H + retard)
-   - ✅ Pause après départ jusqu'à H-20 du prochain
-   - ✅ WorkManager pour planification Android
-   - ✅ WidgetRefreshWorker qui déclenche backgroundCallback Dart
-   - **Impact** : Économie batterie maximale + UX optimale ✅
+5. **Informations de trafic** (exploration) 🚧
+   - Étudier API Navitia `/disruptions`
+   - Design bandeau perturbations
+   - Implémentation si pertinent
 
-**Priorité Nice-to-Have** :
+**Nice-to-Have** :
 
-3. **Shake to refresh** (30min)
+6. **Shake to refresh** 📱
    - Détection du geste
    - Feedback haptique
    - Quick win sympathique
 
-4. **Informations de trafic** (exploration, 2-3h)
-   - Étudier API Navitia disruptions
-   - Design de l'affichage
-   - Implémentation si temps
+7. **Mode tablette** 📱
+   - Layout adaptatif
+   - Optimisation paysage
 
-5. **Polish & optimisations**
-   - Mode tablette/paysage
-   - Tests unitaires
-   - Documentation code
+### Post-release v1.0
+
+- Feedback utilisateurs
+- Optimisations performance
+- Nouvelles fonctionnalités selon demandes
 
 ---
 
 ## 📈 Avancement global
 
-**État actuel** : ~90-95% de la v1.0
+**État actuel** : ~98% de la v1.0 🎉
 
 **Fonctionnel pour production** :
 - ✅ Interface utilisateur complète et fluide
 - ✅ Gestion multi-trajets robuste
 - ✅ Widgets écran d'accueil multi-instances avec rafraîchissement intelligent
 - ✅ WorkManager Android avec échelle H-20/15/10/5/0
-- ✅ Mode hors-ligne avec cache intelligent
+- ✅ Mode hors-ligne complet avec cache JSON
+- ✅ API Navitia intégrée (temps réel + horaires théoriques)
+- ✅ Modal "Fiche horaire" avec jour J + J+1
+- ✅ Durée de trajet affichée
+- ✅ Recherche de gares via API
 - ✅ Thématisation complète (light/dark/system)
-- ✅ Architecture prête pour Phase 2 API
+- ✅ Tests unitaires (TripProvider)
+- ✅ Architecture simplifiée (JSON au lieu de SQLite)
 
-**Bloque la production** :
-- 🔴 Clé API SNCF (en attente de traitement) - remplacer les mocks par vraies données
+**Reste avant production** :
+- ⚠️ Proxy Cloudflare Workers (sécurité clé API)
+- ⚠️ Tests intégration + validation complète
+- ⚠️ Documentation utilisateur finale
 
 **Architecture et qualité** :
 - ✅ Code structuré selon CLAUDE.md
 - ✅ Séparation concerns (services/screens/widgets/models)
 - ✅ Gestion d'état centralisée (Provider)
+- ✅ Injection de dépendances pour testabilité
 - ✅ Error handling cohérent
-- ✅ Compatible iOS/Android + Web/Desktop (mode dégradé)
+- ✅ Compatible iOS/Android + Web/Desktop
+- ✅ Cache léger et performant
+- ✅ Tests unitaires implémentés
+
+**Changements majeurs récents** (27 janvier) :
+- 🔄 Simplification SQLite → JSON (369 lignes supprimées)
+- 🔄 Cache offline des réponses API (6 trains)
+- 🔄 Tests unitaires avec mocks
+- 🔄 Suppression mock data (API réelle partout)
 
 ---
 
-**Document mis à jour le** : 25 janvier 2026
+**Document mis à jour le** : 27 janvier 2026
 **Auteur** : Nicolas
-**Version** : 1.2 (état des lieux après implémentation widgets et multi-trajets)
+**Version** : 1.3 (après refactoring cache et tests)
