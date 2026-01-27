@@ -45,6 +45,13 @@ class ApiService {
     _useCustomKey = await _apiKeyService.hasCustomKey();
     if (_useCustomKey) {
       _customKey = await _apiKeyService.getCustomKey();
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] 🔑 Mode BYOK activé - Appel direct à l\'API SNCF');
+      }
+    } else {
+      if (AppConstants.enableDebugLogs) {
+        print('[ApiService] 🌐 Mode proxy activé - Appel via ${NavitiaConfig.proxyUrl}');
+      }
     }
   }
 
