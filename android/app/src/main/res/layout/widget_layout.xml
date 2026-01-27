@@ -184,8 +184,8 @@
         android:layout_height="wrap_content"
         android:text="Mis à jour: 14:05"
         android:textSize="10sp"
-        android:textColor="#9CA3AF"
+        android:textColor="#6B7280"
         android:paddingTop="12dp"
-        android:gravity="end" />
+        android:gravity="start" />
 
 </LinearLayout>
