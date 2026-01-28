@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
@@ -34,13 +33,6 @@ bool get isMobilePlatform {
 void backgroundCallback(Uri? uri) async {
   // Indispensable pour utiliser les plugins (SharedPreferences, SQFlite) en background
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Charger les variables d'environnement en arrière-plan aussi
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    debugPrint('[Background] Fichier .env non disponible: $e');
-  }
 
   debugPrint('--- Background Callback Started ---');
 
@@ -126,16 +118,6 @@ void backgroundCallback(Uri? uri) async {
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-  // Charger les variables d'environnement (.env)
-  // Ne bloque pas si le fichier n'existe pas (mode développement)
-  try {
-    await dotenv.load(fileName: '.env');
-    debugPrint('[Main] Fichier .env chargé avec succès');
-  } catch (e) {
-    debugPrint('[Main] Fichier .env non trouvé ou invalide: $e');
-    debugPrint('[Main] L\'app fonctionnera en mode mock (sans données réelles)');
-  }
 
   // Configuration des widgets uniquement sur iOS/Android
   if (isMobilePlatform) {

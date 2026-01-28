@@ -20,7 +20,12 @@ class ApiKeyService {
   bool _isInitialized = false;
 
   ApiKeyService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+      : _secureStorage = secureStorage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                encryptedSharedPreferences: true,
+              ),
+            );
 
   /// Initialise le service (charge la clé en cache)
   Future<void> init() async {

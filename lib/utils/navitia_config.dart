@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Configuration pour l'API Navitia (SNCF)
 ///
@@ -9,9 +8,6 @@ class NavitiaConfig {
   // Empêche l'instanciation
   NavitiaConfig._();
 
-  /// Clé API Navitia par défaut (chargée depuis .env)
-  static String get apiKey => dotenv.env['NAVITIA_API_KEY'] ?? '';
-
   /// URL de base de l'API SNCF/Navitia DIRECTE
   static const String directApiUrl = 'https://api.sncf.com/v1';
 
@@ -20,9 +16,6 @@ class NavitiaConfig {
 
   /// Coverage SNCF (pour les requêtes spécifiques TER)
   static const String coverage = 'sncf';
-
-  /// Vérifie si la clé API par défaut est configurée
-  static bool get isConfigured => apiKey.isNotEmpty;
 
   /// Retourne l'URL de base à utiliser selon le mode (BYOK ou proxy)
   ///
@@ -35,9 +28,8 @@ class NavitiaConfig {
   /// Headers d'authentification pour les requêtes HTTP
   ///
   /// [customKey] : Clé API personnalisée (BYOK) si fournie
-  /// Si customKey est fournie, utilise cette clé
-  /// Sinon, utilise la clé par défaut du .env
-  /// Si mode proxy (pas de customKey), pas besoin d'auth (géré par le proxy)
+  /// Si customKey est fournie, utilise cette clé pour l'auth Basic
+  /// Sinon (mode proxy par défaut), pas d'auth (gérée par le proxy)
   static Map<String, String> getAuthHeaders({String? customKey}) {
     // Mode BYOK : utilise la clé personnalisée
     if (customKey != null && customKey.isNotEmpty) {
@@ -50,18 +42,7 @@ class NavitiaConfig {
       };
     }
 
-    // Mode développement : utilise la clé .env (si disponible)
-    if (isConfigured) {
-      final credentials = '$apiKey:';
-      final base64Credentials = base64.encode(utf8.encode(credentials));
-
-      return {
-        'Authorization': 'Basic $base64Credentials',
-        'Content-Type': 'application/json',
-      };
-    }
-
-    // Mode proxy : pas d'authentification (gérée par le proxy)
+    // Mode proxy par défaut : pas d'authentification (gérée par le proxy)
     return {
       'Content-Type': 'application/json',
     };
