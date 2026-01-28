@@ -63,6 +63,5 @@ flutter_native_splash:
 flutter:
   uses-material-design: true
 
-  # Assets désactivés - BYOK stocke la clé dans le secure storage natif
-  # assets:
-  #   - .env
+  assets:
+    - assets/icon/icon-ios.png

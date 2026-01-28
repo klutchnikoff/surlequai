@@ -108,7 +108,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.train, size: 64, color: Colors.grey),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'assets/icon/icon-ios.png',
+                width: 64,
+                height: 64,
+              ),
+            ),
             const SizedBox(height: 16),
             const Text(
               'Bienvenue sur le quai !',

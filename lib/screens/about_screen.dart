@@ -58,10 +58,13 @@ class _AboutScreenState extends State<AboutScreen> {
             Center(
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.train,
-                    size: 64,
-                    color: AppColors.primary,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/icon/icon-ios.png',
+                      width: 64,
+                      height: 64,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
