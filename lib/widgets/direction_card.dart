@@ -45,7 +45,7 @@ class DirectionCard extends StatelessWidget {
                       if (viewModel is DirectionCardWithDepartures &&
                           (viewModel as DirectionCardWithDepartures).durationMinutes != null) ...[
                         const SizedBox(width: 8),
-                        Icon(Icons.timer_outlined, size: 18, color: AppColors.secondary),
+                        const Icon(Icons.timer_outlined, size: 18, color: AppColors.secondary),
                         const SizedBox(width: 4),
                         Text(
                           '${(viewModel as DirectionCardWithDepartures).durationMinutes} min',

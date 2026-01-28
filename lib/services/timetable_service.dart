@@ -2,7 +2,6 @@ import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/storage_service.dart';
-import 'package:surlequai/utils/navitia_config.dart';
 
 /// Service de gestion des grilles horaires
 ///
@@ -10,6 +9,7 @@ import 'package:surlequai/utils/navitia_config.dart';
 /// Ne gère plus les grilles GTFS complexes ni SQLite.
 /// Sert de façade pour récupérer les horaires "offline" depuis le cache JSON simple.
 class TimetableService {
+  // ignore: unused_field
   final ApiService _apiService;
   final StorageService _storageService;
 

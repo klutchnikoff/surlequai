@@ -35,6 +35,7 @@ dependencies:
   home_widget: ^0.9.0           # Widget écran d'accueil iOS/Android
   flutter_dotenv: ^5.1.0        # Chargement variables d'environnement
   url_launcher: ^6.2.2          # Ouverture de liens externes
+  package_info_plus: ^8.0.0     # Informations sur la version de l'app
 
 dev_dependencies:
   flutter_test:

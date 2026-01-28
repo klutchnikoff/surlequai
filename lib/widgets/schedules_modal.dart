@@ -281,14 +281,15 @@ class _SchedulesModalState extends State<SchedulesModal> {
           ],
         ],
       ),
-      trailing: Text('Voie ${departure.platform}', style: platformStyle),
+      trailing: Text(
+        departure.platform == '?' ? '' : 'Voie ${departure.platform}',
+        style: platformStyle,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-
     return DraggableScrollableSheet(
       initialChildSize: 0.9,
       minChildSize: 0.5,

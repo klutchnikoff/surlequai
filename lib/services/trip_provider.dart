@@ -373,7 +373,7 @@ class TripProvider with ChangeNotifier {
       title: title,
       statusBarColor: statusBarColor,
       time: TimeFormatter.formatTime(nextDeparture.scheduledTime),
-      platform: 'Voie ${nextDeparture.platform}',
+      platform: nextDeparture.platform == '?' ? '' : 'Voie ${nextDeparture.platform}',
       statusText: statusText,
       statusColor: statusBarColor,
       subsequentDepartures: subsequentDepartures.isNotEmpty

@@ -146,7 +146,7 @@ class WidgetService {
       final nextDep1 = _getNextDeparture(direction1Departures);
       if (nextDep1 != null) {
         final time = TimeFormatter.formatTime(nextDep1.scheduledTime);
-        final platform = 'Voie ${nextDep1.platform}';
+        final platform = nextDep1.platform == '?' ? '' : 'Voie ${nextDep1.platform}';
         final status = _getStatusText(nextDep1);
         final statusColor = _getStatusColorHex(nextDep1.status);
 
@@ -177,7 +177,7 @@ class WidgetService {
       final nextDep2 = _getNextDeparture(direction2Departures);
       if (nextDep2 != null) {
         final time = TimeFormatter.formatTime(nextDep2.scheduledTime);
-        final platform = 'Voie ${nextDep2.platform}';
+        final platform = nextDep2.platform == '?' ? '' : 'Voie ${nextDep2.platform}';
         final status = _getStatusText(nextDep2);
         final statusColor = _getStatusColorHex(nextDep2.status);
 

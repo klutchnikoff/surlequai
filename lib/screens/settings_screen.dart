@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
+import 'package:surlequai/screens/about_screen.dart';
 import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/trip_provider.dart';
@@ -70,7 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSectionTitle(context, 'AVANCÉ'),
               _buildCustomApiKeySetting(context),
               const Divider(),
-              // TODO: Add other sections (À PROPOS)
+              _buildSectionTitle(context, 'À PROPOS'),
+              _buildAboutButton(context),
             ],
           );
         },
@@ -551,5 +553,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  Widget _buildAboutButton(BuildContext context) {
+    return ListTile(
+      title: const Text('Mentions légales'),
+      subtitle: const Text('Informations sur l\'application'),
+      leading: const Icon(Icons.info_outline),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AboutScreen()),
+        );
+      },
+    );
   }
 }

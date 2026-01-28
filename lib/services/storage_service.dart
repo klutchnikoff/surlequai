@@ -103,6 +103,6 @@ class StorageService {
     // Nettoyer les IDs pour le nom de fichier (enlever stop_area:SNCF:)
     final cleanFrom = fromId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
     final cleanTo = toId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-    return File(join(_cacheDir!.path, 'cache_${cleanFrom}_${cleanTo}.json'));
+    return File(join(_cacheDir!.path, 'cache_${cleanFrom}_$cleanTo.json'));
   }
 }
