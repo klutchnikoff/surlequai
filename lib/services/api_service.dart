@@ -121,7 +121,7 @@ class ApiService {
 
         return departures;
       } else if (response.statusCode == 401) {
-        throw const HttpException('Clé API invalide ou expirée');
+        throw HttpException('Clé API invalide ou expirée');
       } else if (response.statusCode == 404) {
         throw HttpException('Gare non trouvée: $fromStationId');
       } else {
@@ -130,7 +130,7 @@ class ApiService {
       }
     } on SocketException {
       // Pas de connexion réseau
-      throw const SocketException('Pas de connexion Internet');
+      throw SocketException('Pas de connexion Internet');
     } on TimeoutException {
       // Timeout API
       throw TimeoutException('Délai d\'attente dépassé');
@@ -189,7 +189,7 @@ class ApiService {
 
         return departures;
       } else if (response.statusCode == 401) {
-        throw const HttpException('Clé API invalide ou expirée');
+        throw HttpException('Clé API invalide ou expirée');
       } else if (response.statusCode == 404) {
         throw HttpException('Gare non trouvée: $fromStationId ou $toStationId');
       } else {
@@ -198,7 +198,7 @@ class ApiService {
       }
     } on SocketException {
       // Pas de connexion réseau
-      throw const SocketException('Pas de connexion Internet');
+      throw SocketException('Pas de connexion Internet');
     } on TimeoutException {
       // Timeout API
       throw TimeoutException('Délai d\'attente dépassé');
@@ -252,7 +252,7 @@ class ApiService {
 
         return departures;
       } else if (response.statusCode == 401) {
-        throw const HttpException('Clé API invalide ou expirée');
+        throw HttpException('Clé API invalide ou expirée');
       } else if (response.statusCode == 404) {
         throw HttpException('Gare non trouvée: $fromStationId ou $toStationId');
       } else {
@@ -261,7 +261,7 @@ class ApiService {
       }
     } on SocketException {
       // Pas de connexion réseau
-      throw const SocketException('Pas de connexion Internet');
+      throw SocketException('Pas de connexion Internet');
     } on TimeoutException {
       // Timeout API
       throw TimeoutException('Délai d\'attente dépassé');
@@ -425,7 +425,7 @@ class ApiService {
         throw HttpException('Erreur recherche: ${response.statusCode}');
       }
     } on SocketException {
-      throw const SocketException('Pas de connexion Internet');
+      throw SocketException('Pas de connexion Internet');
     } on TimeoutException {
       throw TimeoutException('Délai d\'attente dépassé');
     } catch (e) {
