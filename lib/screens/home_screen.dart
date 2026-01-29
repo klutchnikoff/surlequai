@@ -149,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final viewModelGo = tripProvider.directionGoViewModel;
     final viewModelReturn = tripProvider.directionReturnViewModel;
     final activeTrip = tripProvider.activeTrip;
+    final isSwapped = tripProvider.isSwapped;
 
     // Si on a des trajets mais que les viewModels ne sont pas encore prêts (chargement initial)
     if (viewModelGo == null || viewModelReturn == null) {
@@ -173,8 +174,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? () => _showSchedulesModal(
                               context,
                               viewModelGo.title,
-                              activeTrip.stationA.id,
-                              activeTrip.stationB.id,
+                              isSwapped ? activeTrip.stationB.id : activeTrip.stationA.id,
+                              isSwapped ? activeTrip.stationA.id : activeTrip.stationB.id,
                             )
                         : null,
                   ),
@@ -184,8 +185,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? () => _showSchedulesModal(
                               context,
                               viewModelReturn.title,
-                              activeTrip.stationB.id,
-                              activeTrip.stationA.id,
+                              isSwapped ? activeTrip.stationA.id : activeTrip.stationB.id,
+                              isSwapped ? activeTrip.stationB.id : activeTrip.stationA.id,
                             )
                         : null,
                   ),

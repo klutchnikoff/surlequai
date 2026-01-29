@@ -61,6 +61,9 @@ class TripProvider with ChangeNotifier {
   List<Departure> get departuresReturn => _departuresReturn;
   DateTime? get lastUpdate => _lastUpdate;
   ConnectionStatus get connectionStatus => _connectionStatus;
+  
+  /// Indique si l'ordre des trajets est inversé (B->A puis A->B)
+  bool get isSwapped => _shouldSwapOrder();
 
   TripProvider(
     this._settingsProvider, {
