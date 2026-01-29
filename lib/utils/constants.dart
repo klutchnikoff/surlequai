@@ -29,7 +29,7 @@ class AppConstants {
   static const int maxFavoriteTrips = 10;
 
   /// Nombre maximum de trains à récupérer par journée depuis l'API
-  static const int maxTrainsPerDay = 100;
+  static const int maxTrainsPerDay = 300;
 
   /// Nombre de départs suivants à afficher sur l'écran principal (après le prochain)
   static const int subsequentDeparturesCount = 2;

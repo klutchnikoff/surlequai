@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/models/navitia/navitia_models.dart';
 import 'package:surlequai/models/station.dart';
-import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/navitia_config.dart';
@@ -17,7 +16,6 @@ import 'package:surlequai/utils/navitia_config.dart';
 /// Gère les appels HTTP vers l'API Navitia pour récupérer :
 /// - Les départs en temps réel
 /// - La recherche de gares
-/// - Les versions de grilles horaires
 ///
 /// Supporte BYOK (Bring Your Own Key) :
 /// - Si clé personnalisée configurée → Appel direct à api.sncf.com
@@ -80,8 +78,6 @@ class ApiService {
       } else if (response.statusCode == 401) {
         throw const HttpException('Clé API invalide ou expirée');
       } else if (response.statusCode == 404) {
-        // Pour une 404, on peut vouloir l'info de ce qui n'a pas été trouvé,
-        // mais une exception générique suffit souvent.
         throw HttpException('Ressource non trouvée (404) : $uri');
       } else {
         throw HttpException(
@@ -97,20 +93,6 @@ class ApiService {
       }
       rethrow;
     }
-  }
-
-  /// Récupère la version actuelle de la grille horaire
-  Future<TimetableVersion> getTimetableVersion({String? region}) async {
-    // L'API Navitia ne fournit pas de metadata sur les versions
-    // On retourne une version par défaut pour l'instant
-    return TimetableVersion(
-      version: '2026-current',
-      region: region ?? 'france',
-      validFrom: DateTime(2026, 1, 1),
-      validUntil: DateTime(2026, 12, 31),
-      downloadedAt: DateTime.now(),
-      sizeBytes: null,
-    );
   }
 
   /// Récupère les départs en temps réel entre deux gares
@@ -487,14 +469,6 @@ class ApiService {
     final second = int.parse(navitiaDate.substring(13, 15));
 
     return DateTime(year, month, day, hour, minute, second);
-  }
-
-  Future<List<int>> downloadTimetable({
-    required String version,
-    String? region,
-  }) async {
-    throw UnimplementedError(
-        'Téléchargement GTFS non disponible avec Navitia. '        'Utilisez les données temps réel uniquement.');
   }
 
   void dispose() {
