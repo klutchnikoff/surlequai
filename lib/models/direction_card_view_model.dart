@@ -19,19 +19,20 @@ sealed class DirectionCardViewModel {
     required String title,
     required List<Departure> departures,
     required int serviceDayStartTime,
+    DateTime? now, // Pour les tests
   }) {
-    final now = DateTime.now();
+    final referenceDate = now ?? DateTime.now();
 
     // Calcule la fin de la "journée de service actuelle"
     // La journée de service va de dayStartTime (ex: 4h) à dayStartTime du lendemain
     DateTime endOfServiceDay;
-    if (now.hour < serviceDayStartTime) {
+    if (referenceDate.hour < serviceDayStartTime) {
       // Entre minuit et dayStartTime (ex: 1h du matin)
       // → La journée de service se termine à dayStartTime (4h) aujourd'hui
-      endOfServiceDay = DateTime(now.year, now.month, now.day, serviceDayStartTime);
+      endOfServiceDay = DateTime(referenceDate.year, referenceDate.month, referenceDate.day, serviceDayStartTime);
     } else {
       // Après dayStartTime → journée se termine à dayStartTime (4h) demain
-      final tomorrow = now.add(const Duration(days: 1));
+      final tomorrow = referenceDate.add(const Duration(days: 1));
       endOfServiceDay = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, serviceDayStartTime);
     }
 
@@ -39,7 +40,7 @@ sealed class DirectionCardViewModel {
     // IMPORTANT : On compare l'heure RÉELLE de départ (heure prévue + retard)
     final trainsToday = departures.where((d) {
       final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
-      return actualDepartureTime.isAfter(now) &&
+      return actualDepartureTime.isAfter(referenceDate) &&
              d.scheduledTime.isBefore(endOfServiceDay);
     }).toList();
 
