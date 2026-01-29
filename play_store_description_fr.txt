@@ -21,11 +21,13 @@ VIE PRIVÉE
 - Aucun traqueur
 - Toutes vos données restent sur votre appareil
 
-DONNÉES & SOURCE OFFICIELLE
-- Données ouvertes fournies par l'API SNCF Navitia
-- Source officielle : https://www.sncf.com/fr/groupe/open-data
-- Portail Open Data transport : https://transport.data.gouv.fr
-- Accès aux données via proxy anonyme ou clé API SNCF personnelle (utilisateurs avancés)
+DONNÉES & SOURCES OFFICIELLES
+- API utilisée : Navitia (SNCF) - https://api.sncf.com
+- Documentation API : https://doc.navitia.io
+- Portail développeur : https://numerique.sncf.com
+- Open Data SNCF : https://www.sncf.com/fr/groupe/open-data
+- Portail national : https://transport.data.gouv.fr
+- Accès aux données via proxy anonyme ou clé API personnelle (utilisateurs avancés)
 
 OPEN SOURCE
 - Code source complet disponible sur GitHub

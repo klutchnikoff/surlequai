@@ -122,14 +122,29 @@ class _AboutScreenState extends State<AboutScreen> {
             // Section Données SNCF
             _buildSectionTitle('Données ferroviaires', textColor),
             _buildParagraph(
-              'Les horaires de trains sont fournis par l\'API SNCF (Navitia.io), '
+              'Les horaires de trains sont fournis par l\'API Navitia (SNCF), '
               'utilisant les données ouvertes de la SNCF sous licence ouverte Etalab 2.0.\n\n'
               'Ces données sont fournies à titre informatif et peuvent comporter des erreurs ou retards.',
               textColor,
             ),
             const SizedBox(height: 8),
             _buildLinkButton(
-              'SNCF Open Data (source officielle)',
+              'API Navitia (api.sncf.com)',
+              'https://api.sncf.com',
+            ),
+            const SizedBox(height: 4),
+            _buildLinkButton(
+              'Documentation API (doc.navitia.io)',
+              'https://doc.navitia.io',
+            ),
+            const SizedBox(height: 4),
+            _buildLinkButton(
+              'Portail développeur (numerique.sncf.com)',
+              'https://numerique.sncf.com',
+            ),
+            const SizedBox(height: 4),
+            _buildLinkButton(
+              'Open Data SNCF',
               'https://www.sncf.com/fr/groupe/open-data',
             ),
             const SizedBox(height: 4),
