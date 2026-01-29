@@ -61,7 +61,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
-                      'assets/icon/icon-ios.png',
+                      'assets/images/app-icon.png',
                       width: 64,
                       height: 64,
                     ),
