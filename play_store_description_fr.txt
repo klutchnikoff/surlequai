@@ -1,0 +1,35 @@
+DESCRIPTION COMPLÈTE (Français - fr-FR)
+=====================================
+
+⚠️ APPLICATION NON OFFICIELLE - Cette application n'est pas affiliée à la SNCF ni à aucune entité gouvernementale. Il s'agit d'un projet indépendant open-source utilisant des données publiques.
+
+Consultez vos horaires de trains TER en temps réel, directement sur le quai.
+
+Prochains départs TER affichés avec retards et informations de voie (si disponibles). Simple, rapide, sans compte ni publicité.
+
+FONCTIONNALITÉS
+- Horaires temps réel (départs, retards, suppressions)
+- Suivi multi-trajets (domicile-travail, etc.)
+- Widget écran d'accueil
+- Mode hors-ligne avec cache
+- Tri automatique matin/soir
+- Mode sombre
+
+VIE PRIVÉE
+- Aucun compte requis
+- Aucune publicité
+- Aucun traqueur
+- Toutes vos données restent sur votre appareil
+
+DONNÉES & SOURCE OFFICIELLE
+- Données ouvertes fournies par l'API SNCF Navitia
+- Source officielle : https://www.sncf.com/fr/groupe/open-data
+- Portail Open Data transport : https://transport.data.gouv.fr
+- Accès aux données via proxy anonyme ou clé API SNCF personnelle (utilisateurs avancés)
+
+OPEN SOURCE
+- Code source complet disponible sur GitHub
+- Licence MIT
+- Projet communautaire transparent
+
+Cette application utilise des données publiques mises à disposition par la SNCF mais n'est pas un service officiel de la SNCF. Pour les informations officielles, veuillez consulter les sites web et applications officiels de la SNCF.

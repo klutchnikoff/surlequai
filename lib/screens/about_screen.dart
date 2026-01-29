@@ -127,6 +127,29 @@ class _AboutScreenState extends State<AboutScreen> {
               'Ces données sont fournies à titre informatif et peuvent comporter des erreurs ou retards.',
               textColor,
             ),
+            const SizedBox(height: 8),
+            _buildLinkButton(
+              'SNCF Open Data (source officielle)',
+              'https://www.sncf.com/fr/groupe/open-data',
+            ),
+            const SizedBox(height: 4),
+            _buildLinkButton(
+              'Transport Data Gouv (portail national)',
+              'https://transport.data.gouv.fr',
+            ),
+            const SizedBox(height: 24),
+
+            // Section Application non officielle (IMPORTANT pour Google Play)
+            _buildSectionTitle('⚠️ Application non officielle', textColor),
+            _buildParagraph(
+              'Cette application N\'EST PAS affiliée à la SNCF ni à aucune entité gouvernementale. '
+              'Il s\'agit d\'un projet indépendant open-source développé par un particulier.\n\n'
+              'SurLeQuai utilise des données publiques mises à disposition par la SNCF, '
+              'mais n\'est pas un service officiel de la SNCF.\n\n'
+              'Pour les informations officielles et garanties, veuillez consulter les sites web '
+              'et applications officiels de la SNCF (sncf-connect.com).',
+              textColor,
+            ),
             const SizedBox(height: 24),
 
             // Section Accès API

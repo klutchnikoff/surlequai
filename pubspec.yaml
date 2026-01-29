@@ -2,7 +2,7 @@ name: surlequai
 description: "Horaires TER en temps réel - Vos prochains trains, directement sur le quai"
 publish_to: 'none'
 
-version: 0.10.0+2
+version: 0.11.0+3
 
 environment:
   sdk: ^3.0.0 # Ajusté pour être compatible avec toutes les versions 3.x de Flutter
