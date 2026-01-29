@@ -78,16 +78,18 @@ class WidgetService {
     required List<Departure> departuresReturn,
     int? morningEveningSplitHour,
     int? serviceDayStartHour,
+    DateTime? now, // Pour les tests
   }) async {
     try {
       await HomeWidget.setAppGroupId(_iOSAppGroupId);
 
       final tripId = trip.id;
       final tripName = '${trip.stationA.name} ⟷ ${trip.stationB.name}';
+      final referenceDate = now ?? DateTime.now();
 
       // Déterminer l'ordre d'affichage selon l'heure (logique matin/soir)
       final shouldSwap = TripSorter.shouldSwapOrder(
-        currentHour: DateTime.now().hour,
+        currentHour: referenceDate.hour,
         morningEveningSplitHour: morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour,
         serviceDayStartHour: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
         morningDirection: trip.morningDirection,
@@ -108,6 +110,7 @@ class WidgetService {
           title: title,
           departures: departures,
           serviceDayStartTime: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
+          now: referenceDate,
         );
 
         await HomeWidget.saveWidgetData<String>(
@@ -144,9 +147,8 @@ class WidgetService {
       await saveDirection('direction2', direction2Title, direction2Departures);
 
       // Timestamp de la dernière mise à jour
-      final now = DateTime.now();
       await HomeWidget.saveWidgetData<String>(
-          'trip_${tripId}_last_update', TimeFormatter.formatTime(now));
+          'trip_${tripId}_last_update', TimeFormatter.formatTime(referenceDate));
     } catch (e) {
       debugPrint(
           'Erreur lors de la mise à jour du widget pour le trajet ${trip.id} : $e');
