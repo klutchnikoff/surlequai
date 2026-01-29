@@ -108,6 +108,7 @@ sealed class DirectionCardViewModel {
       platform: nextDeparture.platform == '?' ? '' : 'Voie ${nextDeparture.platform}',
       statusText: statusText,
       statusColor: statusBarColor,
+      statusType: nextDeparture.status, // Nouveau champ
       subsequentDepartures: subsequentDepartures.isNotEmpty
           ? 'Puis: ${TimeFormatter.formatTimeList(subsequentDepartures.map((d) => d.scheduledTime).toList())}'
           : null,
@@ -121,6 +122,7 @@ class DirectionCardWithDepartures extends DirectionCardViewModel {
   final String platform;
   final String statusText;
   final Color statusColor;
+  final DepartureStatus statusType; // Nouveau champ pour la sémantique
   final String? subsequentDepartures;
   final int? durationMinutes; // Durée du trajet en minutes
 
@@ -131,6 +133,7 @@ class DirectionCardWithDepartures extends DirectionCardViewModel {
     required this.platform,
     required this.statusText,
     required this.statusColor,
+    required this.statusType,
     this.subsequentDepartures,
     this.durationMinutes,
   });

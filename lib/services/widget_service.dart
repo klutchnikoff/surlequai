@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
@@ -21,46 +22,6 @@ class WidgetService {
 
   // Nom du App Group (iOS uniquement)
   static const String _iOSAppGroupId = 'group.com.surlequai.app';
-
-  /// Récupère le prochain départ futur dans une liste
-  ///
-  /// Prend en compte le retard pour déterminer le train qui partira réellement en premier.
-  /// Exemple : Si train A (17:00 +30 min) et train B (17:20), affiche train B car il part avant.
-  Departure? _getNextDeparture(List<Departure> departures) {
-    final now = DateTime.now();
-
-    // Filtrer les trains dont l'heure réelle de départ est dans le futur
-    final futureTrains = departures.where((d) {
-      final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
-      return actualDepartureTime.isAfter(now);
-    }).toList();
-
-    if (futureTrains.isEmpty) return null;
-
-    // Trier par heure réelle de départ (heure prévue + retard)
-    futureTrains.sort((a, b) {
-      final aActual = a.scheduledTime.add(Duration(minutes: a.delayMinutes));
-      final bActual = b.scheduledTime.add(Duration(minutes: b.delayMinutes));
-      return aActual.compareTo(bActual);
-    });
-
-    // Retourner le train qui part réellement le plus tôt
-    return futureTrains.first;
-  }
-
-  /// Retourne le texte du statut pour affichage
-  String _getStatusText(Departure departure) {
-    switch (departure.status) {
-      case DepartureStatus.onTime:
-        return 'À l\'heure';
-      case DepartureStatus.delayed:
-        return '+${departure.delayMinutes} min';
-      case DepartureStatus.cancelled:
-        return 'Supprimé';
-      case DepartureStatus.offline:
-        return 'Horaire prévu';
-    }
-  }
 
   /// Retourne la couleur du statut en code (pour parsing côté natif)
   ///
@@ -125,7 +86,6 @@ class WidgetService {
       final tripName = '${trip.stationA.name} ⟷ ${trip.stationB.name}';
 
       // Déterminer l'ordre d'affichage selon l'heure (logique matin/soir)
-      // Utilise les préférences utilisateur si fournies, sinon les valeurs par défaut
       final shouldSwap = TripSorter.shouldSwapOrder(
         currentHour: DateTime.now().hour,
         morningEveningSplitHour: morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour,
@@ -142,67 +102,46 @@ class WidgetService {
       // Nom du trajet
       await HomeWidget.saveWidgetData<String>('trip_${tripId}_name', tripName);
 
-      // Direction 1 (priorité selon l'heure)
-      final nextDep1 = _getNextDeparture(direction1Departures);
-      if (nextDep1 != null) {
-        final time = TimeFormatter.formatTime(nextDep1.scheduledTime);
-        final platform = nextDep1.platform == '?' ? '' : 'Voie ${nextDep1.platform}';
-        final status = _getStatusText(nextDep1);
-        final statusColor = _getStatusColorHex(nextDep1.status);
+      // Helper pour sauvegarder une direction
+      Future<void> saveDirection(String suffix, String title, List<Departure> departures) async {
+        final vm = DirectionCardViewModel.fromDepartures(
+          title: title,
+          departures: departures,
+          serviceDayStartTime: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
+        );
 
         await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_title', direction1Title);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_time', time);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_platform', platform);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_status', status);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_status_color', statusColor);
-      } else {
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_title', direction1Title);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_time', '__:__');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_platform', '');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_status', 'Aucun train');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction1_status_color', 'secondary');
+            'trip_${tripId}_${suffix}_title', vm.title);
+
+        if (vm is DirectionCardWithDepartures) {
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_time', vm.time);
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_platform', vm.platform);
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_status', vm.statusText);
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_status_color', _getStatusColorHex(vm.statusType));
+        } else if (vm is DirectionCardNoDepartures) {
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_time', vm.noTrainTimeDisplay);
+          // Le widget natif n'a pas de champ "statusDisplay" long, on met "Aucun train" ou un texte court
+          // TODO: Adapter le widget natif pour gérer les messages "Demain à 08:00" si possible
+          // Pour l'instant on reste simple pour ne pas casser l'UI native
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_platform', '');
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_status', 'Aucun train');
+          await HomeWidget.saveWidgetData<String>(
+              'trip_${tripId}_${suffix}_status_color', 'secondary');
+        }
       }
 
-      // Direction 2 (secondaire selon l'heure)
-      final nextDep2 = _getNextDeparture(direction2Departures);
-      if (nextDep2 != null) {
-        final time = TimeFormatter.formatTime(nextDep2.scheduledTime);
-        final platform = nextDep2.platform == '?' ? '' : 'Voie ${nextDep2.platform}';
-        final status = _getStatusText(nextDep2);
-        final statusColor = _getStatusColorHex(nextDep2.status);
+      // Sauvegarder Direction 1
+      await saveDirection('direction1', direction1Title, direction1Departures);
 
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_title', direction2Title);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_time', time);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_platform', platform);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_status', status);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_status_color', statusColor);
-      } else {
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_title', direction2Title);
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_time', '__:__');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_platform', '');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_status', 'Aucun train');
-        await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_direction2_status_color', 'secondary');
-      }
+      // Sauvegarder Direction 2
+      await saveDirection('direction2', direction2Title, direction2Departures);
 
       // Timestamp de la dernière mise à jour
       final now = DateTime.now();
