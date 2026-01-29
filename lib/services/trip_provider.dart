@@ -91,35 +91,42 @@ class TripProvider with ChangeNotifier {
     await _storageService.init();
     await _timetableService.init();
 
-    final prefs = await SharedPreferences.getInstance();
-    final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
 
-    if (tripsJson != null) {
-      final List<dynamic> tripsData = jsonDecode(tripsJson);
-      _trips = tripsData.map((data) => Trip.fromJson(data)).toList();
+      if (tripsJson != null) {
+        final List<dynamic> tripsData = jsonDecode(tripsJson);
+        _trips = tripsData.map((data) => Trip.fromJson(data)).toList();
 
-      // Migration automatique des anciens IDs vers les IDs Navitia
-      if (StationIdMigration.tripsNeedMigration(_trips)) {
-        debugPrint('[TripProvider] Migration des IDs de gares détectée...');
-        _trips = StationIdMigration.migrateTrips(_trips);
-        // Sauvegarde les trips migrés
-        await _saveTrips();
-        debugPrint('[TripProvider] Migration terminée et sauvegardée');
+        // Migration automatique des anciens IDs vers les IDs Navitia
+        if (StationIdMigration.tripsNeedMigration(_trips)) {
+          debugPrint('[TripProvider] Migration des IDs de gares détectée...');
+          _trips = StationIdMigration.migrateTrips(_trips);
+          // Sauvegarde les trips migrés
+          await _saveTrips();
+          debugPrint('[TripProvider] Migration terminée et sauvegardée');
+        }
+      } else {
+        _trips = [];
       }
-    } else {
+
+      if (_trips.isNotEmpty) {
+        _activeTrip = _trips.first;
+        await _buildViewModels();
+        _lastUpdate = DateTime.now();
+      } else {
+        _activeTrip = null;
+      }
+    } catch (e) {
+      debugPrint('[TripProvider] Erreur critique lors du chargement des trajets : $e');
+      // En cas d'erreur (ex: changement de format JSON), on repart à zéro
       _trips = [];
-    }
-
-    if (_trips.isNotEmpty) {
-      _activeTrip = _trips.first;
-      await _buildViewModels();
-      _lastUpdate = DateTime.now();
-    } else {
       _activeTrip = null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
 
     // Après avoir affiché les données locales, tente automatiquement
     // de se "connecter" pour passer en mode online
