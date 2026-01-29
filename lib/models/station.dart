@@ -1,23 +1,14 @@
-class Station {
-  final String id;
-  final String name;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Station({
-    required this.id,
-    required this.name,
-  });
+part 'station.freezed.dart';
+part 'station.g.dart';
 
-  factory Station.fromJson(Map<String, dynamic> json) {
-    return Station(
-      id: json['id'],
-      name: json['name'],
-    );
-  }
+@freezed
+class Station with _$Station {
+  const factory Station({
+    required String id,
+    required String name,
+  }) = _Station;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
-  }
+  factory Station.fromJson(Map<String, dynamic> json) => _$StationFromJson(json);
 }

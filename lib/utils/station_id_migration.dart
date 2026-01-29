@@ -66,6 +66,7 @@ class StationIdMigration {
       id: trip.id,
       stationA: newStationA,
       stationB: newStationB,
+      morningDirection: trip.morningDirection,
     );
   }
 
