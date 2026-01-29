@@ -11,7 +11,7 @@
 
 | 1. Bienvenue | 2. Configuration | 3. Vos Trajets | 4. Widget |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/assets/1.png" width="180" alt="Écran vide"> | <img src="docs/assets/2.png" width="180" alt="Ajout trajet"> | <img src="docs/assets/3.png" width="180" alt="Liste trajets"> | <img src="docs/assets/4.png" width="180" alt="Widget"> |
+| <img src="docs/assets/screenshot-SLQ-1.png" width="180" alt="Écran vide"> | <img src="docs/assets/screenshot-SLQ-2.png" width="180" alt="Ajout trajet"> | <img src="docs/assets/screenshot-SLQ-3.png" width="180" alt="Liste trajets"> | <img src="docs/assets/screenshot-SLQ-4.png" width="180" alt="Widget"> |
 
 ## ✨ Philosophie
 
