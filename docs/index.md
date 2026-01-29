@@ -25,6 +25,7 @@ SurLeQuai est une application mobile gratuite et open source qui vous permet de 
 
 ## 📖 Documentation
 
+- [Architecture Technique](ARCHITECTURE.md) 🏗️
 - [Politique de confidentialité](privacy-policy.md)
 - [Code source (GitHub)](https://github.com/klutchnikoff/surlequai)
 - [Licence MIT](https://github.com/klutchnikoff/surlequai/blob/main/LICENSE)
