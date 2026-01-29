@@ -210,10 +210,10 @@ class _SchedulesModalState extends State<SchedulesModal> {
     if (isTomorrow) {
       // Trains de demain : grisé
       timeStyle = AppTextStyles.medium.copyWith(
-        color: AppColors.secondary.withOpacity(0.6),
+        color: AppColors.secondary.withValues(alpha: 0.6),
       );
       platformStyle = AppTextStyles.medium.copyWith(
-        color: AppColors.secondary.withOpacity(0.6),
+        color: AppColors.secondary.withValues(alpha: 0.6),
       );
     } else if (isNext) {
       // Prochain train : couleur selon statut + gras

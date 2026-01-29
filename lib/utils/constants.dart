@@ -93,13 +93,10 @@ class AppConstants {
   /// === DÉVELOPPEMENT ===
 
   /// Mode debug pour activer les logs détaillés
+  ///
+  /// Utilisation :
+  /// - Production (défaut) : false
+  /// - Debug : flutter run --dart-define=DEBUG_LOGS=true
   static const bool enableDebugLogs =
-      true; // TODO: Passer à false en production
-
-  /// Utiliser les mock data au lieu de l'API réelle
-  static const bool useMockData =
-      true; // TODO: Passer à false une fois API configurée
-
-  /// Délai de simulation réseau pour les mock data (en millisecondes)
-  static const Duration mockNetworkDelay = Duration(milliseconds: 500);
+      bool.fromEnvironment('DEBUG_LOGS', defaultValue: false);
 }
