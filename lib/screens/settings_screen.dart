@@ -172,8 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context.read<SettingsProvider>().setThemeMode(value);
             }
           },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          child: Column(
             children: [
               _buildThemeRadio(context, AppThemeMode.light, 'Clair'),
               _buildThemeRadio(context, AppThemeMode.system, 'Auto'),
@@ -187,11 +186,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildThemeRadio(
       BuildContext context, AppThemeMode mode, String text) {
-    return Expanded(
-      child: RadioListTile<AppThemeMode>(
-        title: Text(text),
-        value: mode,
-      ),
+    return RadioListTile<AppThemeMode>(
+      title: Text(text),
+      value: mode,
     );
   }
 
