@@ -165,13 +165,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const ListTile(
           title: Text('Thème'),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildThemeRadio(context, AppThemeMode.light, 'Clair'),
-            _buildThemeRadio(context, AppThemeMode.system, 'Auto'),
-            _buildThemeRadio(context, AppThemeMode.dark, 'Sombre'),
-          ],
+        RadioGroup<AppThemeMode>(
+          groupValue: settingsProvider.themeMode,
+          onChanged: (AppThemeMode? value) {
+            if (value != null) {
+              context.read<SettingsProvider>().setThemeMode(value);
+            }
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildThemeRadio(context, AppThemeMode.light, 'Clair'),
+              _buildThemeRadio(context, AppThemeMode.system, 'Auto'),
+              _buildThemeRadio(context, AppThemeMode.dark, 'Sombre'),
+            ],
+          ),
         ),
       ],
     );
@@ -179,18 +187,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildThemeRadio(
       BuildContext context, AppThemeMode mode, String text) {
-    final settingsProvider = context.watch<SettingsProvider>();
-
     return Expanded(
       child: RadioListTile<AppThemeMode>(
         title: Text(text),
         value: mode,
-        groupValue: settingsProvider.themeMode,
-        onChanged: (AppThemeMode? value) {
-          if (value != null) {
-            context.read<SettingsProvider>().setThemeMode(value);
-          }
-        },
       ),
     );
   }
@@ -221,29 +221,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'Trajet du matin pour "${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}"',
               style: Theme.of(context).textTheme.titleSmall),
         ),
-        _buildMorningDirectionRadio(context, MorningDirection.aToB,
-            '${activeTrip.stationA.name} → ${activeTrip.stationB.name}'),
-        _buildMorningDirectionRadio(context, MorningDirection.bToA,
-            '${activeTrip.stationB.name} → ${activeTrip.stationA.name}'),
+        RadioGroup<MorningDirection>(
+          groupValue: tripProvider.activeTrip?.morningDirection,
+          onChanged: (MorningDirection? value) {
+            if (value != null) {
+              context
+                  .read<TripProvider>()
+                  .updateActiveTripMorningDirection(value);
+            }
+          },
+          child: Column(
+            children: [
+              _buildMorningDirectionRadio(context, MorningDirection.aToB,
+                  '${activeTrip.stationA.name} → ${activeTrip.stationB.name}'),
+              _buildMorningDirectionRadio(context, MorningDirection.bToA,
+                  '${activeTrip.stationB.name} → ${activeTrip.stationA.name}'),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildMorningDirectionRadio(
       BuildContext context, MorningDirection direction, String text) {
-    final tripProvider = context.watch<TripProvider>();
     return ListTile(
       title: Text(text),
       leading: Radio<MorningDirection>(
         value: direction,
-        groupValue: tripProvider.activeTrip?.morningDirection,
-        onChanged: (MorningDirection? value) {
-          if (value != null) {
-            context
-                .read<TripProvider>()
-                .updateActiveTripMorningDirection(value);
-          }
-        },
       ),
     );
   }

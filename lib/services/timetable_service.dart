@@ -8,6 +8,11 @@ import 'package:surlequai/services/storage_service.dart';
 /// VERSION SIMPLIFIÉE (v1.0) :
 /// Ne gère plus les grilles GTFS complexes ni SQLite.
 /// Sert de façade pour récupérer les horaires "offline" depuis le cache JSON simple.
+///
+/// TODO(v1.1): REFACTORING À PRÉVOIR
+/// Ce service est devenu largement obsolète depuis la migration vers ApiService.
+/// La plupart de ses méthodes retournent des valeurs hardcodées (ex: checkForUpdate → false).
+/// Candidat pour suppression : migrer les responsabilités restantes vers StorageService.
 class TimetableService {
   // ignore: unused_field
   final ApiService _apiService;

@@ -152,10 +152,8 @@ class _AddTripScreenState extends State<AddTripScreen> {
             ),
             const SizedBox(height: 16),
 
-            if (_stationA != null && _stationB != null) ...[
-              RadioListTile<MorningDirection>(
-                title: Text('${_stationA!.name} → ${_stationB!.name}'),
-                value: MorningDirection.aToB,
+            if (_stationA != null && _stationB != null)
+              RadioGroup<MorningDirection>(
                 groupValue: _morningDirection,
                 onChanged: (value) {
                   if (value != null) {
@@ -164,20 +162,20 @@ class _AddTripScreenState extends State<AddTripScreen> {
                     });
                   }
                 },
-              ),
-              RadioListTile<MorningDirection>(
-                title: Text('${_stationB!.name} → ${_stationA!.name}'),
-                value: MorningDirection.bToA,
-                groupValue: _morningDirection,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _morningDirection = value;
-                    });
-                  }
-                },
-              ),
-            ] else
+                child: Column(
+                  children: [
+                    RadioListTile<MorningDirection>(
+                      title: Text('${_stationA!.name} → ${_stationB!.name}'),
+                      value: MorningDirection.aToB,
+                    ),
+                    RadioListTile<MorningDirection>(
+                      title: Text('${_stationB!.name} → ${_stationA!.name}'),
+                      value: MorningDirection.bToA,
+                    ),
+                  ],
+                ),
+              )
+            else
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
