@@ -14,9 +14,7 @@ import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/storage_service.dart';
 import 'package:surlequai/services/timetable_service.dart';
 import 'package:surlequai/services/widget_service.dart';
-import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
-import 'package:surlequai/utils/formatters.dart';
 import 'package:surlequai/utils/station_id_migration.dart';
 import 'package:surlequai/utils/trip_sorter.dart';
 import 'package:uuid/uuid.dart';
@@ -198,13 +196,15 @@ class TripProvider with ChangeNotifier {
       tripId: _activeTrip!.id,
     );
 
-    final goViewModel = _createViewModel(
+    final goViewModel = DirectionCardViewModel.fromDepartures(
       title: '${_activeTrip!.stationA.name} → ${_activeTrip!.stationB.name}',
       departures: rawDeparturesGo,
+      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
     );
-    final returnViewModel = _createViewModel(
+    final returnViewModel = DirectionCardViewModel.fromDepartures(
       title: '${_activeTrip!.stationB.name} → ${_activeTrip!.stationA.name}',
       departures: rawDeparturesReturn,
+      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
     );
 
     if (_shouldSwapOrder()) {
@@ -284,102 +284,6 @@ class TripProvider with ChangeNotifier {
       morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
       serviceDayStartHour: _settingsProvider.serviceDayStartTime,
       morningDirection: _activeTrip!.morningDirection,
-    );
-  }
-
-  DirectionCardViewModel _createViewModel(
-      {required String title, required List<Departure> departures}) {
-    final now = DateTime.now();
-    final dayStartTime = _settingsProvider.serviceDayStartTime;
-
-    // Calcule la fin de la "journée de service actuelle"
-    // La journée de service va de dayStartTime (4h) à dayStartTime (4h) du lendemain
-    DateTime endOfServiceDay;
-    if (now.hour < dayStartTime) {
-      // Entre minuit et dayStartTime (ex: 1h du matin)
-      // → La journée de service se termine à dayStartTime (4h) aujourd'hui
-      endOfServiceDay = DateTime(now.year, now.month, now.day, dayStartTime);
-    } else {
-      // Après dayStartTime → journée se termine à dayStartTime (4h) demain
-      final tomorrow = now.add(const Duration(days: 1));
-      endOfServiceDay = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, dayStartTime);
-    }
-
-    // Filtre les trains "aujourd'hui" (avant la fin de journée de service)
-    // IMPORTANT : On compare l'heure RÉELLE de départ (heure prévue + retard)
-    final trainsToday = departures.where((d) {
-      final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
-      return actualDepartureTime.isAfter(now) &&
-             d.scheduledTime.isBefore(endOfServiceDay);
-    }).toList();
-
-    // Trier par heure réelle de départ (gère les retards importants)
-    trainsToday.sort((a, b) {
-      final aActual = a.scheduledTime.add(Duration(minutes: a.delayMinutes));
-      final bActual = b.scheduledTime.add(Duration(minutes: b.delayMinutes));
-      return aActual.compareTo(bActual);
-    });
-
-    // Filtre les trains "demain" (après la fin de journée de service)
-    final trainsTomorrow =
-        departures.where((d) => d.scheduledTime.isAfter(endOfServiceDay)).toList();
-
-    // Cas 1 : Aucun train aujourd'hui, mais il y en a demain
-    if (trainsToday.isEmpty && trainsTomorrow.isNotEmpty) {
-      return DirectionCardNoDepartures.nextTrainTomorrow(
-        title: title,
-        tomorrowTime: TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime),
-      );
-    }
-
-    // Cas 2 : Aucun train du tout
-    if (trainsToday.isEmpty && trainsTomorrow.isEmpty) {
-      return DirectionCardNoDepartures.defaultEmpty(title: title);
-    }
-
-    // Cas 3 : Il y a des trains aujourd'hui
-    // Le premier de la liste est celui qui part réellement le plus tôt
-    final nextDeparture = trainsToday.first;
-
-    // Limiter le nombre de départs suivants à afficher
-    final subsequentDepartures = trainsToday
-        .skip(1)
-        .take(AppConstants.subsequentDeparturesCount)
-        .toList();
-
-    Color statusBarColor;
-    String statusText;
-
-    switch (nextDeparture.status) {
-      case DepartureStatus.onTime:
-        statusBarColor = AppColors.onTime;
-        statusText = 'À l\'heure';
-        break;
-      case DepartureStatus.delayed:
-        statusBarColor = AppColors.delayed;
-        statusText = '+${nextDeparture.delayMinutes} min';
-        break;
-      case DepartureStatus.cancelled:
-        statusBarColor = AppColors.cancelled;
-        statusText = 'Supprimé';
-        break;
-      case DepartureStatus.offline:
-        statusBarColor = AppColors.offline;
-        statusText = 'Horaire prévu';
-        break;
-    }
-
-    return DirectionCardWithDepartures(
-      title: title,
-      statusBarColor: statusBarColor,
-      time: TimeFormatter.formatTime(nextDeparture.scheduledTime),
-      platform: nextDeparture.platform == '?' ? '' : 'Voie ${nextDeparture.platform}',
-      statusText: statusText,
-      statusColor: statusBarColor,
-      subsequentDepartures: subsequentDepartures.isNotEmpty
-          ? 'Puis: ${TimeFormatter.formatTimeList(subsequentDepartures.map((d) => d.scheduledTime).toList())}'
-          : null,
-      durationMinutes: nextDeparture.durationMinutes,
     );
   }
 
