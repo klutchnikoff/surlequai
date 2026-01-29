@@ -34,6 +34,9 @@ class TripProvider with ChangeNotifier {
 
   // Timestamp de la dernière mise à jour
   DateTime? _lastUpdate;
+  
+  // Timestamp de la dernière mise à jour globale des widgets
+  DateTime? _lastWidgetUpdate;
 
   // État de la connexion
   ConnectionStatus _connectionStatus = ConnectionStatus.offline;
@@ -159,7 +162,8 @@ class TripProvider with ChangeNotifier {
 
     try {
       // Récupère les départs avec temps réel via RealtimeService
-      await _buildViewModels();
+      // Force le rafraîchissement des widgets (Action utilisateur explicite)
+      await _buildViewModels(forceRefreshWidgets: true);
       _lastUpdate = DateTime.now();
 
       // Succès : mode online
@@ -183,7 +187,7 @@ class TripProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _buildViewModels() async {
+  Future<void> _buildViewModels({bool forceRefreshWidgets = false}) async {
     if (_activeTrip == null) return;
 
     final now = DateTime.now();
@@ -227,16 +231,33 @@ class TripProvider with ChangeNotifier {
     }
 
     // Met à jour le widget écran d'accueil avec les nouvelles données
-    _updateWidget();
+    // Optimisation : Ne met à jour que si nécessaire
+    _updateWidget(forceRefresh: forceRefreshWidgets);
   }
 
   /// Met à jour le widget écran d'accueil
-  Future<void> _updateWidget() async {
+  /// 
+  /// [forceRefresh] : Si true, met à jour tous les trajets immédiatement.
+  /// Sinon, applique un throttle de 5 minutes.
+  Future<void> _updateWidget({bool forceRefresh = false}) async {
     if (_activeTrip == null ||
         _directionGoViewModel == null ||
         _directionReturnViewModel == null) {
       return;
     }
+
+    final now = DateTime.now();
+    
+    // Throttle : Si la dernière mise à jour a eu lieu il y a moins de 5 minutes
+    // et qu'on ne force pas le refresh, on annule.
+    if (!forceRefresh && 
+        _lastWidgetUpdate != null && 
+        now.difference(_lastWidgetUpdate!).inMinutes < 5) {
+      debugPrint('[TripProvider] Widget update throttled (< 5 min)');
+      return;
+    }
+
+    debugPrint('[TripProvider] Updating widgets (Force: $forceRefresh)');
 
     // Préparer les données de tous les trajets pour les widgets
     final departuresGoByTrip = <String, List<Departure>>{};
@@ -244,9 +265,15 @@ class TripProvider with ChangeNotifier {
 
     for (final trip in _trips) {
       try {
-        final now = DateTime.now();
+        // Optimisation : Si c'est le trajet actif, on a DÉJÀ les données fraîches !
+        // Pas besoin de refaire l'appel API.
+        if (trip.id == _activeTrip!.id) {
+          departuresGoByTrip[trip.id] = _departuresGo;
+          departuresReturnByTrip[trip.id] = _departuresReturn;
+          continue;
+        }
 
-        // Récupérer les départs pour ce trajet
+        // Pour les autres trajets, on doit faire un appel API
         final departuresGo = await _realtimeService.getDeparturesWithRealtime(
           fromStationId: trip.stationA.id,
           toStationId: trip.stationB.id,
@@ -272,8 +299,6 @@ class TripProvider with ChangeNotifier {
     }
 
     // Mettre à jour tous les widgets (sauvegarde + déclenchement du refresh)
-    // Cela va sauvegarder les données ET déclencher onUpdate() côté Android
-    // qui va planifier le WorkManager pour les mises à jour automatiques
     await _widgetService.updateAllWidgets(
       allTrips: _trips,
       departuresGoByTrip: departuresGoByTrip,
@@ -281,6 +306,8 @@ class TripProvider with ChangeNotifier {
       morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
       serviceDayStartHour: _settingsProvider.serviceDayStartTime,
     );
+    
+    _lastWidgetUpdate = now;
   }
 
   bool _shouldSwapOrder() {
@@ -401,7 +428,7 @@ class TripProvider with ChangeNotifier {
     await _widgetService.clearWidgetDataForTrip(tripId);
 
     // Mettre à jour les widgets avec les trajets restants
-    _updateWidget();
+    _updateWidget(forceRefresh: true); // Force refresh pour supprimer le trajet
 
     return null; // Succès
   }
