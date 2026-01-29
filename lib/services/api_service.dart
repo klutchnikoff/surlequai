@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/navitia/navitia_models.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/timetable_version.dart';
 import 'package:surlequai/services/api_key_service.dart';
@@ -52,9 +53,11 @@ class ApiService {
   /// Méthode centrale pour effectuer les appels HTTP
   /// Gère la construction d'URL, les headers, les timeouts et les erreurs communes.
   Future<Map<String, dynamic>> _get(
-    String endpoint, {
+    String endpoint,
+    {
     Map<String, String>? queryParameters,
-  }) async {
+  }
+  ) async {
     try {
       final baseUrl = NavitiaConfig.getBaseUrl(useCustomKey: _useCustomKey);
       
@@ -126,7 +129,8 @@ class ApiService {
       },
     );
 
-    final departures = _parseDepartures(jsonData, toStationId);
+    final response = NavitiaResponse.fromJson(jsonData);
+    final departures = _mapDepartures(response.departures ?? []);
 
     if (AppConstants.enableDebugLogs) {
       debugPrint('[ApiService] Parsed ${departures.length} departures');
@@ -155,7 +159,8 @@ class ApiService {
       },
     );
 
-    final departures = _parseJourneys(jsonData);
+    final response = NavitiaResponse.fromJson(jsonData);
+    final departures = _mapJourneys(response.journeys ?? []);
 
     if (AppConstants.enableDebugLogs) {
       debugPrint('[ApiService] Parsed ${departures.length} direct journeys');
@@ -183,7 +188,8 @@ class ApiService {
       },
     );
 
-    final departures = _parseJourneys(jsonData);
+    final response = NavitiaResponse.fromJson(jsonData);
+    final departures = _mapJourneys(response.journeys ?? []);
 
     if (AppConstants.enableDebugLogs) {
       debugPrint('[ApiService] Parsed ${departures.length} theoretical schedules');
@@ -259,27 +265,13 @@ class ApiService {
     return departures;
   }
 
-  String _getServiceDay(DateTime datetime) {
-    final hour = datetime.hour;
-    if (hour < AppConstants.defaultServiceDayStartHour) {
-      final previousDay = datetime.subtract(const Duration(days: 1));
-      return '${previousDay.year}-${previousDay.month.toString().padLeft(2, '0')}-${previousDay.day.toString().padLeft(2, '0')}';
-    }
-    return '${datetime.year}-${datetime.month.toString().padLeft(2, '0')}-${datetime.day.toString().padLeft(2, '0')}';
-  }
-
-  String _getCacheKey(String fromStationId, String toStationId, String serviceDay) {
-    final fromId = fromStationId.split(':').last;
-    final toId = toStationId.split(':').last;
-    return 'journeys_${fromId}_${toId}_$serviceDay';
-  }
-
   /// Recherche des gares par nom (autocomplete)
   Future<List<Station>> searchStations(
     String query,
     {
     int limit = 10,
-  }) async {
+  }
+  ) async {
     if (query.length < 2) {
       return [];
     }
@@ -293,7 +285,8 @@ class ApiService {
       },
     );
 
-    final stations = _parseStations(jsonData);
+    final response = NavitiaResponse.fromJson(jsonData);
+    final stations = _mapStations(response.places ?? []);
 
     if (AppConstants.enableDebugLogs) {
       debugPrint('[ApiService] Found ${stations.length} stations');
@@ -302,19 +295,14 @@ class ApiService {
     return stations;
   }
 
-  /// Parse les départs depuis la réponse JSON Navitia
-  List<Departure> _parseDepartures(
-    Map<String, dynamic> jsonData,
-    String toStationId,
-  ) {
-    final departuresList = jsonData['departures'] as List<dynamic>? ?? [];
+  // --- MAPPING METHODS ---
+
+  List<Departure> _mapDepartures(List<NavitiaDeparture> navitiaDepartures) {
     final departures = <Departure>[];
 
-    for (final depJson in departuresList) {
+    for (final dep in navitiaDepartures) {
       try {
-        final stopDateTime = depJson['stop_date_time'] as Map<String, dynamic>;
-        final displayInfo = depJson['display_informations'] as Map<String, dynamic>?;
-        final network = displayInfo?['network'] as String? ?? 'unknown';
+        final network = dep.displayInformation?.network ?? 'unknown';
 
         final networkUpper = network.toUpperCase();
         final isExpensiveTrain = networkUpper.contains('TGV') ||
@@ -325,16 +313,16 @@ class ApiService {
           continue;
         }
 
-        final baseDateTime = stopDateTime['base_departure_date_time'] as String;
+        final baseDateTime = dep.stopDateTime.baseDepartureDateTime;
         final scheduledTime = _parseNavitiaDateTime(baseDateTime);
 
-        final actualDateTime = stopDateTime['departure_date_time'] as String;
+        final actualDateTime = dep.stopDateTime.departureDateTime;
         final actualTime = _parseNavitiaDateTime(actualDateTime);
 
         final delayMinutes = actualTime.difference(scheduledTime).inMinutes;
 
         DepartureStatus status;
-        if (stopDateTime['data_freshness'] == 'base_schedule' ||
+        if (dep.stopDateTime.dataFreshness == 'base_schedule' ||
             delayMinutes == 0) {
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
@@ -343,10 +331,10 @@ class ApiService {
           status = DepartureStatus.onTime;
         }
 
-        final platform = stopDateTime['platform'] as String? ?? '?';
+        final platform = dep.stopDateTime.platform ?? '?';
 
-        final tripId = depJson['display_informations']?['trip_short_name'] ??
-            depJson['route']?['id'] ??
+        final tripId = dep.displayInformation?.tripShortName ??
+            dep.route?.id ??
             'unknown';
 
         departures.add(Departure(
@@ -358,37 +346,34 @@ class ApiService {
         ));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          debugPrint('[ApiService] Failed to parse departure: $e');
+          debugPrint('[ApiService] Failed to map departure: $e');
         }
       }
     }
     return departures;
   }
 
-  /// Parse les itinéraires depuis la réponse JSON Navitia
-  List<Departure> _parseJourneys(Map<String, dynamic> jsonData) {
-    final journeysList = jsonData['journeys'] as List<dynamic>? ?? [];
+  List<Departure> _mapJourneys(List<NavitiaJourney> navitiaJourneys) {
     final departures = <Departure>[];
 
-    for (final journeyJson in journeysList) {
+    for (final journey in navitiaJourneys) {
       try {
-        final nbTransfers = journeyJson['nb_transfers'] as int? ?? 0;
-        if (nbTransfers != 0) continue;
+        if (journey.nbTransfers != 0) continue;
 
-        final sections = journeyJson['sections'] as List<dynamic>? ?? [];
+        final sections = journey.sections ?? [];
         if (sections.isEmpty) continue;
 
         final trainSection = sections.firstWhere(
-          (s) => s['type'] == 'public_transport',
-          orElse: () => null,
+          (s) => s.type == 'public_transport',
+          orElse: () => const NavitiaSection(),
         );
 
-        if (trainSection == null) continue;
+        if (trainSection.type == null) continue;
 
-        final displayInfo = trainSection['display_informations'] as Map<String, dynamic>?;
+        final displayInfo = trainSection.displayInformation;
         if (displayInfo == null) continue;
 
-        final network = displayInfo['network'] as String? ?? 'unknown';
+        final network = displayInfo.network ?? 'unknown';
         final networkUpper = network.toUpperCase();
         final isExpensiveTrain = networkUpper.contains('TGV') ||
                                 networkUpper.contains('OUIGO') ||
@@ -398,22 +383,22 @@ class ApiService {
           continue;
         }
 
-        final departureDateTime = trainSection['departure_date_time'] as String;
+        final departureDateTime = trainSection.departureDateTime!;
         final scheduledTime = _parseNavitiaDateTime(departureDateTime);
 
-        final baseDepartureDateTime = trainSection['base_departure_date_time'] as String?;
+        final baseDepartureDateTime = trainSection.baseDepartureDateTime;
         final baseScheduledTime = baseDepartureDateTime != null
             ? _parseNavitiaDateTime(baseDepartureDateTime)
             : scheduledTime;
 
-        final arrivalDateTime = trainSection['arrival_date_time'] as String;
+        final arrivalDateTime = trainSection.arrivalDateTime!;
         final arrivalTime = _parseNavitiaDateTime(arrivalDateTime);
 
         final durationMinutes = arrivalTime.difference(scheduledTime).inMinutes;
         final delayMinutes = scheduledTime.difference(baseScheduledTime).inMinutes;
 
         DepartureStatus status;
-        if (trainSection['data_freshness'] == 'base_schedule' || delayMinutes == 0) {
+        if (trainSection.dataFreshness == 'base_schedule' || delayMinutes == 0) {
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
           status = DepartureStatus.delayed;
@@ -421,12 +406,12 @@ class ApiService {
           status = DepartureStatus.onTime;
         }
 
-        final stopDateTime = trainSection['stop_date_times'] as List<dynamic>? ?? [];
-        final firstStop = stopDateTime.isNotEmpty ? stopDateTime.first : null;
-        final platform = firstStop?['departure_stop_point']?['platform'] as String? ?? '?';
+        final stopDateTimes = trainSection.stopDateTimes ?? [];
+        final firstStop = stopDateTimes.isNotEmpty ? stopDateTimes.first : null;
+        final platform = firstStop?.departureStopPoint?.platform ?? '?';
 
-        final tripId = displayInfo['trip_short_name'] ??
-                      trainSection['id'] ??
+        final tripId = displayInfo.tripShortName ??
+                      trainSection.id ??
                       'unknown';
 
         departures.add(Departure(
@@ -439,36 +424,48 @@ class ApiService {
         ));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          debugPrint('[ApiService] Failed to parse journey: $e');
+          debugPrint('[ApiService] Failed to map journey: $e');
         }
       }
     }
     return departures;
   }
 
-  /// Parse les gares depuis la réponse JSON Navitia
-  List<Station> _parseStations(Map<String, dynamic> jsonData) {
-    final placesList = jsonData['places'] as List<dynamic>? ?? [];
+  List<Station> _mapStations(List<NavitiaPlace> places) {
     final stations = <Station>[];
 
-    for (final placeJson in placesList) {
+    for (final place in places) {
       try {
-        if (placeJson['embedded_type'] != 'stop_area') continue;
+        if (place.embeddedType != 'stop_area') continue;
 
-        final stopArea = placeJson['stop_area'] as Map<String, dynamic>?;
+        final stopArea = place.stopArea;
         if (stopArea == null) continue;
 
-        final id = stopArea['id'] as String;
-        final name = stopArea['name'] as String;
-
-        stations.add(Station(id: id, name: name));
+        stations.add(Station(id: stopArea.id, name: stopArea.name));
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
-          debugPrint('[ApiService] Failed to parse station: $e');
+          debugPrint('[ApiService] Failed to map station: $e');
         }
       }
     }
     return stations;
+  }
+
+  // --- UTILS ---
+
+  String _getServiceDay(DateTime datetime) {
+    final hour = datetime.hour;
+    if (hour < AppConstants.defaultServiceDayStartHour) {
+      final previousDay = datetime.subtract(const Duration(days: 1));
+      return '${previousDay.year}-${previousDay.month.toString().padLeft(2, '0')}-${previousDay.day.toString().padLeft(2, '0')}';
+    }
+    return '${datetime.year}-${datetime.month.toString().padLeft(2, '0')}-${datetime.day.toString().padLeft(2, '0')}';
+  }
+
+  String _getCacheKey(String fromStationId, String toStationId, String serviceDay) {
+    final fromId = fromStationId.split(':').last;
+    final toId = toStationId.split(':').last;
+    return 'journeys_${fromId}_${toId}_$serviceDay';
   }
 
   String _formatNavitiaDateTime(DateTime datetime) {
@@ -497,8 +494,7 @@ class ApiService {
     String? region,
   }) async {
     throw UnimplementedError(
-        'Téléchargement GTFS non disponible avec Navitia. '
-        'Utilisez les données temps réel uniquement.');
+        'Téléchargement GTFS non disponible avec Navitia. '        'Utilisez les données temps réel uniquement.');
   }
 
   void dispose() {
