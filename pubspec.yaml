@@ -5,7 +5,8 @@ publish_to: 'none'
 version: 0.11.0+3
 
 environment:
-  sdk: ^3.0.0 # Ajusté pour être compatible avec toutes les versions 3.x de Flutter
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
@@ -27,8 +28,8 @@ dependencies:
   http: ^1.1.0                  # Requêtes HTTP simples vers proxy Cloudflare
 
   # Code Generation & JSON
-  json_annotation: ^4.8.1
-  freezed_annotation: ^2.4.1
+  json_annotation: ^4.12.0
+  freezed_annotation: ^3.1.0
 
   # UI
   pull_to_refresh: ^2.0.0       # Pull-to-refresh natif
@@ -46,9 +47,9 @@ dev_dependencies:
     sdk: flutter
   
   # Code Generation Tools
-  build_runner: ^2.4.8
-  json_serializable: ^6.7.1
-  freezed: ^2.4.7
+  build_runner: ^2.16.1
+  json_serializable: ^6.14.1
+  freezed: ^4.0.1
 
   flutter_lints: ^3.0.0 # Ajusté à une version plus courante pour Flutter 3.x
   flutter_launcher_icons: ^0.14.3

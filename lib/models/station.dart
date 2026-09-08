@@ -4,11 +4,9 @@ part 'station.freezed.dart';
 part 'station.g.dart';
 
 @freezed
-class Station with _$Station {
-  const factory Station({
-    required String id,
-    required String name,
-  }) = _Station;
+abstract class Station with _$Station {
+  const factory Station({required String id, required String name}) = _Station;
 
-  factory Station.fromJson(Map<String, dynamic> json) => _$StationFromJson(json);
+  factory Station.fromJson(Map<String, dynamic> json) =>
+      _$StationFromJson(json);
 }

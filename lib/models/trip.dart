@@ -7,7 +7,7 @@ part 'trip.g.dart';
 enum MorningDirection { aToB, bToA }
 
 @freezed
-class Trip with _$Trip {
+abstract class Trip with _$Trip {
   const factory Trip({
     required String id,
     required Station stationA,

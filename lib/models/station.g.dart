@@ -6,14 +6,10 @@ part of 'station.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$StationImpl _$$StationImplFromJson(Map<String, dynamic> json) =>
-    _$StationImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-    );
+_Station _$StationFromJson(Map<String, dynamic> json) =>
+    _Station(id: json['id'] as String, name: json['name'] as String);
 
-Map<String, dynamic> _$$StationImplToJson(_$StationImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-    };
+Map<String, dynamic> _$StationToJson(_Station instance) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+};

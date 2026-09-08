@@ -6,18 +6,18 @@ part of 'departure.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DepartureImpl _$$DepartureImplFromJson(Map<String, dynamic> json) =>
-    _$DepartureImpl(
-      id: json['id'] as String,
-      scheduledTime: DateTime.parse(json['scheduledTime'] as String),
-      platform: json['platform'] as String,
-      status: $enumDecodeNullable(_$DepartureStatusEnumMap, json['status']) ??
-          DepartureStatus.offline,
-      delayMinutes: (json['delayMinutes'] as num?)?.toInt() ?? 0,
-      durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
-    );
+_Departure _$DepartureFromJson(Map<String, dynamic> json) => _Departure(
+  id: json['id'] as String,
+  scheduledTime: DateTime.parse(json['scheduledTime'] as String),
+  platform: json['platform'] as String,
+  status:
+      $enumDecodeNullable(_$DepartureStatusEnumMap, json['status']) ??
+      DepartureStatus.offline,
+  delayMinutes: (json['delayMinutes'] as num?)?.toInt() ?? 0,
+  durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
+);
 
-Map<String, dynamic> _$$DepartureImplToJson(_$DepartureImpl instance) =>
+Map<String, dynamic> _$DepartureToJson(_Departure instance) =>
     <String, dynamic>{
       'id': instance.id,
       'scheduledTime': instance.scheduledTime.toIso8601String(),

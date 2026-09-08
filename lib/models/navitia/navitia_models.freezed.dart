@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'navitia_models.dart';
@@ -9,2389 +9,3224 @@ part of 'navitia_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-NavitiaResponse _$NavitiaResponseFromJson(Map<String, dynamic> json) {
-  return _NavitiaResponse.fromJson(json);
-}
 
 /// @nodoc
 mixin _$NavitiaResponse {
-  List<NavitiaDeparture>? get departures => throw _privateConstructorUsedError;
-  List<NavitiaJourney>? get journeys => throw _privateConstructorUsedError;
-  List<NavitiaPlace>? get places => throw _privateConstructorUsedError;
+
+ List<NavitiaDeparture>? get departures; List<NavitiaJourney>? get journeys; List<NavitiaPlace>? get places;
+/// Create a copy of NavitiaResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaResponseCopyWith<NavitiaResponse> get copyWith => _$NavitiaResponseCopyWithImpl<NavitiaResponse>(this as NavitiaResponse, _$identity);
 
   /// Serializes this NavitiaResponse to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaResponseCopyWith<NavitiaResponse> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaResponse&&const DeepCollectionEquality().equals(other.departures, _this.departures)&&const DeepCollectionEquality().equals(other.journeys, _this.journeys)&&const DeepCollectionEquality().equals(other.places, _this.places));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.departures),const DeepCollectionEquality().hash(_this.journeys),const DeepCollectionEquality().hash(_this.places));
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaResponse;
+  return 'NavitiaResponse(departures: ${_this.departures}, journeys: ${_this.journeys}, places: ${_this.places})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaResponseCopyWith<$Res> {
-  factory $NavitiaResponseCopyWith(
-          NavitiaResponse value, $Res Function(NavitiaResponse) then) =
-      _$NavitiaResponseCopyWithImpl<$Res, NavitiaResponse>;
-  @useResult
-  $Res call(
-      {List<NavitiaDeparture>? departures,
-      List<NavitiaJourney>? journeys,
-      List<NavitiaPlace>? places});
-}
+abstract mixin class $NavitiaResponseCopyWith<$Res>  {
+  factory $NavitiaResponseCopyWith(NavitiaResponse value, $Res Function(NavitiaResponse) _then) = _$NavitiaResponseCopyWithImpl;
+@useResult
+$Res call({
+ List<NavitiaDeparture>? departures, List<NavitiaJourney>? journeys, List<NavitiaPlace>? places
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaResponseCopyWithImpl<$Res, $Val extends NavitiaResponse>
+class _$NavitiaResponseCopyWithImpl<$Res>
     implements $NavitiaResponseCopyWith<$Res> {
-  _$NavitiaResponseCopyWithImpl(this._value, this._then);
+  _$NavitiaResponseCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaResponse _self;
+  final $Res Function(NavitiaResponse) _then;
 
-  /// Create a copy of NavitiaResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departures = freezed,
-    Object? journeys = freezed,
-    Object? places = freezed,
-  }) {
-    return _then(_value.copyWith(
-      departures: freezed == departures
-          ? _value.departures
-          : departures // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaDeparture>?,
-      journeys: freezed == journeys
-          ? _value.journeys
-          : journeys // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaJourney>?,
-      places: freezed == places
-          ? _value.places
-          : places // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaPlace>?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? departures = freezed,Object? journeys = freezed,Object? places = freezed,}) {
+  return _then(NavitiaResponse(
+departures: freezed == departures ? _self.departures : departures // ignore: cast_nullable_to_non_nullable
+as List<NavitiaDeparture>?,journeys: freezed == journeys ? _self.journeys : journeys // ignore: cast_nullable_to_non_nullable
+as List<NavitiaJourney>?,places: freezed == places ? _self.places : places // ignore: cast_nullable_to_non_nullable
+as List<NavitiaPlace>?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaResponseImplCopyWith<$Res>
-    implements $NavitiaResponseCopyWith<$Res> {
-  factory _$$NavitiaResponseImplCopyWith(_$NavitiaResponseImpl value,
-          $Res Function(_$NavitiaResponseImpl) then) =
-      __$$NavitiaResponseImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {List<NavitiaDeparture>? departures,
-      List<NavitiaJourney>? journeys,
-      List<NavitiaPlace>? places});
 }
 
-/// @nodoc
-class __$$NavitiaResponseImplCopyWithImpl<$Res>
-    extends _$NavitiaResponseCopyWithImpl<$Res, _$NavitiaResponseImpl>
-    implements _$$NavitiaResponseImplCopyWith<$Res> {
-  __$$NavitiaResponseImplCopyWithImpl(
-      _$NavitiaResponseImpl _value, $Res Function(_$NavitiaResponseImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departures = freezed,
-    Object? journeys = freezed,
-    Object? places = freezed,
-  }) {
-    return _then(_$NavitiaResponseImpl(
-      departures: freezed == departures
-          ? _value._departures
-          : departures // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaDeparture>?,
-      journeys: freezed == journeys
-          ? _value._journeys
-          : journeys // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaJourney>?,
-      places: freezed == places
-          ? _value._places
-          : places // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaPlace>?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaResponse].
+extension NavitiaResponsePatterns on NavitiaResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaResponse():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<NavitiaDeparture>? departures,  List<NavitiaJourney>? journeys,  List<NavitiaPlace>? places)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaResponse() when $default != null:
+return $default(_that.departures,_that.journeys,_that.places);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<NavitiaDeparture>? departures,  List<NavitiaJourney>? journeys,  List<NavitiaPlace>? places)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaResponse():
+return $default(_that.departures,_that.journeys,_that.places);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<NavitiaDeparture>? departures,  List<NavitiaJourney>? journeys,  List<NavitiaPlace>? places)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaResponse() when $default != null:
+return $default(_that.departures,_that.journeys,_that.places);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaResponseImpl implements _NavitiaResponse {
-  const _$NavitiaResponseImpl(
-      {final List<NavitiaDeparture>? departures,
-      final List<NavitiaJourney>? journeys,
-      final List<NavitiaPlace>? places})
-      : _departures = departures,
-        _journeys = journeys,
-        _places = places;
 
-  factory _$NavitiaResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaResponseImplFromJson(json);
+class _NavitiaResponse implements NavitiaResponse {
+  const _NavitiaResponse({ List<NavitiaDeparture>? departures,  List<NavitiaJourney>? journeys,  List<NavitiaPlace>? places}): _departures = departures,_journeys = journeys,_places = places;
+  factory _NavitiaResponse.fromJson(Map<String, dynamic> json) => _$NavitiaResponseFromJson(json);
 
-  final List<NavitiaDeparture>? _departures;
-  @override
-  List<NavitiaDeparture>? get departures {
-    final value = _departures;
-    if (value == null) return null;
-    if (_departures is EqualUnmodifiableListView) return _departures;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+ final  List<NavitiaDeparture>? _departures;
+@override List<NavitiaDeparture>? get departures {
+  final value = _departures;
+  if (value == null) return null;
+  if (_departures is EqualUnmodifiableListView) return _departures;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
 
-  final List<NavitiaJourney>? _journeys;
-  @override
-  List<NavitiaJourney>? get journeys {
-    final value = _journeys;
-    if (value == null) return null;
-    if (_journeys is EqualUnmodifiableListView) return _journeys;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+ final  List<NavitiaJourney>? _journeys;
+@override List<NavitiaJourney>? get journeys {
+  final value = _journeys;
+  if (value == null) return null;
+  if (_journeys is EqualUnmodifiableListView) return _journeys;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
 
-  final List<NavitiaPlace>? _places;
-  @override
-  List<NavitiaPlace>? get places {
-    final value = _places;
-    if (value == null) return null;
-    if (_places is EqualUnmodifiableListView) return _places;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+ final  List<NavitiaPlace>? _places;
+@override List<NavitiaPlace>? get places {
+  final value = _places;
+  if (value == null) return null;
+  if (_places is EqualUnmodifiableListView) return _places;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
 
-  @override
-  String toString() {
+
+/// Create a copy of NavitiaResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaResponseCopyWith<_NavitiaResponse> get copyWith => __$NavitiaResponseCopyWithImpl<_NavitiaResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaResponse&&const DeepCollectionEquality().equals(other.departures, _departures)&&const DeepCollectionEquality().equals(other.journeys, _journeys)&&const DeepCollectionEquality().equals(other.places, _places));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_departures),const DeepCollectionEquality().hash(_journeys),const DeepCollectionEquality().hash(_places));
+}
+
+@override
+String toString() {
     return 'NavitiaResponse(departures: $departures, journeys: $journeys, places: $places)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaResponseImpl &&
-            const DeepCollectionEquality()
-                .equals(other._departures, _departures) &&
-            const DeepCollectionEquality().equals(other._journeys, _journeys) &&
-            const DeepCollectionEquality().equals(other._places, _places));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_departures),
-      const DeepCollectionEquality().hash(_journeys),
-      const DeepCollectionEquality().hash(_places));
-
-  /// Create a copy of NavitiaResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaResponseImplCopyWith<_$NavitiaResponseImpl> get copyWith =>
-      __$$NavitiaResponseImplCopyWithImpl<_$NavitiaResponseImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaResponseImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaResponse implements NavitiaResponse {
-  const factory _NavitiaResponse(
-      {final List<NavitiaDeparture>? departures,
-      final List<NavitiaJourney>? journeys,
-      final List<NavitiaPlace>? places}) = _$NavitiaResponseImpl;
 
-  factory _NavitiaResponse.fromJson(Map<String, dynamic> json) =
-      _$NavitiaResponseImpl.fromJson;
-
-  @override
-  List<NavitiaDeparture>? get departures;
-  @override
-  List<NavitiaJourney>? get journeys;
-  @override
-  List<NavitiaPlace>? get places;
-
-  /// Create a copy of NavitiaResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaResponseImplCopyWith<_$NavitiaResponseImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaDeparture _$NavitiaDepartureFromJson(Map<String, dynamic> json) {
-  return _NavitiaDeparture.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaResponseCopyWith<$Res> implements $NavitiaResponseCopyWith<$Res> {
+  factory _$NavitiaResponseCopyWith(_NavitiaResponse value, $Res Function(_NavitiaResponse) _then) = __$NavitiaResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ List<NavitiaDeparture>? departures, List<NavitiaJourney>? journeys, List<NavitiaPlace>? places
+});
+
+
+
+
 }
+/// @nodoc
+class __$NavitiaResponseCopyWithImpl<$Res>
+    implements _$NavitiaResponseCopyWith<$Res> {
+  __$NavitiaResponseCopyWithImpl(this._self, this._then);
+
+  final _NavitiaResponse _self;
+  final $Res Function(_NavitiaResponse) _then;
+
+/// Create a copy of NavitiaResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? departures = freezed,Object? journeys = freezed,Object? places = freezed,}) {
+  return _then(_NavitiaResponse(
+departures: freezed == departures ? _self._departures : departures // ignore: cast_nullable_to_non_nullable
+as List<NavitiaDeparture>?,journeys: freezed == journeys ? _self._journeys : journeys // ignore: cast_nullable_to_non_nullable
+as List<NavitiaJourney>?,places: freezed == places ? _self._places : places // ignore: cast_nullable_to_non_nullable
+as List<NavitiaPlace>?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaDeparture {
-  @JsonKey(name: 'stop_date_time')
-  NavitiaStopDateTime get stopDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'display_informations')
-  NavitiaDisplayInfo? get displayInformation =>
-      throw _privateConstructorUsedError;
-  NavitiaRoute? get route => throw _privateConstructorUsedError;
+
+@JsonKey(name: 'stop_date_time') NavitiaStopDateTime get stopDateTime;@JsonKey(name: 'display_informations') NavitiaDisplayInfo? get displayInformation; NavitiaRoute? get route;
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaDepartureCopyWith<NavitiaDeparture> get copyWith => _$NavitiaDepartureCopyWithImpl<NavitiaDeparture>(this as NavitiaDeparture, _$identity);
 
   /// Serializes this NavitiaDeparture to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaDepartureCopyWith<NavitiaDeparture> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaDeparture;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaDeparture&&(identical(other.stopDateTime, _this.stopDateTime) || other.stopDateTime == _this.stopDateTime)&&(identical(other.displayInformation, _this.displayInformation) || other.displayInformation == _this.displayInformation)&&(identical(other.route, _this.route) || other.route == _this.route));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaDeparture;
+  return Object.hash(runtimeType,_this.stopDateTime,_this.displayInformation,_this.route);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaDeparture;
+  return 'NavitiaDeparture(stopDateTime: ${_this.stopDateTime}, displayInformation: ${_this.displayInformation}, route: ${_this.route})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaDepartureCopyWith<$Res> {
-  factory $NavitiaDepartureCopyWith(
-          NavitiaDeparture value, $Res Function(NavitiaDeparture) then) =
-      _$NavitiaDepartureCopyWithImpl<$Res, NavitiaDeparture>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'stop_date_time') NavitiaStopDateTime stopDateTime,
-      @JsonKey(name: 'display_informations')
-      NavitiaDisplayInfo? displayInformation,
-      NavitiaRoute? route});
+abstract mixin class $NavitiaDepartureCopyWith<$Res>  {
+  factory $NavitiaDepartureCopyWith(NavitiaDeparture value, $Res Function(NavitiaDeparture) _then) = _$NavitiaDepartureCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'stop_date_time') NavitiaStopDateTime stopDateTime,@JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation, NavitiaRoute? route
+});
 
-  $NavitiaStopDateTimeCopyWith<$Res> get stopDateTime;
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
-  $NavitiaRouteCopyWith<$Res>? get route;
+
+$NavitiaStopDateTimeCopyWith<$Res> get stopDateTime;$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;$NavitiaRouteCopyWith<$Res>? get route;
+
 }
-
 /// @nodoc
-class _$NavitiaDepartureCopyWithImpl<$Res, $Val extends NavitiaDeparture>
+class _$NavitiaDepartureCopyWithImpl<$Res>
     implements $NavitiaDepartureCopyWith<$Res> {
-  _$NavitiaDepartureCopyWithImpl(this._value, this._then);
+  _$NavitiaDepartureCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaDeparture _self;
+  final $Res Function(NavitiaDeparture) _then;
 
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? stopDateTime = null,
-    Object? displayInformation = freezed,
-    Object? route = freezed,
-  }) {
-    return _then(_value.copyWith(
-      stopDateTime: null == stopDateTime
-          ? _value.stopDateTime
-          : stopDateTime // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopDateTime,
-      displayInformation: freezed == displayInformation
-          ? _value.displayInformation
-          : displayInformation // ignore: cast_nullable_to_non_nullable
-              as NavitiaDisplayInfo?,
-      route: freezed == route
-          ? _value.route
-          : route // ignore: cast_nullable_to_non_nullable
-              as NavitiaRoute?,
-    ) as $Val);
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? stopDateTime = null,Object? displayInformation = freezed,Object? route = freezed,}) {
+  return _then(NavitiaDeparture(
+stopDateTime: null == stopDateTime ? _self.stopDateTime : stopDateTime // ignore: cast_nullable_to_non_nullable
+as NavitiaStopDateTime,displayInformation: freezed == displayInformation ? _self.displayInformation : displayInformation // ignore: cast_nullable_to_non_nullable
+as NavitiaDisplayInfo?,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
+as NavitiaRoute?,
+  ));
+}
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopDateTimeCopyWith<$Res> get stopDateTime {
+
+  return $NavitiaStopDateTimeCopyWith<$Res>(_self.stopDateTime, (value) {
+    return _then(_self.copyWith(stopDateTime: value));
+  });
+}/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
+    if (_self.displayInformation == null) {
+    return null;
   }
 
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaStopDateTimeCopyWith<$Res> get stopDateTime {
-    return $NavitiaStopDateTimeCopyWith<$Res>(_value.stopDateTime, (value) {
-      return _then(_value.copyWith(stopDateTime: value) as $Val);
-    });
+  return $NavitiaDisplayInfoCopyWith<$Res>(_self.displayInformation!, (value) {
+    return _then(_self.copyWith(displayInformation: value));
+  });
+}/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaRouteCopyWith<$Res>? get route {
+    if (_self.route == null) {
+    return null;
   }
 
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
-    if (_value.displayInformation == null) {
-      return null;
-    }
-
-    return $NavitiaDisplayInfoCopyWith<$Res>(_value.displayInformation!,
-        (value) {
-      return _then(_value.copyWith(displayInformation: value) as $Val);
-    });
-  }
-
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaRouteCopyWith<$Res>? get route {
-    if (_value.route == null) {
-      return null;
-    }
-
-    return $NavitiaRouteCopyWith<$Res>(_value.route!, (value) {
-      return _then(_value.copyWith(route: value) as $Val);
-    });
-  }
+  return $NavitiaRouteCopyWith<$Res>(_self.route!, (value) {
+    return _then(_self.copyWith(route: value));
+  });
+}
 }
 
-/// @nodoc
-abstract class _$$NavitiaDepartureImplCopyWith<$Res>
-    implements $NavitiaDepartureCopyWith<$Res> {
-  factory _$$NavitiaDepartureImplCopyWith(_$NavitiaDepartureImpl value,
-          $Res Function(_$NavitiaDepartureImpl) then) =
-      __$$NavitiaDepartureImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'stop_date_time') NavitiaStopDateTime stopDateTime,
-      @JsonKey(name: 'display_informations')
-      NavitiaDisplayInfo? displayInformation,
-      NavitiaRoute? route});
 
-  @override
-  $NavitiaStopDateTimeCopyWith<$Res> get stopDateTime;
-  @override
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
-  @override
-  $NavitiaRouteCopyWith<$Res>? get route;
+/// Adds pattern-matching-related methods to [NavitiaDeparture].
+extension NavitiaDeparturePatterns on NavitiaDeparture {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaDeparture value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaDeparture() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaDeparture value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaDeparture():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaDeparture value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaDeparture() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'stop_date_time')  NavitiaStopDateTime stopDateTime, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation,  NavitiaRoute? route)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaDeparture() when $default != null:
+return $default(_that.stopDateTime,_that.displayInformation,_that.route);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'stop_date_time')  NavitiaStopDateTime stopDateTime, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation,  NavitiaRoute? route)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaDeparture():
+return $default(_that.stopDateTime,_that.displayInformation,_that.route);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'stop_date_time')  NavitiaStopDateTime stopDateTime, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation,  NavitiaRoute? route)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaDeparture() when $default != null:
+return $default(_that.stopDateTime,_that.displayInformation,_that.route);case _:
+  return null;
+
+}
 }
 
-/// @nodoc
-class __$$NavitiaDepartureImplCopyWithImpl<$Res>
-    extends _$NavitiaDepartureCopyWithImpl<$Res, _$NavitiaDepartureImpl>
-    implements _$$NavitiaDepartureImplCopyWith<$Res> {
-  __$$NavitiaDepartureImplCopyWithImpl(_$NavitiaDepartureImpl _value,
-      $Res Function(_$NavitiaDepartureImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? stopDateTime = null,
-    Object? displayInformation = freezed,
-    Object? route = freezed,
-  }) {
-    return _then(_$NavitiaDepartureImpl(
-      stopDateTime: null == stopDateTime
-          ? _value.stopDateTime
-          : stopDateTime // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopDateTime,
-      displayInformation: freezed == displayInformation
-          ? _value.displayInformation
-          : displayInformation // ignore: cast_nullable_to_non_nullable
-              as NavitiaDisplayInfo?,
-      route: freezed == route
-          ? _value.route
-          : route // ignore: cast_nullable_to_non_nullable
-              as NavitiaRoute?,
-    ));
-  }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaDepartureImpl implements _NavitiaDeparture {
-  const _$NavitiaDepartureImpl(
-      {@JsonKey(name: 'stop_date_time') required this.stopDateTime,
-      @JsonKey(name: 'display_informations') this.displayInformation,
-      this.route});
 
-  factory _$NavitiaDepartureImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaDepartureImplFromJson(json);
+class _NavitiaDeparture implements NavitiaDeparture {
+  const _NavitiaDeparture({@JsonKey(name: 'stop_date_time') required this.stopDateTime, @JsonKey(name: 'display_informations') this.displayInformation, this.route});
+  factory _NavitiaDeparture.fromJson(Map<String, dynamic> json) => _$NavitiaDepartureFromJson(json);
 
-  @override
-  @JsonKey(name: 'stop_date_time')
-  final NavitiaStopDateTime stopDateTime;
-  @override
-  @JsonKey(name: 'display_informations')
-  final NavitiaDisplayInfo? displayInformation;
-  @override
-  final NavitiaRoute? route;
+@override@JsonKey(name: 'stop_date_time') final  NavitiaStopDateTime stopDateTime;
+@override@JsonKey(name: 'display_informations') final  NavitiaDisplayInfo? displayInformation;
+@override final  NavitiaRoute? route;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaDepartureCopyWith<_NavitiaDeparture> get copyWith => __$NavitiaDepartureCopyWithImpl<_NavitiaDeparture>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaDepartureToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaDeparture&&(identical(other.stopDateTime, stopDateTime) || other.stopDateTime == stopDateTime)&&(identical(other.displayInformation, displayInformation) || other.displayInformation == displayInformation)&&(identical(other.route, route) || other.route == route));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,stopDateTime,displayInformation,route);
+}
+
+@override
+String toString() {
     return 'NavitiaDeparture(stopDateTime: $stopDateTime, displayInformation: $displayInformation, route: $route)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaDepartureImpl &&
-            (identical(other.stopDateTime, stopDateTime) ||
-                other.stopDateTime == stopDateTime) &&
-            (identical(other.displayInformation, displayInformation) ||
-                other.displayInformation == displayInformation) &&
-            (identical(other.route, route) || other.route == route));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, stopDateTime, displayInformation, route);
-
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaDepartureImplCopyWith<_$NavitiaDepartureImpl> get copyWith =>
-      __$$NavitiaDepartureImplCopyWithImpl<_$NavitiaDepartureImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaDepartureImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaDeparture implements NavitiaDeparture {
-  const factory _NavitiaDeparture(
-      {@JsonKey(name: 'stop_date_time')
-      required final NavitiaStopDateTime stopDateTime,
-      @JsonKey(name: 'display_informations')
-      final NavitiaDisplayInfo? displayInformation,
-      final NavitiaRoute? route}) = _$NavitiaDepartureImpl;
 
-  factory _NavitiaDeparture.fromJson(Map<String, dynamic> json) =
-      _$NavitiaDepartureImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'stop_date_time')
-  NavitiaStopDateTime get stopDateTime;
-  @override
-  @JsonKey(name: 'display_informations')
-  NavitiaDisplayInfo? get displayInformation;
-  @override
-  NavitiaRoute? get route;
-
-  /// Create a copy of NavitiaDeparture
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaDepartureImplCopyWith<_$NavitiaDepartureImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaStopDateTime _$NavitiaStopDateTimeFromJson(Map<String, dynamic> json) {
-  return _NavitiaStopDateTime.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaDepartureCopyWith<$Res> implements $NavitiaDepartureCopyWith<$Res> {
+  factory _$NavitiaDepartureCopyWith(_NavitiaDeparture value, $Res Function(_NavitiaDeparture) _then) = __$NavitiaDepartureCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'stop_date_time') NavitiaStopDateTime stopDateTime,@JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation, NavitiaRoute? route
+});
+
+
+@override $NavitiaStopDateTimeCopyWith<$Res> get stopDateTime;@override $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;@override $NavitiaRouteCopyWith<$Res>? get route;
+
 }
+/// @nodoc
+class __$NavitiaDepartureCopyWithImpl<$Res>
+    implements _$NavitiaDepartureCopyWith<$Res> {
+  __$NavitiaDepartureCopyWithImpl(this._self, this._then);
+
+  final _NavitiaDeparture _self;
+  final $Res Function(_NavitiaDeparture) _then;
+
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? stopDateTime = null,Object? displayInformation = freezed,Object? route = freezed,}) {
+  return _then(_NavitiaDeparture(
+stopDateTime: null == stopDateTime ? _self.stopDateTime : stopDateTime // ignore: cast_nullable_to_non_nullable
+as NavitiaStopDateTime,displayInformation: freezed == displayInformation ? _self.displayInformation : displayInformation // ignore: cast_nullable_to_non_nullable
+as NavitiaDisplayInfo?,route: freezed == route ? _self.route : route // ignore: cast_nullable_to_non_nullable
+as NavitiaRoute?,
+  ));
+}
+
+/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopDateTimeCopyWith<$Res> get stopDateTime {
+
+  return $NavitiaStopDateTimeCopyWith<$Res>(_self.stopDateTime, (value) {
+    return _then(_self.copyWith(stopDateTime: value));
+  });
+}/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
+    if (_self.displayInformation == null) {
+    return null;
+  }
+
+  return $NavitiaDisplayInfoCopyWith<$Res>(_self.displayInformation!, (value) {
+    return _then(_self.copyWith(displayInformation: value));
+  });
+}/// Create a copy of NavitiaDeparture
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaRouteCopyWith<$Res>? get route {
+    if (_self.route == null) {
+    return null;
+  }
+
+  return $NavitiaRouteCopyWith<$Res>(_self.route!, (value) {
+    return _then(_self.copyWith(route: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$NavitiaStopDateTime {
-  @JsonKey(name: 'departure_date_time')
-  String get departureDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'base_departure_date_time')
-  String get baseDepartureDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'data_freshness')
-  String get dataFreshness => throw _privateConstructorUsedError;
-  String? get platform => throw _privateConstructorUsedError;
+
+@JsonKey(name: 'departure_date_time') String get departureDateTime;@JsonKey(name: 'base_departure_date_time') String get baseDepartureDateTime;@JsonKey(name: 'data_freshness') String get dataFreshness; String? get platform;
+/// Create a copy of NavitiaStopDateTime
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaStopDateTimeCopyWith<NavitiaStopDateTime> get copyWith => _$NavitiaStopDateTimeCopyWithImpl<NavitiaStopDateTime>(this as NavitiaStopDateTime, _$identity);
 
   /// Serializes this NavitiaStopDateTime to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaStopDateTime
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaStopDateTimeCopyWith<NavitiaStopDateTime> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaStopDateTime;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaStopDateTime&&(identical(other.departureDateTime, _this.departureDateTime) || other.departureDateTime == _this.departureDateTime)&&(identical(other.baseDepartureDateTime, _this.baseDepartureDateTime) || other.baseDepartureDateTime == _this.baseDepartureDateTime)&&(identical(other.dataFreshness, _this.dataFreshness) || other.dataFreshness == _this.dataFreshness)&&(identical(other.platform, _this.platform) || other.platform == _this.platform));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaStopDateTime;
+  return Object.hash(runtimeType,_this.departureDateTime,_this.baseDepartureDateTime,_this.dataFreshness,_this.platform);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaStopDateTime;
+  return 'NavitiaStopDateTime(departureDateTime: ${_this.departureDateTime}, baseDepartureDateTime: ${_this.baseDepartureDateTime}, dataFreshness: ${_this.dataFreshness}, platform: ${_this.platform})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaStopDateTimeCopyWith<$Res> {
-  factory $NavitiaStopDateTimeCopyWith(
-          NavitiaStopDateTime value, $Res Function(NavitiaStopDateTime) then) =
-      _$NavitiaStopDateTimeCopyWithImpl<$Res, NavitiaStopDateTime>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'departure_date_time') String departureDateTime,
-      @JsonKey(name: 'base_departure_date_time') String baseDepartureDateTime,
-      @JsonKey(name: 'data_freshness') String dataFreshness,
-      String? platform});
-}
+abstract mixin class $NavitiaStopDateTimeCopyWith<$Res>  {
+  factory $NavitiaStopDateTimeCopyWith(NavitiaStopDateTime value, $Res Function(NavitiaStopDateTime) _then) = _$NavitiaStopDateTimeCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'departure_date_time') String departureDateTime,@JsonKey(name: 'base_departure_date_time') String baseDepartureDateTime,@JsonKey(name: 'data_freshness') String dataFreshness, String? platform
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaStopDateTimeCopyWithImpl<$Res, $Val extends NavitiaStopDateTime>
+class _$NavitiaStopDateTimeCopyWithImpl<$Res>
     implements $NavitiaStopDateTimeCopyWith<$Res> {
-  _$NavitiaStopDateTimeCopyWithImpl(this._value, this._then);
+  _$NavitiaStopDateTimeCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaStopDateTime _self;
+  final $Res Function(NavitiaStopDateTime) _then;
 
-  /// Create a copy of NavitiaStopDateTime
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departureDateTime = null,
-    Object? baseDepartureDateTime = null,
-    Object? dataFreshness = null,
-    Object? platform = freezed,
-  }) {
-    return _then(_value.copyWith(
-      departureDateTime: null == departureDateTime
-          ? _value.departureDateTime
-          : departureDateTime // ignore: cast_nullable_to_non_nullable
-              as String,
-      baseDepartureDateTime: null == baseDepartureDateTime
-          ? _value.baseDepartureDateTime
-          : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
-              as String,
-      dataFreshness: null == dataFreshness
-          ? _value.dataFreshness
-          : dataFreshness // ignore: cast_nullable_to_non_nullable
-              as String,
-      platform: freezed == platform
-          ? _value.platform
-          : platform // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaStopDateTime
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? departureDateTime = null,Object? baseDepartureDateTime = null,Object? dataFreshness = null,Object? platform = freezed,}) {
+  return _then(NavitiaStopDateTime(
+departureDateTime: null == departureDateTime ? _self.departureDateTime : departureDateTime // ignore: cast_nullable_to_non_nullable
+as String,baseDepartureDateTime: null == baseDepartureDateTime ? _self.baseDepartureDateTime : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
+as String,dataFreshness: null == dataFreshness ? _self.dataFreshness : dataFreshness // ignore: cast_nullable_to_non_nullable
+as String,platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaStopDateTimeImplCopyWith<$Res>
-    implements $NavitiaStopDateTimeCopyWith<$Res> {
-  factory _$$NavitiaStopDateTimeImplCopyWith(_$NavitiaStopDateTimeImpl value,
-          $Res Function(_$NavitiaStopDateTimeImpl) then) =
-      __$$NavitiaStopDateTimeImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'departure_date_time') String departureDateTime,
-      @JsonKey(name: 'base_departure_date_time') String baseDepartureDateTime,
-      @JsonKey(name: 'data_freshness') String dataFreshness,
-      String? platform});
 }
 
-/// @nodoc
-class __$$NavitiaStopDateTimeImplCopyWithImpl<$Res>
-    extends _$NavitiaStopDateTimeCopyWithImpl<$Res, _$NavitiaStopDateTimeImpl>
-    implements _$$NavitiaStopDateTimeImplCopyWith<$Res> {
-  __$$NavitiaStopDateTimeImplCopyWithImpl(_$NavitiaStopDateTimeImpl _value,
-      $Res Function(_$NavitiaStopDateTimeImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaStopDateTime
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departureDateTime = null,
-    Object? baseDepartureDateTime = null,
-    Object? dataFreshness = null,
-    Object? platform = freezed,
-  }) {
-    return _then(_$NavitiaStopDateTimeImpl(
-      departureDateTime: null == departureDateTime
-          ? _value.departureDateTime
-          : departureDateTime // ignore: cast_nullable_to_non_nullable
-              as String,
-      baseDepartureDateTime: null == baseDepartureDateTime
-          ? _value.baseDepartureDateTime
-          : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
-              as String,
-      dataFreshness: null == dataFreshness
-          ? _value.dataFreshness
-          : dataFreshness // ignore: cast_nullable_to_non_nullable
-              as String,
-      platform: freezed == platform
-          ? _value.platform
-          : platform // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaStopDateTime].
+extension NavitiaStopDateTimePatterns on NavitiaStopDateTime {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaStopDateTime value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaStopDateTime value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaStopDateTime value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'departure_date_time')  String departureDateTime, @JsonKey(name: 'base_departure_date_time')  String baseDepartureDateTime, @JsonKey(name: 'data_freshness')  String dataFreshness,  String? platform)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime() when $default != null:
+return $default(_that.departureDateTime,_that.baseDepartureDateTime,_that.dataFreshness,_that.platform);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'departure_date_time')  String departureDateTime, @JsonKey(name: 'base_departure_date_time')  String baseDepartureDateTime, @JsonKey(name: 'data_freshness')  String dataFreshness,  String? platform)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime():
+return $default(_that.departureDateTime,_that.baseDepartureDateTime,_that.dataFreshness,_that.platform);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'departure_date_time')  String departureDateTime, @JsonKey(name: 'base_departure_date_time')  String baseDepartureDateTime, @JsonKey(name: 'data_freshness')  String dataFreshness,  String? platform)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopDateTime() when $default != null:
+return $default(_that.departureDateTime,_that.baseDepartureDateTime,_that.dataFreshness,_that.platform);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaStopDateTimeImpl implements _NavitiaStopDateTime {
-  const _$NavitiaStopDateTimeImpl(
-      {@JsonKey(name: 'departure_date_time') required this.departureDateTime,
-      @JsonKey(name: 'base_departure_date_time')
-      required this.baseDepartureDateTime,
-      @JsonKey(name: 'data_freshness') required this.dataFreshness,
-      this.platform});
 
-  factory _$NavitiaStopDateTimeImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaStopDateTimeImplFromJson(json);
+class _NavitiaStopDateTime implements NavitiaStopDateTime {
+  const _NavitiaStopDateTime({@JsonKey(name: 'departure_date_time') required this.departureDateTime, @JsonKey(name: 'base_departure_date_time') required this.baseDepartureDateTime, @JsonKey(name: 'data_freshness') required this.dataFreshness, this.platform});
+  factory _NavitiaStopDateTime.fromJson(Map<String, dynamic> json) => _$NavitiaStopDateTimeFromJson(json);
 
-  @override
-  @JsonKey(name: 'departure_date_time')
-  final String departureDateTime;
-  @override
-  @JsonKey(name: 'base_departure_date_time')
-  final String baseDepartureDateTime;
-  @override
-  @JsonKey(name: 'data_freshness')
-  final String dataFreshness;
-  @override
-  final String? platform;
+@override@JsonKey(name: 'departure_date_time') final  String departureDateTime;
+@override@JsonKey(name: 'base_departure_date_time') final  String baseDepartureDateTime;
+@override@JsonKey(name: 'data_freshness') final  String dataFreshness;
+@override final  String? platform;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaStopDateTime
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaStopDateTimeCopyWith<_NavitiaStopDateTime> get copyWith => __$NavitiaStopDateTimeCopyWithImpl<_NavitiaStopDateTime>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaStopDateTimeToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaStopDateTime&&(identical(other.departureDateTime, departureDateTime) || other.departureDateTime == departureDateTime)&&(identical(other.baseDepartureDateTime, baseDepartureDateTime) || other.baseDepartureDateTime == baseDepartureDateTime)&&(identical(other.dataFreshness, dataFreshness) || other.dataFreshness == dataFreshness)&&(identical(other.platform, platform) || other.platform == platform));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,departureDateTime,baseDepartureDateTime,dataFreshness,platform);
+}
+
+@override
+String toString() {
     return 'NavitiaStopDateTime(departureDateTime: $departureDateTime, baseDepartureDateTime: $baseDepartureDateTime, dataFreshness: $dataFreshness, platform: $platform)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaStopDateTimeImpl &&
-            (identical(other.departureDateTime, departureDateTime) ||
-                other.departureDateTime == departureDateTime) &&
-            (identical(other.baseDepartureDateTime, baseDepartureDateTime) ||
-                other.baseDepartureDateTime == baseDepartureDateTime) &&
-            (identical(other.dataFreshness, dataFreshness) ||
-                other.dataFreshness == dataFreshness) &&
-            (identical(other.platform, platform) ||
-                other.platform == platform));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, departureDateTime,
-      baseDepartureDateTime, dataFreshness, platform);
-
-  /// Create a copy of NavitiaStopDateTime
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaStopDateTimeImplCopyWith<_$NavitiaStopDateTimeImpl> get copyWith =>
-      __$$NavitiaStopDateTimeImplCopyWithImpl<_$NavitiaStopDateTimeImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaStopDateTimeImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaStopDateTime implements NavitiaStopDateTime {
-  const factory _NavitiaStopDateTime(
-      {@JsonKey(name: 'departure_date_time')
-      required final String departureDateTime,
-      @JsonKey(name: 'base_departure_date_time')
-      required final String baseDepartureDateTime,
-      @JsonKey(name: 'data_freshness') required final String dataFreshness,
-      final String? platform}) = _$NavitiaStopDateTimeImpl;
 
-  factory _NavitiaStopDateTime.fromJson(Map<String, dynamic> json) =
-      _$NavitiaStopDateTimeImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'departure_date_time')
-  String get departureDateTime;
-  @override
-  @JsonKey(name: 'base_departure_date_time')
-  String get baseDepartureDateTime;
-  @override
-  @JsonKey(name: 'data_freshness')
-  String get dataFreshness;
-  @override
-  String? get platform;
-
-  /// Create a copy of NavitiaStopDateTime
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaStopDateTimeImplCopyWith<_$NavitiaStopDateTimeImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaDisplayInfo _$NavitiaDisplayInfoFromJson(Map<String, dynamic> json) {
-  return _NavitiaDisplayInfo.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaStopDateTimeCopyWith<$Res> implements $NavitiaStopDateTimeCopyWith<$Res> {
+  factory _$NavitiaStopDateTimeCopyWith(_NavitiaStopDateTime value, $Res Function(_NavitiaStopDateTime) _then) = __$NavitiaStopDateTimeCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'departure_date_time') String departureDateTime,@JsonKey(name: 'base_departure_date_time') String baseDepartureDateTime,@JsonKey(name: 'data_freshness') String dataFreshness, String? platform
+});
+
+
+
+
 }
+/// @nodoc
+class __$NavitiaStopDateTimeCopyWithImpl<$Res>
+    implements _$NavitiaStopDateTimeCopyWith<$Res> {
+  __$NavitiaStopDateTimeCopyWithImpl(this._self, this._then);
+
+  final _NavitiaStopDateTime _self;
+  final $Res Function(_NavitiaStopDateTime) _then;
+
+/// Create a copy of NavitiaStopDateTime
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? departureDateTime = null,Object? baseDepartureDateTime = null,Object? dataFreshness = null,Object? platform = freezed,}) {
+  return _then(_NavitiaStopDateTime(
+departureDateTime: null == departureDateTime ? _self.departureDateTime : departureDateTime // ignore: cast_nullable_to_non_nullable
+as String,baseDepartureDateTime: null == baseDepartureDateTime ? _self.baseDepartureDateTime : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
+as String,dataFreshness: null == dataFreshness ? _self.dataFreshness : dataFreshness // ignore: cast_nullable_to_non_nullable
+as String,platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaDisplayInfo {
-  String? get network => throw _privateConstructorUsedError;
-  String? get direction => throw _privateConstructorUsedError;
-  @JsonKey(name: 'trip_short_name')
-  String? get tripShortName => throw _privateConstructorUsedError;
+
+ String? get network; String? get direction;@JsonKey(name: 'trip_short_name') String? get tripShortName;
+/// Create a copy of NavitiaDisplayInfo
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaDisplayInfoCopyWith<NavitiaDisplayInfo> get copyWith => _$NavitiaDisplayInfoCopyWithImpl<NavitiaDisplayInfo>(this as NavitiaDisplayInfo, _$identity);
 
   /// Serializes this NavitiaDisplayInfo to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaDisplayInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaDisplayInfoCopyWith<NavitiaDisplayInfo> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaDisplayInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaDisplayInfo&&(identical(other.network, _this.network) || other.network == _this.network)&&(identical(other.direction, _this.direction) || other.direction == _this.direction)&&(identical(other.tripShortName, _this.tripShortName) || other.tripShortName == _this.tripShortName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaDisplayInfo;
+  return Object.hash(runtimeType,_this.network,_this.direction,_this.tripShortName);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaDisplayInfo;
+  return 'NavitiaDisplayInfo(network: ${_this.network}, direction: ${_this.direction}, tripShortName: ${_this.tripShortName})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaDisplayInfoCopyWith<$Res> {
-  factory $NavitiaDisplayInfoCopyWith(
-          NavitiaDisplayInfo value, $Res Function(NavitiaDisplayInfo) then) =
-      _$NavitiaDisplayInfoCopyWithImpl<$Res, NavitiaDisplayInfo>;
-  @useResult
-  $Res call(
-      {String? network,
-      String? direction,
-      @JsonKey(name: 'trip_short_name') String? tripShortName});
-}
+abstract mixin class $NavitiaDisplayInfoCopyWith<$Res>  {
+  factory $NavitiaDisplayInfoCopyWith(NavitiaDisplayInfo value, $Res Function(NavitiaDisplayInfo) _then) = _$NavitiaDisplayInfoCopyWithImpl;
+@useResult
+$Res call({
+ String? network, String? direction,@JsonKey(name: 'trip_short_name') String? tripShortName
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaDisplayInfoCopyWithImpl<$Res, $Val extends NavitiaDisplayInfo>
+class _$NavitiaDisplayInfoCopyWithImpl<$Res>
     implements $NavitiaDisplayInfoCopyWith<$Res> {
-  _$NavitiaDisplayInfoCopyWithImpl(this._value, this._then);
+  _$NavitiaDisplayInfoCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaDisplayInfo _self;
+  final $Res Function(NavitiaDisplayInfo) _then;
 
-  /// Create a copy of NavitiaDisplayInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? network = freezed,
-    Object? direction = freezed,
-    Object? tripShortName = freezed,
-  }) {
-    return _then(_value.copyWith(
-      network: freezed == network
-          ? _value.network
-          : network // ignore: cast_nullable_to_non_nullable
-              as String?,
-      direction: freezed == direction
-          ? _value.direction
-          : direction // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tripShortName: freezed == tripShortName
-          ? _value.tripShortName
-          : tripShortName // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaDisplayInfo
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? network = freezed,Object? direction = freezed,Object? tripShortName = freezed,}) {
+  return _then(NavitiaDisplayInfo(
+network: freezed == network ? _self.network : network // ignore: cast_nullable_to_non_nullable
+as String?,direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String?,tripShortName: freezed == tripShortName ? _self.tripShortName : tripShortName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaDisplayInfoImplCopyWith<$Res>
-    implements $NavitiaDisplayInfoCopyWith<$Res> {
-  factory _$$NavitiaDisplayInfoImplCopyWith(_$NavitiaDisplayInfoImpl value,
-          $Res Function(_$NavitiaDisplayInfoImpl) then) =
-      __$$NavitiaDisplayInfoImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String? network,
-      String? direction,
-      @JsonKey(name: 'trip_short_name') String? tripShortName});
 }
 
-/// @nodoc
-class __$$NavitiaDisplayInfoImplCopyWithImpl<$Res>
-    extends _$NavitiaDisplayInfoCopyWithImpl<$Res, _$NavitiaDisplayInfoImpl>
-    implements _$$NavitiaDisplayInfoImplCopyWith<$Res> {
-  __$$NavitiaDisplayInfoImplCopyWithImpl(_$NavitiaDisplayInfoImpl _value,
-      $Res Function(_$NavitiaDisplayInfoImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaDisplayInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? network = freezed,
-    Object? direction = freezed,
-    Object? tripShortName = freezed,
-  }) {
-    return _then(_$NavitiaDisplayInfoImpl(
-      network: freezed == network
-          ? _value.network
-          : network // ignore: cast_nullable_to_non_nullable
-              as String?,
-      direction: freezed == direction
-          ? _value.direction
-          : direction // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tripShortName: freezed == tripShortName
-          ? _value.tripShortName
-          : tripShortName // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaDisplayInfo].
+extension NavitiaDisplayInfoPatterns on NavitiaDisplayInfo {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaDisplayInfo value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaDisplayInfo value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaDisplayInfo value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? network,  String? direction, @JsonKey(name: 'trip_short_name')  String? tripShortName)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo() when $default != null:
+return $default(_that.network,_that.direction,_that.tripShortName);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? network,  String? direction, @JsonKey(name: 'trip_short_name')  String? tripShortName)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo():
+return $default(_that.network,_that.direction,_that.tripShortName);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? network,  String? direction, @JsonKey(name: 'trip_short_name')  String? tripShortName)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaDisplayInfo() when $default != null:
+return $default(_that.network,_that.direction,_that.tripShortName);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaDisplayInfoImpl implements _NavitiaDisplayInfo {
-  const _$NavitiaDisplayInfoImpl(
-      {this.network,
-      this.direction,
-      @JsonKey(name: 'trip_short_name') this.tripShortName});
 
-  factory _$NavitiaDisplayInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaDisplayInfoImplFromJson(json);
+class _NavitiaDisplayInfo implements NavitiaDisplayInfo {
+  const _NavitiaDisplayInfo({this.network, this.direction, @JsonKey(name: 'trip_short_name') this.tripShortName});
+  factory _NavitiaDisplayInfo.fromJson(Map<String, dynamic> json) => _$NavitiaDisplayInfoFromJson(json);
 
-  @override
-  final String? network;
-  @override
-  final String? direction;
-  @override
-  @JsonKey(name: 'trip_short_name')
-  final String? tripShortName;
+@override final  String? network;
+@override final  String? direction;
+@override@JsonKey(name: 'trip_short_name') final  String? tripShortName;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaDisplayInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaDisplayInfoCopyWith<_NavitiaDisplayInfo> get copyWith => __$NavitiaDisplayInfoCopyWithImpl<_NavitiaDisplayInfo>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaDisplayInfoToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaDisplayInfo&&(identical(other.network, network) || other.network == network)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.tripShortName, tripShortName) || other.tripShortName == tripShortName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,network,direction,tripShortName);
+}
+
+@override
+String toString() {
     return 'NavitiaDisplayInfo(network: $network, direction: $direction, tripShortName: $tripShortName)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaDisplayInfoImpl &&
-            (identical(other.network, network) || other.network == network) &&
-            (identical(other.direction, direction) ||
-                other.direction == direction) &&
-            (identical(other.tripShortName, tripShortName) ||
-                other.tripShortName == tripShortName));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, network, direction, tripShortName);
-
-  /// Create a copy of NavitiaDisplayInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaDisplayInfoImplCopyWith<_$NavitiaDisplayInfoImpl> get copyWith =>
-      __$$NavitiaDisplayInfoImplCopyWithImpl<_$NavitiaDisplayInfoImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaDisplayInfoImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaDisplayInfo implements NavitiaDisplayInfo {
-  const factory _NavitiaDisplayInfo(
-          {final String? network,
-          final String? direction,
-          @JsonKey(name: 'trip_short_name') final String? tripShortName}) =
-      _$NavitiaDisplayInfoImpl;
 
-  factory _NavitiaDisplayInfo.fromJson(Map<String, dynamic> json) =
-      _$NavitiaDisplayInfoImpl.fromJson;
-
-  @override
-  String? get network;
-  @override
-  String? get direction;
-  @override
-  @JsonKey(name: 'trip_short_name')
-  String? get tripShortName;
-
-  /// Create a copy of NavitiaDisplayInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaDisplayInfoImplCopyWith<_$NavitiaDisplayInfoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaRoute _$NavitiaRouteFromJson(Map<String, dynamic> json) {
-  return _NavitiaRoute.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaDisplayInfoCopyWith<$Res> implements $NavitiaDisplayInfoCopyWith<$Res> {
+  factory _$NavitiaDisplayInfoCopyWith(_NavitiaDisplayInfo value, $Res Function(_NavitiaDisplayInfo) _then) = __$NavitiaDisplayInfoCopyWithImpl;
+@override @useResult
+$Res call({
+ String? network, String? direction,@JsonKey(name: 'trip_short_name') String? tripShortName
+});
+
+
+
+
 }
+/// @nodoc
+class __$NavitiaDisplayInfoCopyWithImpl<$Res>
+    implements _$NavitiaDisplayInfoCopyWith<$Res> {
+  __$NavitiaDisplayInfoCopyWithImpl(this._self, this._then);
+
+  final _NavitiaDisplayInfo _self;
+  final $Res Function(_NavitiaDisplayInfo) _then;
+
+/// Create a copy of NavitiaDisplayInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? network = freezed,Object? direction = freezed,Object? tripShortName = freezed,}) {
+  return _then(_NavitiaDisplayInfo(
+network: freezed == network ? _self.network : network // ignore: cast_nullable_to_non_nullable
+as String?,direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String?,tripShortName: freezed == tripShortName ? _self.tripShortName : tripShortName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaRoute {
-  String? get id => throw _privateConstructorUsedError;
-  String? get name => throw _privateConstructorUsedError;
+
+ String? get id; String? get name;
+/// Create a copy of NavitiaRoute
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaRouteCopyWith<NavitiaRoute> get copyWith => _$NavitiaRouteCopyWithImpl<NavitiaRoute>(this as NavitiaRoute, _$identity);
 
   /// Serializes this NavitiaRoute to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaRoute
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaRouteCopyWith<NavitiaRoute> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaRoute;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaRoute&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaRoute;
+  return Object.hash(runtimeType,_this.id,_this.name);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaRoute;
+  return 'NavitiaRoute(id: ${_this.id}, name: ${_this.name})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaRouteCopyWith<$Res> {
-  factory $NavitiaRouteCopyWith(
-          NavitiaRoute value, $Res Function(NavitiaRoute) then) =
-      _$NavitiaRouteCopyWithImpl<$Res, NavitiaRoute>;
-  @useResult
-  $Res call({String? id, String? name});
-}
+abstract mixin class $NavitiaRouteCopyWith<$Res>  {
+  factory $NavitiaRouteCopyWith(NavitiaRoute value, $Res Function(NavitiaRoute) _then) = _$NavitiaRouteCopyWithImpl;
+@useResult
+$Res call({
+ String? id, String? name
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaRouteCopyWithImpl<$Res, $Val extends NavitiaRoute>
+class _$NavitiaRouteCopyWithImpl<$Res>
     implements $NavitiaRouteCopyWith<$Res> {
-  _$NavitiaRouteCopyWithImpl(this._value, this._then);
+  _$NavitiaRouteCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaRoute _self;
+  final $Res Function(NavitiaRoute) _then;
 
-  /// Create a copy of NavitiaRoute
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = freezed,
-    Object? name = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaRoute
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,}) {
+  return _then(NavitiaRoute(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaRouteImplCopyWith<$Res>
-    implements $NavitiaRouteCopyWith<$Res> {
-  factory _$$NavitiaRouteImplCopyWith(
-          _$NavitiaRouteImpl value, $Res Function(_$NavitiaRouteImpl) then) =
-      __$$NavitiaRouteImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String? id, String? name});
 }
 
-/// @nodoc
-class __$$NavitiaRouteImplCopyWithImpl<$Res>
-    extends _$NavitiaRouteCopyWithImpl<$Res, _$NavitiaRouteImpl>
-    implements _$$NavitiaRouteImplCopyWith<$Res> {
-  __$$NavitiaRouteImplCopyWithImpl(
-      _$NavitiaRouteImpl _value, $Res Function(_$NavitiaRouteImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaRoute
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = freezed,
-    Object? name = freezed,
-  }) {
-    return _then(_$NavitiaRouteImpl(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaRoute].
+extension NavitiaRoutePatterns on NavitiaRoute {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaRoute value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaRoute() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaRoute value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaRoute():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaRoute value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaRoute() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? name)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaRoute() when $default != null:
+return $default(_that.id,_that.name);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? name)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaRoute():
+return $default(_that.id,_that.name);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? name)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaRoute() when $default != null:
+return $default(_that.id,_that.name);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaRouteImpl implements _NavitiaRoute {
-  const _$NavitiaRouteImpl({this.id, this.name});
 
-  factory _$NavitiaRouteImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaRouteImplFromJson(json);
+class _NavitiaRoute implements NavitiaRoute {
+  const _NavitiaRoute({this.id, this.name});
+  factory _NavitiaRoute.fromJson(Map<String, dynamic> json) => _$NavitiaRouteFromJson(json);
 
-  @override
-  final String? id;
-  @override
-  final String? name;
+@override final  String? id;
+@override final  String? name;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaRoute
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaRouteCopyWith<_NavitiaRoute> get copyWith => __$NavitiaRouteCopyWithImpl<_NavitiaRoute>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaRouteToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaRoute&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,name);
+}
+
+@override
+String toString() {
     return 'NavitiaRoute(id: $id, name: $name)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaRouteImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, id, name);
-
-  /// Create a copy of NavitiaRoute
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaRouteImplCopyWith<_$NavitiaRouteImpl> get copyWith =>
-      __$$NavitiaRouteImplCopyWithImpl<_$NavitiaRouteImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaRouteImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaRoute implements NavitiaRoute {
-  const factory _NavitiaRoute({final String? id, final String? name}) =
-      _$NavitiaRouteImpl;
 
-  factory _NavitiaRoute.fromJson(Map<String, dynamic> json) =
-      _$NavitiaRouteImpl.fromJson;
-
-  @override
-  String? get id;
-  @override
-  String? get name;
-
-  /// Create a copy of NavitiaRoute
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaRouteImplCopyWith<_$NavitiaRouteImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaJourney _$NavitiaJourneyFromJson(Map<String, dynamic> json) {
-  return _NavitiaJourney.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaRouteCopyWith<$Res> implements $NavitiaRouteCopyWith<$Res> {
+  factory _$NavitiaRouteCopyWith(_NavitiaRoute value, $Res Function(_NavitiaRoute) _then) = __$NavitiaRouteCopyWithImpl;
+@override @useResult
+$Res call({
+ String? id, String? name
+});
+
+
+
+
 }
+/// @nodoc
+class __$NavitiaRouteCopyWithImpl<$Res>
+    implements _$NavitiaRouteCopyWith<$Res> {
+  __$NavitiaRouteCopyWithImpl(this._self, this._then);
+
+  final _NavitiaRoute _self;
+  final $Res Function(_NavitiaRoute) _then;
+
+/// Create a copy of NavitiaRoute
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = freezed,}) {
+  return _then(_NavitiaRoute(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaJourney {
-  @JsonKey(name: 'nb_transfers')
-  int get nbTransfers => throw _privateConstructorUsedError;
-  List<NavitiaSection>? get sections => throw _privateConstructorUsedError;
+
+@JsonKey(name: 'nb_transfers') int get nbTransfers; String? get status; List<NavitiaSection>? get sections;
+/// Create a copy of NavitiaJourney
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaJourneyCopyWith<NavitiaJourney> get copyWith => _$NavitiaJourneyCopyWithImpl<NavitiaJourney>(this as NavitiaJourney, _$identity);
 
   /// Serializes this NavitiaJourney to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaJourney
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaJourneyCopyWith<NavitiaJourney> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaJourney;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaJourney&&(identical(other.nbTransfers, _this.nbTransfers) || other.nbTransfers == _this.nbTransfers)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.sections, _this.sections));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaJourney;
+  return Object.hash(runtimeType,_this.nbTransfers,_this.status,const DeepCollectionEquality().hash(_this.sections));
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaJourney;
+  return 'NavitiaJourney(nbTransfers: ${_this.nbTransfers}, status: ${_this.status}, sections: ${_this.sections})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaJourneyCopyWith<$Res> {
-  factory $NavitiaJourneyCopyWith(
-          NavitiaJourney value, $Res Function(NavitiaJourney) then) =
-      _$NavitiaJourneyCopyWithImpl<$Res, NavitiaJourney>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'nb_transfers') int nbTransfers,
-      List<NavitiaSection>? sections});
-}
+abstract mixin class $NavitiaJourneyCopyWith<$Res>  {
+  factory $NavitiaJourneyCopyWith(NavitiaJourney value, $Res Function(NavitiaJourney) _then) = _$NavitiaJourneyCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'nb_transfers') int nbTransfers, String? status, List<NavitiaSection>? sections
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaJourneyCopyWithImpl<$Res, $Val extends NavitiaJourney>
+class _$NavitiaJourneyCopyWithImpl<$Res>
     implements $NavitiaJourneyCopyWith<$Res> {
-  _$NavitiaJourneyCopyWithImpl(this._value, this._then);
+  _$NavitiaJourneyCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaJourney _self;
+  final $Res Function(NavitiaJourney) _then;
 
-  /// Create a copy of NavitiaJourney
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? nbTransfers = null,
-    Object? sections = freezed,
-  }) {
-    return _then(_value.copyWith(
-      nbTransfers: null == nbTransfers
-          ? _value.nbTransfers
-          : nbTransfers // ignore: cast_nullable_to_non_nullable
-              as int,
-      sections: freezed == sections
-          ? _value.sections
-          : sections // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaSection>?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaJourney
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? nbTransfers = null,Object? status = freezed,Object? sections = freezed,}) {
+  return _then(NavitiaJourney(
+nbTransfers: null == nbTransfers ? _self.nbTransfers : nbTransfers // ignore: cast_nullable_to_non_nullable
+as int,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String?,sections: freezed == sections ? _self.sections : sections // ignore: cast_nullable_to_non_nullable
+as List<NavitiaSection>?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaJourneyImplCopyWith<$Res>
-    implements $NavitiaJourneyCopyWith<$Res> {
-  factory _$$NavitiaJourneyImplCopyWith(_$NavitiaJourneyImpl value,
-          $Res Function(_$NavitiaJourneyImpl) then) =
-      __$$NavitiaJourneyImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'nb_transfers') int nbTransfers,
-      List<NavitiaSection>? sections});
 }
 
-/// @nodoc
-class __$$NavitiaJourneyImplCopyWithImpl<$Res>
-    extends _$NavitiaJourneyCopyWithImpl<$Res, _$NavitiaJourneyImpl>
-    implements _$$NavitiaJourneyImplCopyWith<$Res> {
-  __$$NavitiaJourneyImplCopyWithImpl(
-      _$NavitiaJourneyImpl _value, $Res Function(_$NavitiaJourneyImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaJourney
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? nbTransfers = null,
-    Object? sections = freezed,
-  }) {
-    return _then(_$NavitiaJourneyImpl(
-      nbTransfers: null == nbTransfers
-          ? _value.nbTransfers
-          : nbTransfers // ignore: cast_nullable_to_non_nullable
-              as int,
-      sections: freezed == sections
-          ? _value._sections
-          : sections // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaSection>?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaJourney].
+extension NavitiaJourneyPatterns on NavitiaJourney {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaJourney value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaJourney() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaJourney value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaJourney():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaJourney value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaJourney() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'nb_transfers')  int nbTransfers,  String? status,  List<NavitiaSection>? sections)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaJourney() when $default != null:
+return $default(_that.nbTransfers,_that.status,_that.sections);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'nb_transfers')  int nbTransfers,  String? status,  List<NavitiaSection>? sections)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaJourney():
+return $default(_that.nbTransfers,_that.status,_that.sections);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'nb_transfers')  int nbTransfers,  String? status,  List<NavitiaSection>? sections)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaJourney() when $default != null:
+return $default(_that.nbTransfers,_that.status,_that.sections);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaJourneyImpl implements _NavitiaJourney {
-  const _$NavitiaJourneyImpl(
-      {@JsonKey(name: 'nb_transfers') required this.nbTransfers,
-      final List<NavitiaSection>? sections})
-      : _sections = sections;
 
-  factory _$NavitiaJourneyImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaJourneyImplFromJson(json);
+class _NavitiaJourney implements NavitiaJourney {
+  const _NavitiaJourney({@JsonKey(name: 'nb_transfers') required this.nbTransfers, this.status,  List<NavitiaSection>? sections}): _sections = sections;
+  factory _NavitiaJourney.fromJson(Map<String, dynamic> json) => _$NavitiaJourneyFromJson(json);
 
-  @override
-  @JsonKey(name: 'nb_transfers')
-  final int nbTransfers;
-  final List<NavitiaSection>? _sections;
-  @override
-  List<NavitiaSection>? get sections {
-    final value = _sections;
-    if (value == null) return null;
-    if (_sections is EqualUnmodifiableListView) return _sections;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
-  @override
-  String toString() {
-    return 'NavitiaJourney(nbTransfers: $nbTransfers, sections: $sections)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaJourneyImpl &&
-            (identical(other.nbTransfers, nbTransfers) ||
-                other.nbTransfers == nbTransfers) &&
-            const DeepCollectionEquality().equals(other._sections, _sections));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType, nbTransfers, const DeepCollectionEquality().hash(_sections));
-
-  /// Create a copy of NavitiaJourney
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaJourneyImplCopyWith<_$NavitiaJourneyImpl> get copyWith =>
-      __$$NavitiaJourneyImplCopyWithImpl<_$NavitiaJourneyImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaJourneyImplToJson(
-      this,
-    );
-  }
+@override@JsonKey(name: 'nb_transfers') final  int nbTransfers;
+@override final  String? status;
+ final  List<NavitiaSection>? _sections;
+@override List<NavitiaSection>? get sections {
+  final value = _sections;
+  if (value == null) return null;
+  if (_sections is EqualUnmodifiableListView) return _sections;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
 }
 
-abstract class _NavitiaJourney implements NavitiaJourney {
-  const factory _NavitiaJourney(
-      {@JsonKey(name: 'nb_transfers') required final int nbTransfers,
-      final List<NavitiaSection>? sections}) = _$NavitiaJourneyImpl;
 
-  factory _NavitiaJourney.fromJson(Map<String, dynamic> json) =
-      _$NavitiaJourneyImpl.fromJson;
+/// Create a copy of NavitiaJourney
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaJourneyCopyWith<_NavitiaJourney> get copyWith => __$NavitiaJourneyCopyWithImpl<_NavitiaJourney>(this, _$identity);
 
-  @override
-  @JsonKey(name: 'nb_transfers')
-  int get nbTransfers;
-  @override
-  List<NavitiaSection>? get sections;
-
-  /// Create a copy of NavitiaJourney
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaJourneyImplCopyWith<_$NavitiaJourneyImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaJourneyToJson(this, );
 }
 
-NavitiaSection _$NavitiaSectionFromJson(Map<String, dynamic> json) {
-  return _NavitiaSection.fromJson(json);
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaJourney&&(identical(other.nbTransfers, nbTransfers) || other.nbTransfers == nbTransfers)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.sections, _sections));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,nbTransfers,status,const DeepCollectionEquality().hash(_sections));
+}
+
+@override
+String toString() {
+    return 'NavitiaJourney(nbTransfers: $nbTransfers, status: $status, sections: $sections)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$NavitiaJourneyCopyWith<$Res> implements $NavitiaJourneyCopyWith<$Res> {
+  factory _$NavitiaJourneyCopyWith(_NavitiaJourney value, $Res Function(_NavitiaJourney) _then) = __$NavitiaJourneyCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'nb_transfers') int nbTransfers, String? status, List<NavitiaSection>? sections
+});
+
+
+
+
+}
+/// @nodoc
+class __$NavitiaJourneyCopyWithImpl<$Res>
+    implements _$NavitiaJourneyCopyWith<$Res> {
+  __$NavitiaJourneyCopyWithImpl(this._self, this._then);
+
+  final _NavitiaJourney _self;
+  final $Res Function(_NavitiaJourney) _then;
+
+/// Create a copy of NavitiaJourney
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? nbTransfers = null,Object? status = freezed,Object? sections = freezed,}) {
+  return _then(_NavitiaJourney(
+nbTransfers: null == nbTransfers ? _self.nbTransfers : nbTransfers // ignore: cast_nullable_to_non_nullable
+as int,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String?,sections: freezed == sections ? _self._sections : sections // ignore: cast_nullable_to_non_nullable
+as List<NavitiaSection>?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaSection {
-  String? get type => throw _privateConstructorUsedError;
-  String? get id => throw _privateConstructorUsedError; // ID du train
-  @JsonKey(name: 'display_informations')
-  NavitiaDisplayInfo? get displayInformation =>
-      throw _privateConstructorUsedError;
-  @JsonKey(name: 'departure_date_time')
-  String? get departureDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'base_departure_date_time')
-  String? get baseDepartureDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'arrival_date_time')
-  String? get arrivalDateTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'data_freshness')
-  String? get dataFreshness => throw _privateConstructorUsedError;
-  @JsonKey(name: 'stop_date_times')
-  List<NavitiaStopPoint>? get stopDateTimes =>
-      throw _privateConstructorUsedError;
+
+ String? get type; String? get id;@JsonKey(name: 'display_informations') NavitiaDisplayInfo? get displayInformation;@JsonKey(name: 'departure_date_time') String? get departureDateTime;@JsonKey(name: 'base_departure_date_time') String? get baseDepartureDateTime;@JsonKey(name: 'arrival_date_time') String? get arrivalDateTime;@JsonKey(name: 'data_freshness') String? get dataFreshness;@JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? get stopDateTimes;
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaSectionCopyWith<NavitiaSection> get copyWith => _$NavitiaSectionCopyWithImpl<NavitiaSection>(this as NavitiaSection, _$identity);
 
   /// Serializes this NavitiaSection to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaSectionCopyWith<NavitiaSection> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaSection;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaSection&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.displayInformation, _this.displayInformation) || other.displayInformation == _this.displayInformation)&&(identical(other.departureDateTime, _this.departureDateTime) || other.departureDateTime == _this.departureDateTime)&&(identical(other.baseDepartureDateTime, _this.baseDepartureDateTime) || other.baseDepartureDateTime == _this.baseDepartureDateTime)&&(identical(other.arrivalDateTime, _this.arrivalDateTime) || other.arrivalDateTime == _this.arrivalDateTime)&&(identical(other.dataFreshness, _this.dataFreshness) || other.dataFreshness == _this.dataFreshness)&&const DeepCollectionEquality().equals(other.stopDateTimes, _this.stopDateTimes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaSection;
+  return Object.hash(runtimeType,_this.type,_this.id,_this.displayInformation,_this.departureDateTime,_this.baseDepartureDateTime,_this.arrivalDateTime,_this.dataFreshness,const DeepCollectionEquality().hash(_this.stopDateTimes));
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaSection;
+  return 'NavitiaSection(type: ${_this.type}, id: ${_this.id}, displayInformation: ${_this.displayInformation}, departureDateTime: ${_this.departureDateTime}, baseDepartureDateTime: ${_this.baseDepartureDateTime}, arrivalDateTime: ${_this.arrivalDateTime}, dataFreshness: ${_this.dataFreshness}, stopDateTimes: ${_this.stopDateTimes})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaSectionCopyWith<$Res> {
-  factory $NavitiaSectionCopyWith(
-          NavitiaSection value, $Res Function(NavitiaSection) then) =
-      _$NavitiaSectionCopyWithImpl<$Res, NavitiaSection>;
-  @useResult
-  $Res call(
-      {String? type,
-      String? id,
-      @JsonKey(name: 'display_informations')
-      NavitiaDisplayInfo? displayInformation,
-      @JsonKey(name: 'departure_date_time') String? departureDateTime,
-      @JsonKey(name: 'base_departure_date_time') String? baseDepartureDateTime,
-      @JsonKey(name: 'arrival_date_time') String? arrivalDateTime,
-      @JsonKey(name: 'data_freshness') String? dataFreshness,
-      @JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? stopDateTimes});
+abstract mixin class $NavitiaSectionCopyWith<$Res>  {
+  factory $NavitiaSectionCopyWith(NavitiaSection value, $Res Function(NavitiaSection) _then) = _$NavitiaSectionCopyWithImpl;
+@useResult
+$Res call({
+ String? type, String? id,@JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation,@JsonKey(name: 'departure_date_time') String? departureDateTime,@JsonKey(name: 'base_departure_date_time') String? baseDepartureDateTime,@JsonKey(name: 'arrival_date_time') String? arrivalDateTime,@JsonKey(name: 'data_freshness') String? dataFreshness,@JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? stopDateTimes
+});
 
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
+
+$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
+
 }
-
 /// @nodoc
-class _$NavitiaSectionCopyWithImpl<$Res, $Val extends NavitiaSection>
+class _$NavitiaSectionCopyWithImpl<$Res>
     implements $NavitiaSectionCopyWith<$Res> {
-  _$NavitiaSectionCopyWithImpl(this._value, this._then);
+  _$NavitiaSectionCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaSection _self;
+  final $Res Function(NavitiaSection) _then;
 
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? type = freezed,
-    Object? id = freezed,
-    Object? displayInformation = freezed,
-    Object? departureDateTime = freezed,
-    Object? baseDepartureDateTime = freezed,
-    Object? arrivalDateTime = freezed,
-    Object? dataFreshness = freezed,
-    Object? stopDateTimes = freezed,
-  }) {
-    return _then(_value.copyWith(
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      displayInformation: freezed == displayInformation
-          ? _value.displayInformation
-          : displayInformation // ignore: cast_nullable_to_non_nullable
-              as NavitiaDisplayInfo?,
-      departureDateTime: freezed == departureDateTime
-          ? _value.departureDateTime
-          : departureDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      baseDepartureDateTime: freezed == baseDepartureDateTime
-          ? _value.baseDepartureDateTime
-          : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      arrivalDateTime: freezed == arrivalDateTime
-          ? _value.arrivalDateTime
-          : arrivalDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      dataFreshness: freezed == dataFreshness
-          ? _value.dataFreshness
-          : dataFreshness // ignore: cast_nullable_to_non_nullable
-              as String?,
-      stopDateTimes: freezed == stopDateTimes
-          ? _value.stopDateTimes
-          : stopDateTimes // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaStopPoint>?,
-    ) as $Val);
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = freezed,Object? id = freezed,Object? displayInformation = freezed,Object? departureDateTime = freezed,Object? baseDepartureDateTime = freezed,Object? arrivalDateTime = freezed,Object? dataFreshness = freezed,Object? stopDateTimes = freezed,}) {
+  return _then(NavitiaSection(
+type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,displayInformation: freezed == displayInformation ? _self.displayInformation : displayInformation // ignore: cast_nullable_to_non_nullable
+as NavitiaDisplayInfo?,departureDateTime: freezed == departureDateTime ? _self.departureDateTime : departureDateTime // ignore: cast_nullable_to_non_nullable
+as String?,baseDepartureDateTime: freezed == baseDepartureDateTime ? _self.baseDepartureDateTime : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
+as String?,arrivalDateTime: freezed == arrivalDateTime ? _self.arrivalDateTime : arrivalDateTime // ignore: cast_nullable_to_non_nullable
+as String?,dataFreshness: freezed == dataFreshness ? _self.dataFreshness : dataFreshness // ignore: cast_nullable_to_non_nullable
+as String?,stopDateTimes: freezed == stopDateTimes ? _self.stopDateTimes : stopDateTimes // ignore: cast_nullable_to_non_nullable
+as List<NavitiaStopPoint>?,
+  ));
+}
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
+    if (_self.displayInformation == null) {
+    return null;
   }
 
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
-    if (_value.displayInformation == null) {
-      return null;
-    }
-
-    return $NavitiaDisplayInfoCopyWith<$Res>(_value.displayInformation!,
-        (value) {
-      return _then(_value.copyWith(displayInformation: value) as $Val);
-    });
-  }
+  return $NavitiaDisplayInfoCopyWith<$Res>(_self.displayInformation!, (value) {
+    return _then(_self.copyWith(displayInformation: value));
+  });
+}
 }
 
-/// @nodoc
-abstract class _$$NavitiaSectionImplCopyWith<$Res>
-    implements $NavitiaSectionCopyWith<$Res> {
-  factory _$$NavitiaSectionImplCopyWith(_$NavitiaSectionImpl value,
-          $Res Function(_$NavitiaSectionImpl) then) =
-      __$$NavitiaSectionImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String? type,
-      String? id,
-      @JsonKey(name: 'display_informations')
-      NavitiaDisplayInfo? displayInformation,
-      @JsonKey(name: 'departure_date_time') String? departureDateTime,
-      @JsonKey(name: 'base_departure_date_time') String? baseDepartureDateTime,
-      @JsonKey(name: 'arrival_date_time') String? arrivalDateTime,
-      @JsonKey(name: 'data_freshness') String? dataFreshness,
-      @JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? stopDateTimes});
 
-  @override
-  $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
+/// Adds pattern-matching-related methods to [NavitiaSection].
+extension NavitiaSectionPatterns on NavitiaSection {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaSection value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaSection() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaSection value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaSection():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaSection value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaSection() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? type,  String? id, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation, @JsonKey(name: 'departure_date_time')  String? departureDateTime, @JsonKey(name: 'base_departure_date_time')  String? baseDepartureDateTime, @JsonKey(name: 'arrival_date_time')  String? arrivalDateTime, @JsonKey(name: 'data_freshness')  String? dataFreshness, @JsonKey(name: 'stop_date_times')  List<NavitiaStopPoint>? stopDateTimes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaSection() when $default != null:
+return $default(_that.type,_that.id,_that.displayInformation,_that.departureDateTime,_that.baseDepartureDateTime,_that.arrivalDateTime,_that.dataFreshness,_that.stopDateTimes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? type,  String? id, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation, @JsonKey(name: 'departure_date_time')  String? departureDateTime, @JsonKey(name: 'base_departure_date_time')  String? baseDepartureDateTime, @JsonKey(name: 'arrival_date_time')  String? arrivalDateTime, @JsonKey(name: 'data_freshness')  String? dataFreshness, @JsonKey(name: 'stop_date_times')  List<NavitiaStopPoint>? stopDateTimes)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaSection():
+return $default(_that.type,_that.id,_that.displayInformation,_that.departureDateTime,_that.baseDepartureDateTime,_that.arrivalDateTime,_that.dataFreshness,_that.stopDateTimes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? type,  String? id, @JsonKey(name: 'display_informations')  NavitiaDisplayInfo? displayInformation, @JsonKey(name: 'departure_date_time')  String? departureDateTime, @JsonKey(name: 'base_departure_date_time')  String? baseDepartureDateTime, @JsonKey(name: 'arrival_date_time')  String? arrivalDateTime, @JsonKey(name: 'data_freshness')  String? dataFreshness, @JsonKey(name: 'stop_date_times')  List<NavitiaStopPoint>? stopDateTimes)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaSection() when $default != null:
+return $default(_that.type,_that.id,_that.displayInformation,_that.departureDateTime,_that.baseDepartureDateTime,_that.arrivalDateTime,_that.dataFreshness,_that.stopDateTimes);case _:
+  return null;
+
+}
 }
 
-/// @nodoc
-class __$$NavitiaSectionImplCopyWithImpl<$Res>
-    extends _$NavitiaSectionCopyWithImpl<$Res, _$NavitiaSectionImpl>
-    implements _$$NavitiaSectionImplCopyWith<$Res> {
-  __$$NavitiaSectionImplCopyWithImpl(
-      _$NavitiaSectionImpl _value, $Res Function(_$NavitiaSectionImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? type = freezed,
-    Object? id = freezed,
-    Object? displayInformation = freezed,
-    Object? departureDateTime = freezed,
-    Object? baseDepartureDateTime = freezed,
-    Object? arrivalDateTime = freezed,
-    Object? dataFreshness = freezed,
-    Object? stopDateTimes = freezed,
-  }) {
-    return _then(_$NavitiaSectionImpl(
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      displayInformation: freezed == displayInformation
-          ? _value.displayInformation
-          : displayInformation // ignore: cast_nullable_to_non_nullable
-              as NavitiaDisplayInfo?,
-      departureDateTime: freezed == departureDateTime
-          ? _value.departureDateTime
-          : departureDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      baseDepartureDateTime: freezed == baseDepartureDateTime
-          ? _value.baseDepartureDateTime
-          : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      arrivalDateTime: freezed == arrivalDateTime
-          ? _value.arrivalDateTime
-          : arrivalDateTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      dataFreshness: freezed == dataFreshness
-          ? _value.dataFreshness
-          : dataFreshness // ignore: cast_nullable_to_non_nullable
-              as String?,
-      stopDateTimes: freezed == stopDateTimes
-          ? _value._stopDateTimes
-          : stopDateTimes // ignore: cast_nullable_to_non_nullable
-              as List<NavitiaStopPoint>?,
-    ));
-  }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaSectionImpl implements _NavitiaSection {
-  const _$NavitiaSectionImpl(
-      {this.type,
-      this.id,
-      @JsonKey(name: 'display_informations') this.displayInformation,
-      @JsonKey(name: 'departure_date_time') this.departureDateTime,
-      @JsonKey(name: 'base_departure_date_time') this.baseDepartureDateTime,
-      @JsonKey(name: 'arrival_date_time') this.arrivalDateTime,
-      @JsonKey(name: 'data_freshness') this.dataFreshness,
-      @JsonKey(name: 'stop_date_times')
-      final List<NavitiaStopPoint>? stopDateTimes})
-      : _stopDateTimes = stopDateTimes;
 
-  factory _$NavitiaSectionImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaSectionImplFromJson(json);
+class _NavitiaSection implements NavitiaSection {
+  const _NavitiaSection({this.type, this.id, @JsonKey(name: 'display_informations') this.displayInformation, @JsonKey(name: 'departure_date_time') this.departureDateTime, @JsonKey(name: 'base_departure_date_time') this.baseDepartureDateTime, @JsonKey(name: 'arrival_date_time') this.arrivalDateTime, @JsonKey(name: 'data_freshness') this.dataFreshness, @JsonKey(name: 'stop_date_times')  List<NavitiaStopPoint>? stopDateTimes}): _stopDateTimes = stopDateTimes;
+  factory _NavitiaSection.fromJson(Map<String, dynamic> json) => _$NavitiaSectionFromJson(json);
 
-  @override
-  final String? type;
-  @override
-  final String? id;
-// ID du train
-  @override
-  @JsonKey(name: 'display_informations')
-  final NavitiaDisplayInfo? displayInformation;
-  @override
-  @JsonKey(name: 'departure_date_time')
-  final String? departureDateTime;
-  @override
-  @JsonKey(name: 'base_departure_date_time')
-  final String? baseDepartureDateTime;
-  @override
-  @JsonKey(name: 'arrival_date_time')
-  final String? arrivalDateTime;
-  @override
-  @JsonKey(name: 'data_freshness')
-  final String? dataFreshness;
-  final List<NavitiaStopPoint>? _stopDateTimes;
-  @override
-  @JsonKey(name: 'stop_date_times')
-  List<NavitiaStopPoint>? get stopDateTimes {
-    final value = _stopDateTimes;
-    if (value == null) return null;
-    if (_stopDateTimes is EqualUnmodifiableListView) return _stopDateTimes;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+@override final  String? type;
+@override final  String? id;
+@override@JsonKey(name: 'display_informations') final  NavitiaDisplayInfo? displayInformation;
+@override@JsonKey(name: 'departure_date_time') final  String? departureDateTime;
+@override@JsonKey(name: 'base_departure_date_time') final  String? baseDepartureDateTime;
+@override@JsonKey(name: 'arrival_date_time') final  String? arrivalDateTime;
+@override@JsonKey(name: 'data_freshness') final  String? dataFreshness;
+ final  List<NavitiaStopPoint>? _stopDateTimes;
+@override@JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? get stopDateTimes {
+  final value = _stopDateTimes;
+  if (value == null) return null;
+  if (_stopDateTimes is EqualUnmodifiableListView) return _stopDateTimes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
 
-  @override
-  String toString() {
+
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaSectionCopyWith<_NavitiaSection> get copyWith => __$NavitiaSectionCopyWithImpl<_NavitiaSection>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaSectionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaSection&&(identical(other.type, type) || other.type == type)&&(identical(other.id, id) || other.id == id)&&(identical(other.displayInformation, displayInformation) || other.displayInformation == displayInformation)&&(identical(other.departureDateTime, departureDateTime) || other.departureDateTime == departureDateTime)&&(identical(other.baseDepartureDateTime, baseDepartureDateTime) || other.baseDepartureDateTime == baseDepartureDateTime)&&(identical(other.arrivalDateTime, arrivalDateTime) || other.arrivalDateTime == arrivalDateTime)&&(identical(other.dataFreshness, dataFreshness) || other.dataFreshness == dataFreshness)&&const DeepCollectionEquality().equals(other.stopDateTimes, _stopDateTimes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,type,id,displayInformation,departureDateTime,baseDepartureDateTime,arrivalDateTime,dataFreshness,const DeepCollectionEquality().hash(_stopDateTimes));
+}
+
+@override
+String toString() {
     return 'NavitiaSection(type: $type, id: $id, displayInformation: $displayInformation, departureDateTime: $departureDateTime, baseDepartureDateTime: $baseDepartureDateTime, arrivalDateTime: $arrivalDateTime, dataFreshness: $dataFreshness, stopDateTimes: $stopDateTimes)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaSectionImpl &&
-            (identical(other.type, type) || other.type == type) &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.displayInformation, displayInformation) ||
-                other.displayInformation == displayInformation) &&
-            (identical(other.departureDateTime, departureDateTime) ||
-                other.departureDateTime == departureDateTime) &&
-            (identical(other.baseDepartureDateTime, baseDepartureDateTime) ||
-                other.baseDepartureDateTime == baseDepartureDateTime) &&
-            (identical(other.arrivalDateTime, arrivalDateTime) ||
-                other.arrivalDateTime == arrivalDateTime) &&
-            (identical(other.dataFreshness, dataFreshness) ||
-                other.dataFreshness == dataFreshness) &&
-            const DeepCollectionEquality()
-                .equals(other._stopDateTimes, _stopDateTimes));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      type,
-      id,
-      displayInformation,
-      departureDateTime,
-      baseDepartureDateTime,
-      arrivalDateTime,
-      dataFreshness,
-      const DeepCollectionEquality().hash(_stopDateTimes));
-
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaSectionImplCopyWith<_$NavitiaSectionImpl> get copyWith =>
-      __$$NavitiaSectionImplCopyWithImpl<_$NavitiaSectionImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaSectionImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaSection implements NavitiaSection {
-  const factory _NavitiaSection(
-      {final String? type,
-      final String? id,
-      @JsonKey(name: 'display_informations')
-      final NavitiaDisplayInfo? displayInformation,
-      @JsonKey(name: 'departure_date_time') final String? departureDateTime,
-      @JsonKey(name: 'base_departure_date_time')
-      final String? baseDepartureDateTime,
-      @JsonKey(name: 'arrival_date_time') final String? arrivalDateTime,
-      @JsonKey(name: 'data_freshness') final String? dataFreshness,
-      @JsonKey(name: 'stop_date_times')
-      final List<NavitiaStopPoint>? stopDateTimes}) = _$NavitiaSectionImpl;
 
-  factory _NavitiaSection.fromJson(Map<String, dynamic> json) =
-      _$NavitiaSectionImpl.fromJson;
-
-  @override
-  String? get type;
-  @override
-  String? get id; // ID du train
-  @override
-  @JsonKey(name: 'display_informations')
-  NavitiaDisplayInfo? get displayInformation;
-  @override
-  @JsonKey(name: 'departure_date_time')
-  String? get departureDateTime;
-  @override
-  @JsonKey(name: 'base_departure_date_time')
-  String? get baseDepartureDateTime;
-  @override
-  @JsonKey(name: 'arrival_date_time')
-  String? get arrivalDateTime;
-  @override
-  @JsonKey(name: 'data_freshness')
-  String? get dataFreshness;
-  @override
-  @JsonKey(name: 'stop_date_times')
-  List<NavitiaStopPoint>? get stopDateTimes;
-
-  /// Create a copy of NavitiaSection
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaSectionImplCopyWith<_$NavitiaSectionImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaStopPoint _$NavitiaStopPointFromJson(Map<String, dynamic> json) {
-  return _NavitiaStopPoint.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaSectionCopyWith<$Res> implements $NavitiaSectionCopyWith<$Res> {
+  factory _$NavitiaSectionCopyWith(_NavitiaSection value, $Res Function(_NavitiaSection) _then) = __$NavitiaSectionCopyWithImpl;
+@override @useResult
+$Res call({
+ String? type, String? id,@JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation,@JsonKey(name: 'departure_date_time') String? departureDateTime,@JsonKey(name: 'base_departure_date_time') String? baseDepartureDateTime,@JsonKey(name: 'arrival_date_time') String? arrivalDateTime,@JsonKey(name: 'data_freshness') String? dataFreshness,@JsonKey(name: 'stop_date_times') List<NavitiaStopPoint>? stopDateTimes
+});
+
+
+@override $NavitiaDisplayInfoCopyWith<$Res>? get displayInformation;
+
 }
+/// @nodoc
+class __$NavitiaSectionCopyWithImpl<$Res>
+    implements _$NavitiaSectionCopyWith<$Res> {
+  __$NavitiaSectionCopyWithImpl(this._self, this._then);
+
+  final _NavitiaSection _self;
+  final $Res Function(_NavitiaSection) _then;
+
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = freezed,Object? id = freezed,Object? displayInformation = freezed,Object? departureDateTime = freezed,Object? baseDepartureDateTime = freezed,Object? arrivalDateTime = freezed,Object? dataFreshness = freezed,Object? stopDateTimes = freezed,}) {
+  return _then(_NavitiaSection(
+type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String?,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,displayInformation: freezed == displayInformation ? _self.displayInformation : displayInformation // ignore: cast_nullable_to_non_nullable
+as NavitiaDisplayInfo?,departureDateTime: freezed == departureDateTime ? _self.departureDateTime : departureDateTime // ignore: cast_nullable_to_non_nullable
+as String?,baseDepartureDateTime: freezed == baseDepartureDateTime ? _self.baseDepartureDateTime : baseDepartureDateTime // ignore: cast_nullable_to_non_nullable
+as String?,arrivalDateTime: freezed == arrivalDateTime ? _self.arrivalDateTime : arrivalDateTime // ignore: cast_nullable_to_non_nullable
+as String?,dataFreshness: freezed == dataFreshness ? _self.dataFreshness : dataFreshness // ignore: cast_nullable_to_non_nullable
+as String?,stopDateTimes: freezed == stopDateTimes ? _self._stopDateTimes : stopDateTimes // ignore: cast_nullable_to_non_nullable
+as List<NavitiaStopPoint>?,
+  ));
+}
+
+/// Create a copy of NavitiaSection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaDisplayInfoCopyWith<$Res>? get displayInformation {
+    if (_self.displayInformation == null) {
+    return null;
+  }
+
+  return $NavitiaDisplayInfoCopyWith<$Res>(_self.displayInformation!, (value) {
+    return _then(_self.copyWith(displayInformation: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$NavitiaStopPoint {
-  @JsonKey(name: 'departure_stop_point')
-  NavitiaStopPointDetails? get departureStopPoint =>
-      throw _privateConstructorUsedError;
+
+@JsonKey(name: 'departure_stop_point') NavitiaStopPointDetails? get departureStopPoint;
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaStopPointCopyWith<NavitiaStopPoint> get copyWith => _$NavitiaStopPointCopyWithImpl<NavitiaStopPoint>(this as NavitiaStopPoint, _$identity);
 
   /// Serializes this NavitiaStopPoint to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaStopPointCopyWith<NavitiaStopPoint> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaStopPoint;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaStopPoint&&(identical(other.departureStopPoint, _this.departureStopPoint) || other.departureStopPoint == _this.departureStopPoint));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaStopPoint;
+  return Object.hash(runtimeType,_this.departureStopPoint);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaStopPoint;
+  return 'NavitiaStopPoint(departureStopPoint: ${_this.departureStopPoint})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaStopPointCopyWith<$Res> {
-  factory $NavitiaStopPointCopyWith(
-          NavitiaStopPoint value, $Res Function(NavitiaStopPoint) then) =
-      _$NavitiaStopPointCopyWithImpl<$Res, NavitiaStopPoint>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'departure_stop_point')
-      NavitiaStopPointDetails? departureStopPoint});
+abstract mixin class $NavitiaStopPointCopyWith<$Res>  {
+  factory $NavitiaStopPointCopyWith(NavitiaStopPoint value, $Res Function(NavitiaStopPoint) _then) = _$NavitiaStopPointCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'departure_stop_point') NavitiaStopPointDetails? departureStopPoint
+});
 
-  $NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint;
+
+$NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint;
+
 }
-
 /// @nodoc
-class _$NavitiaStopPointCopyWithImpl<$Res, $Val extends NavitiaStopPoint>
+class _$NavitiaStopPointCopyWithImpl<$Res>
     implements $NavitiaStopPointCopyWith<$Res> {
-  _$NavitiaStopPointCopyWithImpl(this._value, this._then);
+  _$NavitiaStopPointCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaStopPoint _self;
+  final $Res Function(NavitiaStopPoint) _then;
 
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departureStopPoint = freezed,
-  }) {
-    return _then(_value.copyWith(
-      departureStopPoint: freezed == departureStopPoint
-          ? _value.departureStopPoint
-          : departureStopPoint // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopPointDetails?,
-    ) as $Val);
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? departureStopPoint = freezed,}) {
+  return _then(NavitiaStopPoint(
+departureStopPoint: freezed == departureStopPoint ? _self.departureStopPoint : departureStopPoint // ignore: cast_nullable_to_non_nullable
+as NavitiaStopPointDetails?,
+  ));
+}
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint {
+    if (_self.departureStopPoint == null) {
+    return null;
   }
 
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint {
-    if (_value.departureStopPoint == null) {
-      return null;
-    }
-
-    return $NavitiaStopPointDetailsCopyWith<$Res>(_value.departureStopPoint!,
-        (value) {
-      return _then(_value.copyWith(departureStopPoint: value) as $Val);
-    });
-  }
+  return $NavitiaStopPointDetailsCopyWith<$Res>(_self.departureStopPoint!, (value) {
+    return _then(_self.copyWith(departureStopPoint: value));
+  });
+}
 }
 
-/// @nodoc
-abstract class _$$NavitiaStopPointImplCopyWith<$Res>
-    implements $NavitiaStopPointCopyWith<$Res> {
-  factory _$$NavitiaStopPointImplCopyWith(_$NavitiaStopPointImpl value,
-          $Res Function(_$NavitiaStopPointImpl) then) =
-      __$$NavitiaStopPointImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'departure_stop_point')
-      NavitiaStopPointDetails? departureStopPoint});
 
-  @override
-  $NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint;
+/// Adds pattern-matching-related methods to [NavitiaStopPoint].
+extension NavitiaStopPointPatterns on NavitiaStopPoint {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaStopPoint value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPoint() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaStopPoint value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPoint():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaStopPoint value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPoint() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'departure_stop_point')  NavitiaStopPointDetails? departureStopPoint)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaStopPoint() when $default != null:
+return $default(_that.departureStopPoint);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'departure_stop_point')  NavitiaStopPointDetails? departureStopPoint)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopPoint():
+return $default(_that.departureStopPoint);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'departure_stop_point')  NavitiaStopPointDetails? departureStopPoint)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopPoint() when $default != null:
+return $default(_that.departureStopPoint);case _:
+  return null;
+
+}
 }
 
-/// @nodoc
-class __$$NavitiaStopPointImplCopyWithImpl<$Res>
-    extends _$NavitiaStopPointCopyWithImpl<$Res, _$NavitiaStopPointImpl>
-    implements _$$NavitiaStopPointImplCopyWith<$Res> {
-  __$$NavitiaStopPointImplCopyWithImpl(_$NavitiaStopPointImpl _value,
-      $Res Function(_$NavitiaStopPointImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? departureStopPoint = freezed,
-  }) {
-    return _then(_$NavitiaStopPointImpl(
-      departureStopPoint: freezed == departureStopPoint
-          ? _value.departureStopPoint
-          : departureStopPoint // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopPointDetails?,
-    ));
-  }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaStopPointImpl implements _NavitiaStopPoint {
-  const _$NavitiaStopPointImpl(
-      {@JsonKey(name: 'departure_stop_point') this.departureStopPoint});
 
-  factory _$NavitiaStopPointImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaStopPointImplFromJson(json);
+class _NavitiaStopPoint implements NavitiaStopPoint {
+  const _NavitiaStopPoint({@JsonKey(name: 'departure_stop_point') this.departureStopPoint});
+  factory _NavitiaStopPoint.fromJson(Map<String, dynamic> json) => _$NavitiaStopPointFromJson(json);
 
-  @override
-  @JsonKey(name: 'departure_stop_point')
-  final NavitiaStopPointDetails? departureStopPoint;
+@override@JsonKey(name: 'departure_stop_point') final  NavitiaStopPointDetails? departureStopPoint;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaStopPointCopyWith<_NavitiaStopPoint> get copyWith => __$NavitiaStopPointCopyWithImpl<_NavitiaStopPoint>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaStopPointToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaStopPoint&&(identical(other.departureStopPoint, departureStopPoint) || other.departureStopPoint == departureStopPoint));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,departureStopPoint);
+}
+
+@override
+String toString() {
     return 'NavitiaStopPoint(departureStopPoint: $departureStopPoint)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaStopPointImpl &&
-            (identical(other.departureStopPoint, departureStopPoint) ||
-                other.departureStopPoint == departureStopPoint));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, departureStopPoint);
-
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaStopPointImplCopyWith<_$NavitiaStopPointImpl> get copyWith =>
-      __$$NavitiaStopPointImplCopyWithImpl<_$NavitiaStopPointImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaStopPointImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaStopPoint implements NavitiaStopPoint {
-  const factory _NavitiaStopPoint(
-          {@JsonKey(name: 'departure_stop_point')
-          final NavitiaStopPointDetails? departureStopPoint}) =
-      _$NavitiaStopPointImpl;
 
-  factory _NavitiaStopPoint.fromJson(Map<String, dynamic> json) =
-      _$NavitiaStopPointImpl.fromJson;
-
-  @override
-  @JsonKey(name: 'departure_stop_point')
-  NavitiaStopPointDetails? get departureStopPoint;
-
-  /// Create a copy of NavitiaStopPoint
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaStopPointImplCopyWith<_$NavitiaStopPointImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaStopPointDetails _$NavitiaStopPointDetailsFromJson(
-    Map<String, dynamic> json) {
-  return _NavitiaStopPointDetails.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaStopPointCopyWith<$Res> implements $NavitiaStopPointCopyWith<$Res> {
+  factory _$NavitiaStopPointCopyWith(_NavitiaStopPoint value, $Res Function(_NavitiaStopPoint) _then) = __$NavitiaStopPointCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'departure_stop_point') NavitiaStopPointDetails? departureStopPoint
+});
+
+
+@override $NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint;
+
 }
+/// @nodoc
+class __$NavitiaStopPointCopyWithImpl<$Res>
+    implements _$NavitiaStopPointCopyWith<$Res> {
+  __$NavitiaStopPointCopyWithImpl(this._self, this._then);
+
+  final _NavitiaStopPoint _self;
+  final $Res Function(_NavitiaStopPoint) _then;
+
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? departureStopPoint = freezed,}) {
+  return _then(_NavitiaStopPoint(
+departureStopPoint: freezed == departureStopPoint ? _self.departureStopPoint : departureStopPoint // ignore: cast_nullable_to_non_nullable
+as NavitiaStopPointDetails?,
+  ));
+}
+
+/// Create a copy of NavitiaStopPoint
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopPointDetailsCopyWith<$Res>? get departureStopPoint {
+    if (_self.departureStopPoint == null) {
+    return null;
+  }
+
+  return $NavitiaStopPointDetailsCopyWith<$Res>(_self.departureStopPoint!, (value) {
+    return _then(_self.copyWith(departureStopPoint: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$NavitiaStopPointDetails {
-  String? get platform => throw _privateConstructorUsedError;
+
+ String? get platform;
+/// Create a copy of NavitiaStopPointDetails
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaStopPointDetailsCopyWith<NavitiaStopPointDetails> get copyWith => _$NavitiaStopPointDetailsCopyWithImpl<NavitiaStopPointDetails>(this as NavitiaStopPointDetails, _$identity);
 
   /// Serializes this NavitiaStopPointDetails to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaStopPointDetails
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaStopPointDetailsCopyWith<NavitiaStopPointDetails> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaStopPointDetails;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaStopPointDetails&&(identical(other.platform, _this.platform) || other.platform == _this.platform));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaStopPointDetails;
+  return Object.hash(runtimeType,_this.platform);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaStopPointDetails;
+  return 'NavitiaStopPointDetails(platform: ${_this.platform})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaStopPointDetailsCopyWith<$Res> {
-  factory $NavitiaStopPointDetailsCopyWith(NavitiaStopPointDetails value,
-          $Res Function(NavitiaStopPointDetails) then) =
-      _$NavitiaStopPointDetailsCopyWithImpl<$Res, NavitiaStopPointDetails>;
-  @useResult
-  $Res call({String? platform});
-}
+abstract mixin class $NavitiaStopPointDetailsCopyWith<$Res>  {
+  factory $NavitiaStopPointDetailsCopyWith(NavitiaStopPointDetails value, $Res Function(NavitiaStopPointDetails) _then) = _$NavitiaStopPointDetailsCopyWithImpl;
+@useResult
+$Res call({
+ String? platform
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaStopPointDetailsCopyWithImpl<$Res,
-        $Val extends NavitiaStopPointDetails>
+class _$NavitiaStopPointDetailsCopyWithImpl<$Res>
     implements $NavitiaStopPointDetailsCopyWith<$Res> {
-  _$NavitiaStopPointDetailsCopyWithImpl(this._value, this._then);
+  _$NavitiaStopPointDetailsCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaStopPointDetails _self;
+  final $Res Function(NavitiaStopPointDetails) _then;
 
-  /// Create a copy of NavitiaStopPointDetails
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? platform = freezed,
-  }) {
-    return _then(_value.copyWith(
-      platform: freezed == platform
-          ? _value.platform
-          : platform // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaStopPointDetails
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? platform = freezed,}) {
+  return _then(NavitiaStopPointDetails(
+platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaStopPointDetailsImplCopyWith<$Res>
-    implements $NavitiaStopPointDetailsCopyWith<$Res> {
-  factory _$$NavitiaStopPointDetailsImplCopyWith(
-          _$NavitiaStopPointDetailsImpl value,
-          $Res Function(_$NavitiaStopPointDetailsImpl) then) =
-      __$$NavitiaStopPointDetailsImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String? platform});
 }
 
-/// @nodoc
-class __$$NavitiaStopPointDetailsImplCopyWithImpl<$Res>
-    extends _$NavitiaStopPointDetailsCopyWithImpl<$Res,
-        _$NavitiaStopPointDetailsImpl>
-    implements _$$NavitiaStopPointDetailsImplCopyWith<$Res> {
-  __$$NavitiaStopPointDetailsImplCopyWithImpl(
-      _$NavitiaStopPointDetailsImpl _value,
-      $Res Function(_$NavitiaStopPointDetailsImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaStopPointDetails
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? platform = freezed,
-  }) {
-    return _then(_$NavitiaStopPointDetailsImpl(
-      platform: freezed == platform
-          ? _value.platform
-          : platform // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaStopPointDetails].
+extension NavitiaStopPointDetailsPatterns on NavitiaStopPointDetails {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaStopPointDetails value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaStopPointDetails value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaStopPointDetails value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? platform)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails() when $default != null:
+return $default(_that.platform);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? platform)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails():
+return $default(_that.platform);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? platform)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopPointDetails() when $default != null:
+return $default(_that.platform);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaStopPointDetailsImpl implements _NavitiaStopPointDetails {
-  const _$NavitiaStopPointDetailsImpl({this.platform});
 
-  factory _$NavitiaStopPointDetailsImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaStopPointDetailsImplFromJson(json);
+class _NavitiaStopPointDetails implements NavitiaStopPointDetails {
+  const _NavitiaStopPointDetails({this.platform});
+  factory _NavitiaStopPointDetails.fromJson(Map<String, dynamic> json) => _$NavitiaStopPointDetailsFromJson(json);
 
-  @override
-  final String? platform;
+@override final  String? platform;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaStopPointDetails
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaStopPointDetailsCopyWith<_NavitiaStopPointDetails> get copyWith => __$NavitiaStopPointDetailsCopyWithImpl<_NavitiaStopPointDetails>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaStopPointDetailsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaStopPointDetails&&(identical(other.platform, platform) || other.platform == platform));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,platform);
+}
+
+@override
+String toString() {
     return 'NavitiaStopPointDetails(platform: $platform)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaStopPointDetailsImpl &&
-            (identical(other.platform, platform) ||
-                other.platform == platform));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, platform);
-
-  /// Create a copy of NavitiaStopPointDetails
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaStopPointDetailsImplCopyWith<_$NavitiaStopPointDetailsImpl>
-      get copyWith => __$$NavitiaStopPointDetailsImplCopyWithImpl<
-          _$NavitiaStopPointDetailsImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaStopPointDetailsImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaStopPointDetails implements NavitiaStopPointDetails {
-  const factory _NavitiaStopPointDetails({final String? platform}) =
-      _$NavitiaStopPointDetailsImpl;
 
-  factory _NavitiaStopPointDetails.fromJson(Map<String, dynamic> json) =
-      _$NavitiaStopPointDetailsImpl.fromJson;
-
-  @override
-  String? get platform;
-
-  /// Create a copy of NavitiaStopPointDetails
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaStopPointDetailsImplCopyWith<_$NavitiaStopPointDetailsImpl>
-      get copyWith => throw _privateConstructorUsedError;
 }
 
-NavitiaPlace _$NavitiaPlaceFromJson(Map<String, dynamic> json) {
-  return _NavitiaPlace.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaStopPointDetailsCopyWith<$Res> implements $NavitiaStopPointDetailsCopyWith<$Res> {
+  factory _$NavitiaStopPointDetailsCopyWith(_NavitiaStopPointDetails value, $Res Function(_NavitiaStopPointDetails) _then) = __$NavitiaStopPointDetailsCopyWithImpl;
+@override @useResult
+$Res call({
+ String? platform
+});
+
+
+
+
 }
+/// @nodoc
+class __$NavitiaStopPointDetailsCopyWithImpl<$Res>
+    implements _$NavitiaStopPointDetailsCopyWith<$Res> {
+  __$NavitiaStopPointDetailsCopyWithImpl(this._self, this._then);
+
+  final _NavitiaStopPointDetails _self;
+  final $Res Function(_NavitiaStopPointDetails) _then;
+
+/// Create a copy of NavitiaStopPointDetails
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? platform = freezed,}) {
+  return _then(_NavitiaStopPointDetails(
+platform: freezed == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$NavitiaPlace {
-  String? get id => throw _privateConstructorUsedError;
-  String? get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'embedded_type')
-  String? get embeddedType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'stop_area')
-  NavitiaStopArea? get stopArea => throw _privateConstructorUsedError;
+
+ String? get id; String? get name;@JsonKey(name: 'embedded_type') String? get embeddedType;@JsonKey(name: 'stop_area') NavitiaStopArea? get stopArea;
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaPlaceCopyWith<NavitiaPlace> get copyWith => _$NavitiaPlaceCopyWithImpl<NavitiaPlace>(this as NavitiaPlace, _$identity);
 
   /// Serializes this NavitiaPlace to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaPlaceCopyWith<NavitiaPlace> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaPlace;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaPlace&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.embeddedType, _this.embeddedType) || other.embeddedType == _this.embeddedType)&&(identical(other.stopArea, _this.stopArea) || other.stopArea == _this.stopArea));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaPlace;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.embeddedType,_this.stopArea);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaPlace;
+  return 'NavitiaPlace(id: ${_this.id}, name: ${_this.name}, embeddedType: ${_this.embeddedType}, stopArea: ${_this.stopArea})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaPlaceCopyWith<$Res> {
-  factory $NavitiaPlaceCopyWith(
-          NavitiaPlace value, $Res Function(NavitiaPlace) then) =
-      _$NavitiaPlaceCopyWithImpl<$Res, NavitiaPlace>;
-  @useResult
-  $Res call(
-      {String? id,
-      String? name,
-      @JsonKey(name: 'embedded_type') String? embeddedType,
-      @JsonKey(name: 'stop_area') NavitiaStopArea? stopArea});
+abstract mixin class $NavitiaPlaceCopyWith<$Res>  {
+  factory $NavitiaPlaceCopyWith(NavitiaPlace value, $Res Function(NavitiaPlace) _then) = _$NavitiaPlaceCopyWithImpl;
+@useResult
+$Res call({
+ String? id, String? name,@JsonKey(name: 'embedded_type') String? embeddedType,@JsonKey(name: 'stop_area') NavitiaStopArea? stopArea
+});
 
-  $NavitiaStopAreaCopyWith<$Res>? get stopArea;
+
+$NavitiaStopAreaCopyWith<$Res>? get stopArea;
+
 }
-
 /// @nodoc
-class _$NavitiaPlaceCopyWithImpl<$Res, $Val extends NavitiaPlace>
+class _$NavitiaPlaceCopyWithImpl<$Res>
     implements $NavitiaPlaceCopyWith<$Res> {
-  _$NavitiaPlaceCopyWithImpl(this._value, this._then);
+  _$NavitiaPlaceCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaPlace _self;
+  final $Res Function(NavitiaPlace) _then;
 
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = freezed,
-    Object? name = freezed,
-    Object? embeddedType = freezed,
-    Object? stopArea = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      embeddedType: freezed == embeddedType
-          ? _value.embeddedType
-          : embeddedType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      stopArea: freezed == stopArea
-          ? _value.stopArea
-          : stopArea // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopArea?,
-    ) as $Val);
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? embeddedType = freezed,Object? stopArea = freezed,}) {
+  return _then(NavitiaPlace(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,embeddedType: freezed == embeddedType ? _self.embeddedType : embeddedType // ignore: cast_nullable_to_non_nullable
+as String?,stopArea: freezed == stopArea ? _self.stopArea : stopArea // ignore: cast_nullable_to_non_nullable
+as NavitiaStopArea?,
+  ));
+}
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopAreaCopyWith<$Res>? get stopArea {
+    if (_self.stopArea == null) {
+    return null;
   }
 
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $NavitiaStopAreaCopyWith<$Res>? get stopArea {
-    if (_value.stopArea == null) {
-      return null;
-    }
-
-    return $NavitiaStopAreaCopyWith<$Res>(_value.stopArea!, (value) {
-      return _then(_value.copyWith(stopArea: value) as $Val);
-    });
-  }
+  return $NavitiaStopAreaCopyWith<$Res>(_self.stopArea!, (value) {
+    return _then(_self.copyWith(stopArea: value));
+  });
+}
 }
 
-/// @nodoc
-abstract class _$$NavitiaPlaceImplCopyWith<$Res>
-    implements $NavitiaPlaceCopyWith<$Res> {
-  factory _$$NavitiaPlaceImplCopyWith(
-          _$NavitiaPlaceImpl value, $Res Function(_$NavitiaPlaceImpl) then) =
-      __$$NavitiaPlaceImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String? id,
-      String? name,
-      @JsonKey(name: 'embedded_type') String? embeddedType,
-      @JsonKey(name: 'stop_area') NavitiaStopArea? stopArea});
 
-  @override
-  $NavitiaStopAreaCopyWith<$Res>? get stopArea;
+/// Adds pattern-matching-related methods to [NavitiaPlace].
+extension NavitiaPlacePatterns on NavitiaPlace {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaPlace value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaPlace() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaPlace value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaPlace():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaPlace value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaPlace() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String? name, @JsonKey(name: 'embedded_type')  String? embeddedType, @JsonKey(name: 'stop_area')  NavitiaStopArea? stopArea)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaPlace() when $default != null:
+return $default(_that.id,_that.name,_that.embeddedType,_that.stopArea);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String? name, @JsonKey(name: 'embedded_type')  String? embeddedType, @JsonKey(name: 'stop_area')  NavitiaStopArea? stopArea)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaPlace():
+return $default(_that.id,_that.name,_that.embeddedType,_that.stopArea);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String? name, @JsonKey(name: 'embedded_type')  String? embeddedType, @JsonKey(name: 'stop_area')  NavitiaStopArea? stopArea)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaPlace() when $default != null:
+return $default(_that.id,_that.name,_that.embeddedType,_that.stopArea);case _:
+  return null;
+
+}
 }
 
-/// @nodoc
-class __$$NavitiaPlaceImplCopyWithImpl<$Res>
-    extends _$NavitiaPlaceCopyWithImpl<$Res, _$NavitiaPlaceImpl>
-    implements _$$NavitiaPlaceImplCopyWith<$Res> {
-  __$$NavitiaPlaceImplCopyWithImpl(
-      _$NavitiaPlaceImpl _value, $Res Function(_$NavitiaPlaceImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = freezed,
-    Object? name = freezed,
-    Object? embeddedType = freezed,
-    Object? stopArea = freezed,
-  }) {
-    return _then(_$NavitiaPlaceImpl(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      embeddedType: freezed == embeddedType
-          ? _value.embeddedType
-          : embeddedType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      stopArea: freezed == stopArea
-          ? _value.stopArea
-          : stopArea // ignore: cast_nullable_to_non_nullable
-              as NavitiaStopArea?,
-    ));
-  }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaPlaceImpl implements _NavitiaPlace {
-  const _$NavitiaPlaceImpl(
-      {this.id,
-      this.name,
-      @JsonKey(name: 'embedded_type') this.embeddedType,
-      @JsonKey(name: 'stop_area') this.stopArea});
 
-  factory _$NavitiaPlaceImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaPlaceImplFromJson(json);
+class _NavitiaPlace implements NavitiaPlace {
+  const _NavitiaPlace({this.id, this.name, @JsonKey(name: 'embedded_type') this.embeddedType, @JsonKey(name: 'stop_area') this.stopArea});
+  factory _NavitiaPlace.fromJson(Map<String, dynamic> json) => _$NavitiaPlaceFromJson(json);
 
-  @override
-  final String? id;
-  @override
-  final String? name;
-  @override
-  @JsonKey(name: 'embedded_type')
-  final String? embeddedType;
-  @override
-  @JsonKey(name: 'stop_area')
-  final NavitiaStopArea? stopArea;
+@override final  String? id;
+@override final  String? name;
+@override@JsonKey(name: 'embedded_type') final  String? embeddedType;
+@override@JsonKey(name: 'stop_area') final  NavitiaStopArea? stopArea;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaPlaceCopyWith<_NavitiaPlace> get copyWith => __$NavitiaPlaceCopyWithImpl<_NavitiaPlace>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaPlaceToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaPlace&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.embeddedType, embeddedType) || other.embeddedType == embeddedType)&&(identical(other.stopArea, stopArea) || other.stopArea == stopArea));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,name,embeddedType,stopArea);
+}
+
+@override
+String toString() {
     return 'NavitiaPlace(id: $id, name: $name, embeddedType: $embeddedType, stopArea: $stopArea)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaPlaceImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.embeddedType, embeddedType) ||
-                other.embeddedType == embeddedType) &&
-            (identical(other.stopArea, stopArea) ||
-                other.stopArea == stopArea));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, name, embeddedType, stopArea);
-
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaPlaceImplCopyWith<_$NavitiaPlaceImpl> get copyWith =>
-      __$$NavitiaPlaceImplCopyWithImpl<_$NavitiaPlaceImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaPlaceImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaPlace implements NavitiaPlace {
-  const factory _NavitiaPlace(
-          {final String? id,
-          final String? name,
-          @JsonKey(name: 'embedded_type') final String? embeddedType,
-          @JsonKey(name: 'stop_area') final NavitiaStopArea? stopArea}) =
-      _$NavitiaPlaceImpl;
 
-  factory _NavitiaPlace.fromJson(Map<String, dynamic> json) =
-      _$NavitiaPlaceImpl.fromJson;
-
-  @override
-  String? get id;
-  @override
-  String? get name;
-  @override
-  @JsonKey(name: 'embedded_type')
-  String? get embeddedType;
-  @override
-  @JsonKey(name: 'stop_area')
-  NavitiaStopArea? get stopArea;
-
-  /// Create a copy of NavitiaPlace
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaPlaceImplCopyWith<_$NavitiaPlaceImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
-NavitiaStopArea _$NavitiaStopAreaFromJson(Map<String, dynamic> json) {
-  return _NavitiaStopArea.fromJson(json);
+/// @nodoc
+abstract mixin class _$NavitiaPlaceCopyWith<$Res> implements $NavitiaPlaceCopyWith<$Res> {
+  factory _$NavitiaPlaceCopyWith(_NavitiaPlace value, $Res Function(_NavitiaPlace) _then) = __$NavitiaPlaceCopyWithImpl;
+@override @useResult
+$Res call({
+ String? id, String? name,@JsonKey(name: 'embedded_type') String? embeddedType,@JsonKey(name: 'stop_area') NavitiaStopArea? stopArea
+});
+
+
+@override $NavitiaStopAreaCopyWith<$Res>? get stopArea;
+
 }
+/// @nodoc
+class __$NavitiaPlaceCopyWithImpl<$Res>
+    implements _$NavitiaPlaceCopyWith<$Res> {
+  __$NavitiaPlaceCopyWithImpl(this._self, this._then);
+
+  final _NavitiaPlace _self;
+  final $Res Function(_NavitiaPlace) _then;
+
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = freezed,Object? embeddedType = freezed,Object? stopArea = freezed,}) {
+  return _then(_NavitiaPlace(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,embeddedType: freezed == embeddedType ? _self.embeddedType : embeddedType // ignore: cast_nullable_to_non_nullable
+as String?,stopArea: freezed == stopArea ? _self.stopArea : stopArea // ignore: cast_nullable_to_non_nullable
+as NavitiaStopArea?,
+  ));
+}
+
+/// Create a copy of NavitiaPlace
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$NavitiaStopAreaCopyWith<$Res>? get stopArea {
+    if (_self.stopArea == null) {
+    return null;
+  }
+
+  return $NavitiaStopAreaCopyWith<$Res>(_self.stopArea!, (value) {
+    return _then(_self.copyWith(stopArea: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$NavitiaStopArea {
-  String get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
+
+ String get id; String get name;
+/// Create a copy of NavitiaStopArea
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NavitiaStopAreaCopyWith<NavitiaStopArea> get copyWith => _$NavitiaStopAreaCopyWithImpl<NavitiaStopArea>(this as NavitiaStopArea, _$identity);
 
   /// Serializes this NavitiaStopArea to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of NavitiaStopArea
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $NavitiaStopAreaCopyWith<NavitiaStopArea> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as NavitiaStopArea;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NavitiaStopArea&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as NavitiaStopArea;
+  return Object.hash(runtimeType,_this.id,_this.name);
+}
+
+@override
+String toString() {
+  final _this = this as NavitiaStopArea;
+  return 'NavitiaStopArea(id: ${_this.id}, name: ${_this.name})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $NavitiaStopAreaCopyWith<$Res> {
-  factory $NavitiaStopAreaCopyWith(
-          NavitiaStopArea value, $Res Function(NavitiaStopArea) then) =
-      _$NavitiaStopAreaCopyWithImpl<$Res, NavitiaStopArea>;
-  @useResult
-  $Res call({String id, String name});
-}
+abstract mixin class $NavitiaStopAreaCopyWith<$Res>  {
+  factory $NavitiaStopAreaCopyWith(NavitiaStopArea value, $Res Function(NavitiaStopArea) _then) = _$NavitiaStopAreaCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name
+});
 
+
+
+
+}
 /// @nodoc
-class _$NavitiaStopAreaCopyWithImpl<$Res, $Val extends NavitiaStopArea>
+class _$NavitiaStopAreaCopyWithImpl<$Res>
     implements $NavitiaStopAreaCopyWith<$Res> {
-  _$NavitiaStopAreaCopyWithImpl(this._value, this._then);
+  _$NavitiaStopAreaCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final NavitiaStopArea _self;
+  final $Res Function(NavitiaStopArea) _then;
 
-  /// Create a copy of NavitiaStopArea
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
+/// Create a copy of NavitiaStopArea
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,}) {
+  return _then(NavitiaStopArea(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$NavitiaStopAreaImplCopyWith<$Res>
-    implements $NavitiaStopAreaCopyWith<$Res> {
-  factory _$$NavitiaStopAreaImplCopyWith(_$NavitiaStopAreaImpl value,
-          $Res Function(_$NavitiaStopAreaImpl) then) =
-      __$$NavitiaStopAreaImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String id, String name});
 }
 
-/// @nodoc
-class __$$NavitiaStopAreaImplCopyWithImpl<$Res>
-    extends _$NavitiaStopAreaCopyWithImpl<$Res, _$NavitiaStopAreaImpl>
-    implements _$$NavitiaStopAreaImplCopyWith<$Res> {
-  __$$NavitiaStopAreaImplCopyWithImpl(
-      _$NavitiaStopAreaImpl _value, $Res Function(_$NavitiaStopAreaImpl) _then)
-      : super(_value, _then);
 
-  /// Create a copy of NavitiaStopArea
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-  }) {
-    return _then(_$NavitiaStopAreaImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
+/// Adds pattern-matching-related methods to [NavitiaStopArea].
+extension NavitiaStopAreaPatterns on NavitiaStopArea {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _NavitiaStopArea value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _NavitiaStopArea() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _NavitiaStopArea value)  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopArea():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _NavitiaStopArea value)?  $default,){
+final _that = this;
+switch (_that) {
+case _NavitiaStopArea() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _NavitiaStopArea() when $default != null:
+return $default(_that.id,_that.name);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name)  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopArea():
+return $default(_that.id,_that.name);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name)?  $default,) {final _that = this;
+switch (_that) {
+case _NavitiaStopArea() when $default != null:
+return $default(_that.id,_that.name);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NavitiaStopAreaImpl implements _NavitiaStopArea {
-  const _$NavitiaStopAreaImpl({required this.id, required this.name});
 
-  factory _$NavitiaStopAreaImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NavitiaStopAreaImplFromJson(json);
+class _NavitiaStopArea implements NavitiaStopArea {
+  const _NavitiaStopArea({required this.id, required this.name});
+  factory _NavitiaStopArea.fromJson(Map<String, dynamic> json) => _$NavitiaStopAreaFromJson(json);
 
-  @override
-  final String id;
-  @override
-  final String name;
+@override final  String id;
+@override final  String name;
 
-  @override
-  String toString() {
+/// Create a copy of NavitiaStopArea
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$NavitiaStopAreaCopyWith<_NavitiaStopArea> get copyWith => __$NavitiaStopAreaCopyWithImpl<_NavitiaStopArea>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$NavitiaStopAreaToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NavitiaStopArea&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,name);
+}
+
+@override
+String toString() {
     return 'NavitiaStopArea(id: $id, name: $name)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$NavitiaStopAreaImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, id, name);
-
-  /// Create a copy of NavitiaStopArea
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$NavitiaStopAreaImplCopyWith<_$NavitiaStopAreaImpl> get copyWith =>
-      __$$NavitiaStopAreaImplCopyWithImpl<_$NavitiaStopAreaImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NavitiaStopAreaImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _NavitiaStopArea implements NavitiaStopArea {
-  const factory _NavitiaStopArea(
-      {required final String id,
-      required final String name}) = _$NavitiaStopAreaImpl;
 
-  factory _NavitiaStopArea.fromJson(Map<String, dynamic> json) =
-      _$NavitiaStopAreaImpl.fromJson;
-
-  @override
-  String get id;
-  @override
-  String get name;
-
-  /// Create a copy of NavitiaStopArea
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NavitiaStopAreaImplCopyWith<_$NavitiaStopAreaImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$NavitiaStopAreaCopyWith<$Res> implements $NavitiaStopAreaCopyWith<$Res> {
+  factory _$NavitiaStopAreaCopyWith(_NavitiaStopArea value, $Res Function(_NavitiaStopArea) _then) = __$NavitiaStopAreaCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name
+});
+
+
+
+
+}
+/// @nodoc
+class __$NavitiaStopAreaCopyWithImpl<$Res>
+    implements _$NavitiaStopAreaCopyWith<$Res> {
+  __$NavitiaStopAreaCopyWithImpl(this._self, this._then);
+
+  final _NavitiaStopArea _self;
+  final $Res Function(_NavitiaStopArea) _then;
+
+/// Create a copy of NavitiaStopArea
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,}) {
+  return _then(_NavitiaStopArea(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

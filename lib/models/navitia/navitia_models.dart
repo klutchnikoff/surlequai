@@ -4,7 +4,7 @@ part 'navitia_models.freezed.dart';
 part 'navitia_models.g.dart';
 
 @freezed
-class NavitiaResponse with _$NavitiaResponse {
+abstract class NavitiaResponse with _$NavitiaResponse {
   const factory NavitiaResponse({
     List<NavitiaDeparture>? departures,
     List<NavitiaJourney>? journeys,
@@ -16,10 +16,11 @@ class NavitiaResponse with _$NavitiaResponse {
 }
 
 @freezed
-class NavitiaDeparture with _$NavitiaDeparture {
+abstract class NavitiaDeparture with _$NavitiaDeparture {
   const factory NavitiaDeparture({
     @JsonKey(name: 'stop_date_time') required NavitiaStopDateTime stopDateTime,
-    @JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation,
+    @JsonKey(name: 'display_informations')
+    NavitiaDisplayInfo? displayInformation,
     NavitiaRoute? route,
   }) = _NavitiaDeparture;
 
@@ -28,10 +29,11 @@ class NavitiaDeparture with _$NavitiaDeparture {
 }
 
 @freezed
-class NavitiaStopDateTime with _$NavitiaStopDateTime {
+abstract class NavitiaStopDateTime with _$NavitiaStopDateTime {
   const factory NavitiaStopDateTime({
     @JsonKey(name: 'departure_date_time') required String departureDateTime,
-    @JsonKey(name: 'base_departure_date_time') required String baseDepartureDateTime,
+    @JsonKey(name: 'base_departure_date_time')
+    required String baseDepartureDateTime,
     @JsonKey(name: 'data_freshness') required String dataFreshness,
     String? platform, // Parfois absent
   }) = _NavitiaStopDateTime;
@@ -41,7 +43,7 @@ class NavitiaStopDateTime with _$NavitiaStopDateTime {
 }
 
 @freezed
-class NavitiaDisplayInfo with _$NavitiaDisplayInfo {
+abstract class NavitiaDisplayInfo with _$NavitiaDisplayInfo {
   const factory NavitiaDisplayInfo({
     String? network,
     String? direction,
@@ -53,11 +55,8 @@ class NavitiaDisplayInfo with _$NavitiaDisplayInfo {
 }
 
 @freezed
-class NavitiaRoute with _$NavitiaRoute {
-  const factory NavitiaRoute({
-    String? id,
-    String? name,
-  }) = _NavitiaRoute;
+abstract class NavitiaRoute with _$NavitiaRoute {
+  const factory NavitiaRoute({String? id, String? name}) = _NavitiaRoute;
 
   factory NavitiaRoute.fromJson(Map<String, dynamic> json) =>
       _$NavitiaRouteFromJson(json);
@@ -65,9 +64,10 @@ class NavitiaRoute with _$NavitiaRoute {
 
 // Pour /journeys
 @freezed
-class NavitiaJourney with _$NavitiaJourney {
+abstract class NavitiaJourney with _$NavitiaJourney {
   const factory NavitiaJourney({
     @JsonKey(name: 'nb_transfers') required int nbTransfers,
+    String? status,
     List<NavitiaSection>? sections,
   }) = _NavitiaJourney;
 
@@ -76,11 +76,12 @@ class NavitiaJourney with _$NavitiaJourney {
 }
 
 @freezed
-class NavitiaSection with _$NavitiaSection {
+abstract class NavitiaSection with _$NavitiaSection {
   const factory NavitiaSection({
     String? type,
     String? id, // ID du train
-    @JsonKey(name: 'display_informations') NavitiaDisplayInfo? displayInformation,
+    @JsonKey(name: 'display_informations')
+    NavitiaDisplayInfo? displayInformation,
     @JsonKey(name: 'departure_date_time') String? departureDateTime,
     @JsonKey(name: 'base_departure_date_time') String? baseDepartureDateTime,
     @JsonKey(name: 'arrival_date_time') String? arrivalDateTime,
@@ -93,9 +94,10 @@ class NavitiaSection with _$NavitiaSection {
 }
 
 @freezed
-class NavitiaStopPoint with _$NavitiaStopPoint {
+abstract class NavitiaStopPoint with _$NavitiaStopPoint {
   const factory NavitiaStopPoint({
-    @JsonKey(name: 'departure_stop_point') NavitiaStopPointDetails? departureStopPoint,
+    @JsonKey(name: 'departure_stop_point')
+    NavitiaStopPointDetails? departureStopPoint,
   }) = _NavitiaStopPoint;
 
   factory NavitiaStopPoint.fromJson(Map<String, dynamic> json) =>
@@ -103,10 +105,9 @@ class NavitiaStopPoint with _$NavitiaStopPoint {
 }
 
 @freezed
-class NavitiaStopPointDetails with _$NavitiaStopPointDetails {
-  const factory NavitiaStopPointDetails({
-    String? platform,
-  }) = _NavitiaStopPointDetails;
+abstract class NavitiaStopPointDetails with _$NavitiaStopPointDetails {
+  const factory NavitiaStopPointDetails({String? platform}) =
+      _NavitiaStopPointDetails;
 
   factory NavitiaStopPointDetails.fromJson(Map<String, dynamic> json) =>
       _$NavitiaStopPointDetailsFromJson(json);
@@ -114,7 +115,7 @@ class NavitiaStopPointDetails with _$NavitiaStopPointDetails {
 
 // Pour /places (autocomplete)
 @freezed
-class NavitiaPlace with _$NavitiaPlace {
+abstract class NavitiaPlace with _$NavitiaPlace {
   const factory NavitiaPlace({
     String? id,
     String? name,
@@ -127,11 +128,9 @@ class NavitiaPlace with _$NavitiaPlace {
 }
 
 @freezed
-class NavitiaStopArea with _$NavitiaStopArea {
-  const factory NavitiaStopArea({
-    required String id,
-    required String name,
-  }) = _NavitiaStopArea;
+abstract class NavitiaStopArea with _$NavitiaStopArea {
+  const factory NavitiaStopArea({required String id, required String name}) =
+      _NavitiaStopArea;
 
   factory NavitiaStopArea.fromJson(Map<String, dynamic> json) =>
       _$NavitiaStopAreaFromJson(json);

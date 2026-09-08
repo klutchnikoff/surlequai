@@ -6,9 +6,8 @@ part of 'timetable_version.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$TimetableVersionImpl _$$TimetableVersionImplFromJson(
-        Map<String, dynamic> json) =>
-    _$TimetableVersionImpl(
+_TimetableVersion _$TimetableVersionFromJson(Map<String, dynamic> json) =>
+    _TimetableVersion(
       version: json['version'] as String,
       region: json['region'] as String,
       validFrom: DateTime.parse(json['validFrom'] as String),
@@ -17,8 +16,7 @@ _$TimetableVersionImpl _$$TimetableVersionImplFromJson(
       sizeBytes: (json['sizeBytes'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$TimetableVersionImplToJson(
-        _$TimetableVersionImpl instance) =>
+Map<String, dynamic> _$TimetableVersionToJson(_TimetableVersion instance) =>
     <String, dynamic>{
       'version': instance.version,
       'region': instance.region,

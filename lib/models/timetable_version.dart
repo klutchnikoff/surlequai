@@ -4,7 +4,7 @@ part 'timetable_version.freezed.dart';
 part 'timetable_version.g.dart';
 
 @freezed
-class TimetableVersion with _$TimetableVersion {
+abstract class TimetableVersion with _$TimetableVersion {
   const factory TimetableVersion({
     required String version,
     required String region,
