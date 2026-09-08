@@ -17,9 +17,9 @@
 
 SurLeQuai a été conçu en réaction aux applications "usines à gaz". Ici, l'objectif est unique : vous donner l'heure de votre train le plus vite possible.
 
-*   🚫 **Pas de compte** : Vos données ne quittent jamais votre téléphone.
+*   🚫 **Pas de compte** : Vos favoris sont conservés sur votre téléphone.
 *   🚫 **Pas de publicité** : Aucune distraction visuelle.
-*   🚫 **Pas de traqueur** : Nous ne savons pas qui vous êtes ni où vous allez.
+*   🚫 **Pas de traqueur** : Aucun outil de suivi publicitaire.
 *   ❤️ **100% Libre** : Code Open Source transparent (Licence MIT).
 
 ## 🚀 Fonctionnalités Clés
@@ -28,6 +28,21 @@ SurLeQuai a été conçu en réaction aux applications "usines à gaz". Ici, l'o
 *   **Widget Natif** : Vos prochains départs sur l'écran d'accueil, sans ouvrir l'app.
 *   **Intelligent** : L'ordre des trajets s'inverse automatiquement (Matin/Soir).
 *   **Hors-ligne** : Les fiches horaires restent accessibles même sans réseau.
+
+## 🛠 Développement
+
+Utiliser Flutter 3.47 (Dart 3.13) et Java 21 pour Android. Sur macOS avec Homebrew :
+
+```sh
+brew install openjdk@21
+flutter config --jdk-dir="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
+flutter pub get
+flutter analyze
+flutter test
+```
+
+Les commandes de génération, de compilation et les particularités des widgets
+sont décrites dans [l'architecture technique](docs/ARCHITECTURE.md).
 
 ## 📥 Installation
 

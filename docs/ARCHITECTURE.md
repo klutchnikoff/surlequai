@@ -3,89 +3,95 @@ layout: default
 title: Architecture Technique
 ---
 
-# Architecture Technique de SurLeQuai
+# Architecture technique de SurLeQuai
 
-Ce document décrit les choix techniques, l'architecture logicielle et les patterns utilisés dans le projet **SurLeQuai**.
+## Données et affichage
 
-## 🏗 Vue d'ensemble
+`ApiService` interroge Navitia et transforme ses réponses en modèles Freezed.
+`Departure.scheduledTime` est l'heure théorique ; `effectiveTime` applique le retard
+une seule fois. Les annulations signalées par `NO_SERVICE` restent distinctes.
 
-SurLeQuai est une application Flutter (iOS/Android) conçue pour la rapidité et la robustesse. Elle s'appuie sur une architecture en couches claire :
+`RealtimeService` retourne un `DeparturesResult` contenant les départs, la date de
+réception et leur provenance réseau/cache. Une réponse réseau vide est valide et
+remplace le cache précédent. En cas d'échec, les horaires locaux sont affichés en
+mode hors ligne, sans conserver une ancienne voie ou un retard comme information
+actuelle. La date de réception ne change pas lors de cette relecture.
 
-1.  **UI (Flutter & Widgets Natifs)** : Affichage des données.
-2.  **State Management (Provider)** : Gestion de l'état applicatif.
-3.  **Domain (Models)** : Objets métiers immuables (Freezed).
-4.  **Data (Services)** : Accès API et persistance.
-5.  **Backend (Proxy)** : Cloudflare Worker pour la sécurité.
+`StorageService` conserve les derniers départs par direction dans des fichiers
+JSON écrits par remplacement atomique. Le cache version 2 expire après 48 heures ;
+les anciens fichiers sont ignorés car leur horaire pouvait déjà inclure le retard.
+Ce cache n'est pas un calendrier ferroviaire complet.
 
-## 🛠 Stack Technique
+Les fiches horaires théoriques utilisent un cache séparé dans SharedPreferences.
+Sa clé inclut le début de journée de service choisi dans les paramètres. `ServiceDay`
+calcule les limites en jours civils, y compris lors des changements d'heure.
+L'action « vider le cache » nettoie les deux caches et les données affichées.
 
-*   **Framework** : Flutter 3.x
-*   **Langage** : Dart
-*   **State Management** : `provider` (Simple, efficace pour l'injection de dépendance).
-*   **Modélisation** : `freezed` + `json_serializable` (Immuabilité, parsing JSON sécurisé, Unions).
-*   **API Client** : `http` avec une couche d'abstraction custom.
-*   **Widgets Natifs** : `home_widget` pour le pont Dart <-> Kotlin/Swift.
-*   **Backend** : Cloudflare Worker (JavaScript) pour l'injection de clé API et le rate-limiting.
+## État et concurrence
 
-## 🧠 Concepts Clés
+`TripProvider.ready` rend les favoris et le cache disponibles sans attendre le
+réseau. Le trajet actif est mémorisé. Chaque requête capture son trajet, et les
+requêtes simultanées sur le même trajet sont regroupées. Une réponse tardive ne
+remplace pas les données du nouveau trajet sélectionné.
 
-### 1. Logique Partagée (Le "Cerveau")
+Les listes métier restent toujours A→B et B→A. `DirectionCardViewModel` et
+`WidgetService` appliquent l'ordre matin/soir à l'affichage seulement.
 
-L'un des défis majeurs était de synchroniser l'affichage de l'application Flutter et des Widgets natifs (iOS/Android).
-Nous avons résolu cela via le pattern **Shared ViewModel**.
+Au premier plan, l'affichage est recalculé toutes les 15 secondes. Les appels
+réseau ont lieu toutes les 60 secondes, ou toutes les 5 minutes après un échec,
+et à la reprise de l'application. Une actualisation requiert deux appels par
+trajet, un par direction. Les autres favoris sont actualisés au plus toutes les
+5 minutes, sauf demande manuelle. Le timer est suspendu en arrière-plan.
 
-*   **`DirectionCardViewModel`** : Une classe scellée (`sealed class`) qui contient toute la logique d'affichage :
-    *   Quel train afficher (le prochain, ou celui de demain matin ?)
-    *   Quelle couleur utiliser (Vert = à l'heure, Orange = retard) ?
-    *   Quel texte afficher ("À l'heure", "+5 min") ?
-*   **Utilisation** :
-    *   L'App Flutter l'utilise pour rendre les cartes (`DirectionCard`).
-    *   Le `WidgetService` l'utilise pour préparer les données brutes (`String`) envoyées au code natif.
+## Widgets
 
-**Gain** : Zéro duplication de logique. Si on change la règle d'affichage d'un retard, l'app et les widgets sont mis à jour simultanément.
+Le ViewModel Dart prépare les textes et statuts communs aux deux plateformes.
+Les publications du provider sont sérialisées. Le callback de fond relit les
+favoris avant de publier pour détecter une modification pendant la requête.
 
-### 2. Robustesse des Données
+- **Android** : données partagées via `home_widget`, ouverture du bon favori même
+  au démarrage à froid. WorkManager programme une actualisation à partir d'une
+  date complète, avec repli à 5 minutes sans départ connu et relance périodique de
+  secours. Android peut différer ces travaux selon les contraintes d'énergie.
+- **iOS 17+** : extension WidgetKit configurable par favori, formats petit et moyen.
+  Un instantané JSON contient les étapes d'affichage aux passages de trains et
+  changements de journée. Après 5 minutes, l'instantané affiche les informations
+  comme hors ligne. Le widget ne fait pas d'appel SNCF autonome : ouvrir l'app
+  renouvelle ses données. iOS contrôle les heures réelles de rafraîchissement.
 
-Nous utilisons **Freezed** pour tous les modèles :
-*   **DTOs (`lib/models/navitia/`)** : Modèles miroirs de l'API Navitia. Parsing strict et sécurisé.
-*   **Domain (`lib/models/`)** : `Trip`, `Station`, `Departure`. Immuables avec `copyWith`.
+Runner et l'extension partagent l'App Group `group.com.surlequai.app`. Pour un
+appareil réel, il faut activer cet identifiant dans le compte Apple et dans les
+profils de signature des deux cibles.
 
-### 3. Gestion de l'API (Bon Citoyen)
+## Proxy
 
-L'application respecte les quotas de l'API Navitia/SNCF grâce à une stratégie de **Throttling** dans `TripProvider` :
-*   **Au lancement / Navigation** : Seul le trajet actif est mis à jour (1 appel).
-*   **En arrière-plan** : Les autres trajets ne sont mis à jour que si le cache a plus de 5 minutes.
-*   **Pull-to-refresh** : Force la mise à jour de tous les trajets (Action utilisateur explicite).
+Le Worker injecte le secret SNCF, filtre les routes et construit explicitement
+les en-têtes transmis. Son limiteur natif Cloudflare remplace l'ancien compteur
+KV. Voir [la documentation du proxy](../cloudflare-worker/README.md) pour sa
+configuration et les limites de cette protection. BYOK utilise une clé locale
+conservée dans `flutter_secure_storage` et contacte SNCF directement.
 
-### 4. Sécurité (Proxy)
+## Développement et vérifications
 
-Les clés API ne sont **jamais** stockées dans l'application compilée.
-*   L'app appelle un Proxy Cloudflare (`worker.js`).
-*   Le Proxy injecte la clé API secrète et transfère la requête à Navitia.
-*   Exceptions : Mode "BYOK" (Bring Your Own Key) où l'utilisateur peut saisir sa propre clé, stockée dans le `FlutterSecureStorage`.
+La chaîne de génération utilise Flutter 3.47 / Dart 3.13 et Freezed 4.
+Java 21 est compatible avec le Gradle Android actuel (8.14). AndroidX Glance est
+fixé à 1.1.1 dans le projet pour éviter la sélection d’une version alpha par la
+dépendance dynamique de `home_widget 0.9`. Les coroutines sont fixées à 1.10.2 et
+WorkManager à 2.9.0 pour stabiliser également les deux autres dépendances
+dynamiques du plugin. WorkManager reste compatible avec sa cible Java 8.
 
-## 📂 Structure du Code
-
+```sh
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze
+flutter test
+npm --prefix cloudflare-worker test
+flutter build apk --debug
+flutter build ios --simulator --debug
 ```
-lib/
-├── models/          # Objets métiers (Freezed)
-│   └── navitia/     # DTOs de l'API Navitia
-├── screens/         # Écrans Flutter (Scaffold)
-├── services/        # Logique métier (API, Stockage, Calculs)
-│   ├── api_service.dart    # Client HTTP centralisé
-│   ├── trip_provider.dart  # State Management & Orchestration
-│   └── widget_service.dart # Pont vers iOS/Android
-├── widgets/         # Composants UI réutilisables
-│   └── direction_card.dart # La carte principale
-└── utils/           # Constantes et Helpers
-```
 
-## 🧪 Tests
-
-La qualité est assurée par une suite de tests unitaires :
-*   **API** : Tests avec mock HTTP pour valider le parsing et les erreurs 401/404.
-*   **Logic** : Tests exhaustifs de `DirectionCardViewModel` (injection de temps pour tester les cas "demain", "retard").
-*   **Services** : Tests de `WidgetService` avec mock des Platform Channels.
-
----
-*Dernière mise à jour : Janvier 2026*
+Les tests couvrent le parsing API, les retards et annulations, le repli hors ligne,
+l'âge du cache, les changements de trajet pendant une requête, le passage du temps,
+les écritures des widgets et la fermeture des écrans pendant un chargement.
+Les tests natifs sur appareil restent nécessaires pour la signature iOS, la
+configuration des widgets et les contraintes de rafraîchissement du système.
