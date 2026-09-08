@@ -1,37 +1,38 @@
-DESCRIPTION COMPLÈTE (Français - fr-FR)
-=====================================
+SurLeQuai
+Vos horaires TER, directement sur le quai
 
-⚠️ APPLICATION NON OFFICIELLE - Cette application n'est pas affiliée à la SNCF ni à aucune entité gouvernementale. Il s'agit d'un projet indépendant open-source utilisant des données publiques.
+APPLICATION INDÉPENDANTE
+SurLeQuai est une application indépendante et non officielle. Elle ne représente aucune entité gouvernementale et n’est ni affiliée à un gouvernement ni mandatée par celui-ci. Elle n’est pas affiliée à la SNCF et n’est pas une application officielle de la SNCF.
 
-Consultez vos horaires de trains TER en temps réel, directement sur le quai.
+SOURCE DES DONNÉES
+Les horaires et les informations de circulation affichés proviennent de l’API publique SNCF. Leur disponibilité dépend des données fournies par cette API.
+Présentation officielle de l’API SNCF :
+https://numerique.sncf.com/ressources/api/
+Informations officielles sur les données accessibles et les conditions d’accès :
+https://numerique.sncf.com/faq/api/
+L’utilisation de cette API ne constitue pas une affiliation à la SNCF ou à une entité gouvernementale.
 
-Prochains départs TER affichés avec retards et informations de voie (si disponibles). Simple, rapide, sans compte ni publicité.
+Consultez les prochains départs TER en temps réel, avec affichage des retards et des voies lorsque ces informations sont disponibles. Simple, rapide, sans compte ni publicité.
 
 FONCTIONNALITÉS
-- Horaires temps réel (départs, retards, suppressions)
-- Suivi multi-trajets (domicile-travail, etc.)
-- Widget écran d'accueil
-- Mode hors-ligne avec cache
-- Tri automatique matin/soir
-- Mode sombre
+- Horaires temps réel (départs, retards, annulations, selon les données disponibles) ;
+- Multi-trajets (domicile-travail, etc.) ;
+- Widget sur l’écran d’accueil ;
+- Mode hors ligne avec cache ;
+- Ordre automatique matin/soir ;
+- Mode sombre.
 
 VIE PRIVÉE
-- Aucun compte requis
-- Aucune publicité
-- Aucun traqueur
-- Toutes vos données restent sur votre appareil
+- Aucun compte requis dans SurLeQuai ;
+- Aucune publicité ;
+- Aucun outil de suivi publicitaire ;
+- Vos favoris et les horaires mis en cache sont conservés sur votre appareil.
+Les recherches de gares et de trajets sont transmises à l’API SNCF via le proxy de SurLeQuai, ou directement à la SNCF si vous configurez une clé API personnelle (utilisateurs avancés).
 
-DONNÉES & SOURCES OFFICIELLES
-- API utilisée : Navitia (SNCF) - https://api.sncf.com
-- Documentation API : https://doc.navitia.io
-- Portail développeur : https://numerique.sncf.com
-- Open Data SNCF : https://www.sncf.com/fr/groupe/open-data
-- Portail national : https://transport.data.gouv.fr
-- Accès aux données via proxy anonyme ou clé API personnelle (utilisateurs avancés)
+LOGICIEL LIBRE
+Code source disponible sur GitHub sous licence MIT :
+https://github.com/klutchnikoff/surlequai
 
-OPEN SOURCE
-- Code source complet disponible sur GitHub
-- Licence MIT
-- Projet communautaire transparent
-
-Cette application utilise des données publiques mises à disposition par la SNCF mais n'est pas un service officiel de la SNCF. Pour les informations officielles, veuillez consulter les sites web et applications officiels de la SNCF.
+---
+Développé avec ❤️ pour les voyageurs TER.
+Contact : nicolas.klutchnikoff@gmail.com
