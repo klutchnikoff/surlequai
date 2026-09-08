@@ -76,6 +76,44 @@ struct TrainEntry: TimelineEntry {
     let frame: WidgetFrame?
 }
 
+/// Cadence des rechargements de timeline.
+///
+/// Le quota de l'API amont est partagé par tous les utilisateurs : une timeline
+/// est redemandée souvent à l'approche d'un départ, rarement le reste du temps,
+/// et pas du tout la nuit. Les entrées déjà connues continuent de s'afficher
+/// entre-temps, sans appel réseau.
+enum RefreshBudget {
+    // Fenêtre courte : sur une ligne desservie toutes les demi-heures, une
+    // fenêtre large maintiendrait la cadence fine en permanence.
+    static let preciseWindow: TimeInterval = 15 * 60
+    static let preciseInterval: TimeInterval = 10 * 60
+    static let idleInterval: TimeInterval = 30 * 60
+    static let activeFromHour = 5
+    static let activeUntilHour = 23
+
+    static func nextRefresh(after now: Date, nextDeparture: Date?, calendar: Calendar = .current) -> Date {
+        if let resume = resumeDate(after: now, calendar: calendar) { return resume }
+        guard let nextDeparture, nextDeparture > now else {
+            return now.addingTimeInterval(idleInterval)
+        }
+        let untilDeparture = nextDeparture.timeIntervalSince(now)
+        if untilDeparture <= preciseWindow {
+            return now.addingTimeInterval(min(preciseInterval, untilDeparture))
+        }
+        return now.addingTimeInterval(min(idleInterval, untilDeparture - preciseWindow))
+    }
+
+    /// Début de la prochaine plage active, ou nil si elle est déjà ouverte.
+    static func resumeDate(after now: Date, calendar: Calendar = .current) -> Date? {
+        let hour = calendar.component(.hour, from: now)
+        if hour >= activeFromHour && hour < activeUntilHour { return nil }
+        let day = hour >= activeUntilHour
+            ? calendar.date(byAdding: .day, value: 1, to: now) ?? now
+            : now
+        return calendar.date(bySettingHour: activeFromHour, minute: 0, second: 0, of: day)
+    }
+}
+
 struct TrainProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> TrainEntry {
         TrainEntry(date: .now, trip: nil, frame: nil)
@@ -84,7 +122,14 @@ struct TrainProvider: AppIntentTimelineProvider {
         entries(configuration).first ?? placeholder(in: context)
     }
     func timeline(for configuration: TripConfiguration, in context: Context) async -> Timeline<TrainEntry> {
-        Timeline(entries: entries(configuration), policy: .after(Date().addingTimeInterval(15 * 60)))
+        let items = entries(configuration)
+        // La première entrée décrit l'instant présent ; la suivante correspond au
+        // prochain changement d'affichage, donc au prochain départ connu.
+        let nextDeparture = items.dropFirst().first?.date
+        return Timeline(
+            entries: items,
+            policy: .after(RefreshBudget.nextRefresh(after: Date(), nextDeparture: nextDeparture))
+        )
     }
     private func entries(_ configuration: TripConfiguration) -> [TrainEntry] {
         let now = Date()

@@ -245,9 +245,7 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
                 val selected = prefs.getString("widget_${id}_trip_id", null)
                 prefs.getString("trip_${selected}_next_departure", null)?.toLongOrNull()
             }.filter { it > now }.minOrNull()
-            val delay = if (nextDeparture != null) {
-                minOf(TimeUnit.MINUTES.toMillis(5), maxOf(5000L, nextDeparture - now))
-            } else TimeUnit.MINUTES.toMillis(5)
+            val delay = RefreshBudget.nextDelay(now, nextDeparture)
 
             // Planifier le Worker
             try {
@@ -255,11 +253,13 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
                 // Retirer les tâches par widget des versions précédentes.
                 manager.cancelUniqueWork("widget_refresh_$appWidgetId")
                 // Relance même si le précédent callback Dart n'a pas pu terminer.
+                // UPDATE et non KEEP : les installations existantes conserveraient
+                // sinon l'ancienne cadence de quinze minutes.
                 manager.enqueueUniquePeriodicWork(
                     "widget_refresh_backup",
-                    ExistingPeriodicWorkPolicy.KEEP,
-                    PeriodicWorkRequestBuilder<WidgetRefreshWorker>(15, TimeUnit.MINUTES)
-                        .setInitialDelay(15, TimeUnit.MINUTES).build()
+                    ExistingPeriodicWorkPolicy.UPDATE,
+                    PeriodicWorkRequestBuilder<WidgetRefreshWorker>(30, TimeUnit.MINUTES)
+                        .setInitialDelay(30, TimeUnit.MINUTES).build()
                 )
                 val workRequest = OneTimeWorkRequestBuilder<WidgetRefreshWorker>()
                     .setInitialDelay(delay, TimeUnit.MILLISECONDS)

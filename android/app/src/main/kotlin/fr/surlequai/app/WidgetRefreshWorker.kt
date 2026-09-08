@@ -11,6 +11,13 @@ class WidgetRefreshWorker(context: Context, params: WorkerParameters) : Worker(c
     override fun doWork(): Result {
         Log.d("SurLeQuai", "WidgetRefreshWorker: doWork() started")
 
+        // Le réveil périodique de secours ne doit pas interroger l'API la nuit :
+        // personne ne consulte ses horaires, et le quota est partagé.
+        if (!RefreshBudget.isActive(System.currentTimeMillis())) {
+            Log.d("SurLeQuai", "WidgetRefreshWorker: hors plage active, aucun appel")
+            return Result.success()
+        }
+
         return try {
             // Déclencher le callback Dart via le plugin home_widget
             // HomeWidgetBackgroundIntent retourne un PendingIntent
