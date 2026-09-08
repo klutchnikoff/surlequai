@@ -1,207 +1,47 @@
-# SurLeQuai - Proxy Cloudflare Worker
+# Proxy SurLeQuai
 
-Proxy transparent pour l'API SNCF/Navitia utilisé par l'application mobile SurLeQuai.
+Ce Worker ajoute la clé SNCF aux requêtes de l'application. Il accepte `GET` et
+`OPTIONS` sur les ressources `coverage/sncf/journeys`, `places` et
+`stop_areas/{id}/departures`. Le préfixe historique `/api` reste accepté.
 
-## 🔒 Transparence et Vie Privée
+Les seuls en-têtes envoyés à SNCF sont `Authorization` et `Accept`. Le Worker ne
+transmet pas les cookies, l'autorisation du client ou ses en-têtes d'adresse IP.
+Les redirections amont sont refusées et la requête expire après neuf secondes.
+CORS autorise les origines web ; ce mécanisme ne réserve pas le proxy à l'app.
 
-Ce Worker est conçu avec la transparence et le respect de la vie privée comme priorité absolue :
+## Protection et données
 
-### ❌ Ce que nous NE faisons PAS
-- ❌ **Aucun logging des requêtes** - Nous ne stockons AUCUNE trace des requêtes utilisateur
-- ❌ **Aucune donnée personnelle** - Pas de stockage de gares, trajets, ou horaires consultés
-- ❌ **Aucun tracking individuel** - Impossible de savoir qui a fait quelle requête
-- ❌ **Aucune donnée de localisation** - Les IPs ne sont jamais stockées (uniquement hashées temporairement pour le rate limiting)
+Le binding natif `RATE_LIMITER` limite à 100 requêtes par période de 60 secondes
+et par clé. La clé est un HMAC de l'IP avec le secret API et une rotation horaire.
+Il s'agit d'une protection approximative locale au point de présence Cloudflare,
+pas d'un quota global strict. Une panne du limiteur produit une réponse 503 ;
+un dépassement produit une réponse 429 avec `Retry-After: 60`.
 
-### ✅ Ce que nous faisons
-- ✅ **Compteur global anonyme** - Un simple nombre total de requêtes (ex: "150 000 requêtes depuis le lancement")
-- ✅ **Rate limiting anonyme** - Hash temporaire des IPs (60 secondes) pour éviter les abus, puis suppression automatique
-- ✅ **Code open source** - 100% auditable et transparent
-- ✅ **Pas de tiers** - Aucune intégration avec des services d'analytics, tracking, ou publicité
+`STATS_KV` ne contient que `stats:total_requests`, un compteur global indicatif
+(non atomique). Le Worker ne stocke pas les trajets ni les IP en clair dans KV.
+Voir [TRANSPARENCY.md](TRANSPARENCY.md) pour le périmètre exact de ces garanties.
 
-## 📊 Données stockées
+## Vérification locale
 
-### KV Namespace: `RATE_LIMIT_KV`
-- **Clé** : `rl:{hash_ip_temporaire}` (hash SHA-256 avec salt horaire)
-- **Valeur** : Compteur de requêtes (integer)
-- **TTL** : 60 secondes (suppression automatique)
-- **Réversibilité** : ❌ Impossible de retrouver l'IP d'origine (hash + salt horaire)
+Avec Node.js 22 ou ultérieur, sans dépendance ni secret :
 
-### KV Namespace: `STATS_KV`
-- **Clé** : `stats:total_requests`
-- **Valeur** : Compteur global (integer)
-- **Usage** : Afficher "X requêtes traitées" sur la page de stats publique
-
-**Aucune autre donnée n'est stockée.**
-
-## 🚀 Déploiement
-
-### Prérequis
-
-1. Compte Cloudflare (gratuit)
-2. Domaine configuré sur Cloudflare (`surlequai.app`)
-3. Node.js et npm installés
-4. Wrangler CLI installé :
-
-```bash
-npm install -g wrangler
+```sh
+npm test
 ```
 
-### Étape 1 : Authentification Cloudflare
+Les tests couvrent les routes, les en-têtes amont, la limitation et les erreurs.
 
-```bash
-wrangler login
-```
+## Déploiement
 
-### Étape 2 : Créer les KV Namespaces
+Le déploiement est une opération distincte des modifications de l'application.
 
-```bash
-# Créer le namespace pour le rate limiting
-wrangler kv:namespace create "RATE_LIMIT_KV"
+1. Vérifier le compte Cloudflare et le nom du Worker dans `wrangler.toml`.
+2. Vérifier que `namespace_id = "1001"` du limiteur est réservé à ce Worker.
+3. Renseigner l'ID de `STATS_KV` correspondant à ce compte.
+4. Configurer le secret avec `npx wrangler secret put NAVITIA_API_KEY`.
+5. Déployer avec `npx wrangler deploy` et vérifier le domaine configuré.
 
-# Créer le namespace pour les stats
-wrangler kv:namespace create "STATS_KV"
-```
+L'ancien binding `RATE_LIMIT_KV` n'est plus utilisé. Le namespace existant peut
+être supprimé après vérification qu'aucun autre Worker ne l'utilise.
 
-Notez les IDs retournés et remplacez-les dans `wrangler.toml`.
-
-### Étape 3 : Stocker la clé API SNCF
-
-**⚠️ IMPORTANT** : Ne JAMAIS commiter la clé API dans le code !
-
-```bash
-wrangler secret put NAVITIA_API_KEY
-# Entrez votre clé API SNCF quand demandé
-```
-
-### Étape 4 : Déployer le Worker
-
-```bash
-wrangler deploy
-```
-
-### Étape 5 : Configurer le domaine
-
-Dans le dashboard Cloudflare :
-1. Allez dans **Workers & Pages**
-2. Sélectionnez votre Worker `surlequai-proxy`
-3. Allez dans **Settings** > **Triggers**
-4. Ajoutez une route : `proxy.surlequai.app/api/*`
-
-### Étape 6 : Tester
-
-```bash
-curl https://proxy.surlequai.app/api/coverage/sncf/places?q=Rennes
-```
-
-Vous devriez recevoir une réponse JSON de l'API SNCF.
-
-## 📝 Mise à jour du code de l'app
-
-Une fois le Worker déployé, mettez à jour l'URL du proxy dans l'app Flutter :
-
-```dart
-// lib/utils/navitia_config.dart
-static const String proxyUrl = 'https://proxy.surlequai.app/api';
-```
-
-## 🔧 Maintenance
-
-### Voir les logs (sans données personnelles)
-
-```bash
-wrangler tail
-```
-
-Les logs ne contiennent que :
-- Erreurs génériques (pas de détails de requête)
-- Statut HTTP des réponses
-
-### Voir les stats globales
-
-```bash
-wrangler kv:key get "stats:total_requests" --namespace-id=VOTRE_STATS_KV_ID
-```
-
-### Mettre à jour le Worker
-
-Après modification du code :
-
-```bash
-wrangler deploy
-```
-
-## 💰 Coûts
-
-**Workers Free Tier :**
-- 100 000 requêtes / jour
-- 10 ms CPU time / requête
-- Largement suffisant pour une app en phase de lancement
-
-**Si dépassement :**
-- Workers Paid : $5/mois pour 10 millions de requêtes
-- KV : $0.50/million de lectures (très peu utilisé ici)
-
-**Estimation pour 1000 utilisateurs actifs/jour :**
-- ~50 000 requêtes/jour (50 requêtes/utilisateur)
-- ✅ Reste dans le Free Tier
-
-## 🔐 Sécurité
-
-### Rate Limiting
-- 100 requêtes/minute par IP
-- Hash temporaire (60s) pour éviter les abus
-- Pas de stockage permanent des IPs
-
-### Protection contre les abus
-- Le Worker refuse les requêtes trop volumineuses
-- CORS configuré pour accepter uniquement les requêtes de l'app
-- Pas de requêtes POST/PUT/DELETE (lecture seule)
-
-### Rotation de la clé API
-Si vous devez changer la clé API SNCF :
-
-```bash
-wrangler secret put NAVITIA_API_KEY
-# Entrez la nouvelle clé
-```
-
-Effet immédiat, pas besoin de redéployer.
-
-## 📚 Documentation API
-
-Le Worker est un proxy transparent. Toutes les routes de l'API Navitia sont accessibles :
-
-```
-https://proxy.surlequai.app/api/coverage/sncf/places?q=...
-https://proxy.surlequai.app/api/coverage/sncf/journeys?from=...&to=...
-https://proxy.surlequai.app/api/coverage/sncf/stop_areas/.../departures
-```
-
-Voir la doc officielle : https://doc.navitia.io/
-
-## 🤝 Contributions
-
-Le code de ce Worker est public et auditable. N'hésitez pas à :
-- Auditer le code pour vérifier qu'il respecte bien la vie privée
-- Proposer des améliorations
-- Signaler des problèmes de sécurité
-
-## 📄 Licence
-
-MIT - Voir LICENSE
-
-## ⚖️ Mentions légales
-
-**Hébergement** : Cloudflare Workers (infrastructure mondiale)
-
-**Données personnelles** :
-- Aucune donnée personnelle n'est collectée ou stockée
-- Pas de cookies, pas de tracking, pas d'analytics
-- Les IPs sont hashées temporairement (60s) pour le rate limiting puis supprimées
-- Conforme RGPD par design (privacy by design)
-
-**Responsable du traitement** : [Votre nom/entreprise]
-
-**Contact** : [Votre email]
-
-Pour toute question sur la vie privée ou la transparence de ce service, n'hésitez pas à nous contacter.
+Documentation du [limiteur natif Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).

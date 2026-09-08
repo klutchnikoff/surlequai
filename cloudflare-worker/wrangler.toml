@@ -1,24 +1,18 @@
 name = "surlequai"
 main = "worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-09-08"
 
-# Workers Free tier : 100 000 requêtes/jour
-# Largement suffisant pour une app en phase de lancement
-
-# KV Namespaces pour rate limiting et stats
-# Ces KV sont UNIQUEMENT utilisés pour :
-# - Rate limiting temporaire (TTL 60s, hash d'IP, pas de stockage permanent)
-# - Compteur global anonyme de requêtes totales
-[[kv_namespaces]]
-binding = "RATE_LIMIT_KV"
-id = "7c2919fdde1b4456a9900c2d15f2de67"
+# Limiteur natif Cloudflare : pas de compteur get/put KV ni de TTL renouvelé.
+# namespace_id doit être réservé à SurLeQuai dans ce compte.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 100, period = 60 }
 
 [[kv_namespaces]]
 binding = "STATS_KV"
 id = "d29ca273952046f2aeb72bd7a09ba64e"
 
-# Variables d'environnement
-# ⚠️ NE JAMAIS commiter la clé API dans le repo !
-# Utiliser `wrangler secret put NAVITIA_API_KEY` pour la stocker de manière sécurisée
-[vars]
-# NAVITIA_API_KEY sera défini via wrangler secret
+# Secret inchangé : wrangler secret put NAVITIA_API_KEY
+[observability]
+enabled = false

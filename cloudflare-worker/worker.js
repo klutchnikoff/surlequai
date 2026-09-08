@@ -1,202 +1,75 @@
-/**
- * SurLeQuai Cloudflare Worker - Proxy API SNCF
- *
- * Ce Worker sert de proxy transparent entre l'application mobile SurLeQuai
- * et l'API Navitia (SNCF). Il ajoute automatiquement la clé API SNCF aux
- * requêtes pour éviter d'exposer la clé dans le code de l'application.
- *
- * TRANSPARENCE ET VIE PRIVÉE :
- * - ❌ AUCUN logging des requêtes utilisateur
- * - ❌ AUCUNE donnée personnelle stockée
- * - ✅ Compteurs globaux anonymes uniquement (nombre total de requêtes)
- * - ✅ Rate limiting basique sans identification individuelle
- * - ✅ Code source public et auditable
- *
- * @version 1.0.0
- * @license MIT
- */
+/** Proxy SNCF : aucun en-tête utilisateur n'est transmis à l'amont. */
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
 
-// Configuration
-const NAVITIA_API_URL = 'https://api.sncf.com/v1';
-const RATE_LIMIT_MAX = 100; // Requêtes max par IP par minute
-const RATE_LIMIT_WINDOW = 60000; // Fenêtre de 60 secondes
-
-/**
- * Point d'entrée principal du Worker
- */
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
-
-/**
- * Gère une requête entrante
- *
- * @param {Request} request - Requête HTTP entrante
- * @returns {Promise<Response>} - Réponse HTTP
- */
-async function handleRequest(request) {
-  // CORS preflight
-  if (request.method === 'OPTIONS') {
-    return handleCORS();
-  }
-
-  try {
-    // Vérification du rate limiting (sans stocker d'identifiant personnel)
-    const rateLimitResponse = await checkRateLimit(request);
-    if (rateLimitResponse) {
-      return rateLimitResponse;
-    }
-
-    // Extraire le chemin de l'API depuis l'URL de la requête
-    const url = new URL(request.url);
-    const apiPath = url.pathname.replace('/api/', '');
-    const queryString = url.search;
-
-    // Construire l'URL complète vers l'API Navitia
-    const navitiaUrl = `${NAVITIA_API_URL}/${apiPath}${queryString}`;
-
-    // Créer les headers avec authentification
-    const headers = new Headers(request.headers);
-    headers.set('Authorization', `Basic ${btoa(NAVITIA_API_KEY + ':')}`);
-    headers.delete('host'); // Supprimer le host d'origine
-
-    // Transférer la requête à l'API Navitia
-    const navitiaResponse = await fetch(navitiaUrl, {
-      method: request.method,
-      headers: headers,
-      body: request.method !== 'GET' ? request.body : undefined,
-    });
-
-    // Créer la réponse avec les headers CORS
-    const response = new Response(navitiaResponse.body, {
-      status: navitiaResponse.status,
-      statusText: navitiaResponse.statusText,
-      headers: navitiaResponse.headers,
-    });
-
-    // Ajouter les headers CORS
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-
-    // ✅ Incrémenter le compteur global ANONYME (pas de tracking individuel)
-    await incrementGlobalCounter();
-
-    return response;
-
-  } catch (error) {
-    // En cas d'erreur, retourner une erreur générique
-    // ❌ NE PAS logger l'erreur avec des détails de requête
-    return new Response(
-      JSON.stringify({ error: 'Proxy error', message: error.message }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
-  }
-}
-
-/**
- * Gère les requêtes CORS preflight
- *
- * @returns {Response} - Réponse CORS
- */
-function handleCORS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400', // 24 heures
-    },
+function errorResponse(status, message, headers = {}) {
+  return new Response(JSON.stringify({ error: message }), {
+    status, headers: { ...cors, 'Content-Type': 'application/json', ...headers },
   });
 }
 
-/**
- * Vérifie le rate limiting de manière ANONYME
- *
- * ⚠️ IMPORTANT : Cette fonction NE STOCKE PAS les IPs individuelles.
- * Elle utilise uniquement un hash non-réversible pour le rate limiting.
- *
- * @param {Request} request - Requête HTTP
- * @returns {Promise<Response|null>} - Response si rate limit dépassé, null sinon
- */
-async function checkRateLimit(request) {
-  // Pour éviter de stocker les IPs, on utilise un hash non-réversible
-  // avec un salt qui change toutes les heures
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const hourSalt = Math.floor(Date.now() / 3600000); // Change chaque heure
-  const ipHash = await hashString(`${ip}-${hourSalt}`);
-
-  // Utiliser KV pour stocker les compteurs (avec TTL automatique)
-  // Note : RATE_LIMIT_KV doit être configuré dans wrangler.toml
-  try {
-    const key = `rl:${ipHash}`;
-    const count = await RATE_LIMIT_KV.get(key);
-    const currentCount = count ? parseInt(count) : 0;
-
-    if (currentCount >= RATE_LIMIT_MAX) {
-      return new Response(
-        JSON.stringify({
-          error: 'Rate limit exceeded',
-          message: 'Too many requests, please try again later',
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Retry-After': '60',
-          },
-        }
-      );
+export default {
+  async fetch(request, env, ctx) {
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    if (request.method !== 'GET') return errorResponse(405, 'Method not allowed', { Allow: 'GET, OPTIONS' });
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/^\/api\//, '/');
+    // Le proxy expose seulement les ressources utilisées par l'application.
+    if (!/^\/coverage\/sncf\/(journeys|places|stop_areas\/[^/]+\/departures)$/.test(path)) {
+      return errorResponse(404, 'Unknown endpoint');
     }
+    try {
+      const key = await rateLimitKey(request, env.NAVITIA_API_KEY);
+      const { success } = await env.RATE_LIMITER.limit({ key });
+      if (!success) return errorResponse(429, 'Too many requests', { 'Retry-After': '60' });
+    } catch (_) {
+      return errorResponse(503, 'Rate limiter unavailable', { 'Retry-After': '60' });
+    }
+    try {
+      const upstream = await fetch(`https://api.sncf.com/v1${path}${url.search}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${btoa(env.NAVITIA_API_KEY + ':')}`,
+          Accept: 'application/json',
+        },
+        redirect: 'error',
+        signal: AbortSignal.timeout(9000),
+      });
+      const headers = new Headers(cors);
+      headers.set('Content-Type', upstream.headers.get('Content-Type') || 'application/json');
+      headers.set('Cache-Control', 'no-store');
+      const retry = upstream.headers.get('Retry-After');
+      if (retry) headers.set('Retry-After', retry);
+      // Compteur indicatif : KV ne fournit pas d'incrément atomique.
+      ctx.waitUntil(incrementGlobalCounter(env));
+      return new Response(upstream.body, { status: upstream.status, headers });
+    } catch (_) {
+      return errorResponse(502, 'Upstream unavailable');
+    }
+  },
+};
 
-    // Incrémenter le compteur avec TTL de 60 secondes
-    await RATE_LIMIT_KV.put(key, (currentCount + 1).toString(), {
-      expirationTtl: 60,
-    });
-
-  } catch (error) {
-    // Si KV n'est pas disponible, laisser passer (fail open)
-    // ❌ NE PAS logger l'erreur avec l'IP
-  }
-
-  return null;
-}
-
-/**
- * Hash une chaîne de caractères (SHA-256)
- *
- * @param {string} str - Chaîne à hasher
- * @returns {Promise<string>} - Hash hexadécimal
- */
-async function hashString(str) {
+async function rateLimitKey(request, secret) {
+  if (!secret) throw new Error('Missing API secret');
   const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // HMAC à clé secrète : les IP ne sont pas conservées et ne peuvent pas être
+  // retrouvées par simple énumération d'un hash public. Rotation horaire.
+  const key = await crypto.subtle.importKey('raw', encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const bytes = await crypto.subtle.sign('HMAC', key,
+    encoder.encode(`surlequai-rate-limit:${Math.floor(Date.now() / 3600000)}:${ip}`));
+  return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/**
- * Incrémente un compteur global ANONYME
- *
- * ✅ Ce compteur est complètement anonyme - il compte juste le nombre
- * total de requêtes sans aucune information sur qui les fait.
- */
-async function incrementGlobalCounter() {
+async function incrementGlobalCounter(env) {
   try {
-    const key = 'stats:total_requests';
-    const count = await STATS_KV.get(key);
-    const newCount = count ? parseInt(count) + 1 : 1;
-    await STATS_KV.put(key, newCount.toString());
-  } catch (error) {
-    // Ignorer les erreurs de stats (non-bloquant)
+    const previous = Number(await env.STATS_KV.get('stats:total_requests')) || 0;
+    await env.STATS_KV.put('stats:total_requests', String(previous + 1));
+  } catch (_) {
+    // L'indisponibilité des statistiques n'affecte pas la réponse utilisateur.
   }
 }
