@@ -3,11 +3,22 @@ import assert from 'node:assert/strict';
 import worker from './worker.js';
 
 const originalFetch = globalThis.fetch;
-afterEach(() => { globalThis.fetch = originalFetch; });
-const context = { waitUntil(promise) { promise.catch(() => {}); } };
+const pending = [];
+afterEach(() => { globalThis.fetch = originalFetch; delete globalThis.caches; pending.length = 0; });
+const context = { waitUntil(promise) { pending.push(promise.catch(() => {})); } };
+const settled = () => Promise.all(pending.splice(0));
 function environment(limit = async () => ({ success: true })) {
   return { NAVITIA_API_KEY: 'test-key', RATE_LIMITER: { limit },
-    STATS_KV: { get: async () => null, put: async () => {} } };
+    STATS: { writeDataPoint() {} } };
+}
+// Cache de test : la réponse rangée n'est jamais consommée, seules ses copies le sont.
+function installCache() {
+  const store = new Map();
+  globalThis.caches = { default: {
+    async match(request) { const hit = store.get(request.url); return hit && hit.clone(); },
+    async put(request, response) { store.set(request.url, response); },
+  } };
+  return store;
 }
 
 test('forwards only authentication and Accept, with one slash after v1', async () => {
@@ -60,4 +71,62 @@ test('upstream errors do not expose internal details', async () => {
   const response = await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys'), environment(), context);
   assert.equal(response.status, 502);
   assert.doesNotMatch(await response.text(), /secret/);
+});
+
+test('truncates the seconds so a whole minute shares one upstream call', async () => {
+  const seen = [];
+  globalThis.fetch = async url => { seen.push(url); return new Response('{}'); };
+  await worker.fetch(new Request('https://proxy.test/coverage/sncf/stop_areas/A/departures?from_datetime=20260908T211732&count=10'), environment(), context);
+  await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys?datetime=20260908T211705&from=A'), environment(), context);
+  assert.equal(seen[0], 'https://api.sncf.com/v1/coverage/sncf/stop_areas/A/departures?from_datetime=20260908T211700&count=10');
+  assert.equal(seen[1], 'https://api.sncf.com/v1/coverage/sncf/journeys?datetime=20260908T211700&from=A');
+});
+
+test('serves a second caller from the shared cache without calling upstream', async () => {
+  installCache();
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return new Response('{"departures":[]}'); };
+  const url = 'https://proxy.test/coverage/sncf/stop_areas/A/departures?from_datetime=20260908T211710';
+  const first = await worker.fetch(new Request(url), environment(), context);
+  await settled();
+  // Une seconde plus tard, l'URL amont normalisée est la même.
+  const second = await worker.fetch(new Request(url.replace('211710', '211759')), environment(), context);
+  assert.equal(calls, 1);
+  assert.equal(first.headers.get('X-Cache'), 'MISS');
+  assert.equal(second.headers.get('X-Cache'), 'HIT');
+  assert.equal(await second.text(), '{"departures":[]}');
+});
+
+test('keeps stations for a day and schedules for a minute', async () => {
+  const store = installCache();
+  globalThis.fetch = async () => new Response('{}');
+  await worker.fetch(new Request('https://proxy.test/coverage/sncf/places?q=Rennes'), environment(), context);
+  await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys?from=A'), environment(), context);
+  await settled();
+  const ttl = url => store.get(url).headers.get('Cache-Control');
+  assert.equal(ttl('https://api.sncf.com/v1/coverage/sncf/places?q=Rennes'), 'max-age=86400');
+  assert.equal(ttl('https://api.sncf.com/v1/coverage/sncf/journeys?from=A'), 'max-age=60');
+});
+
+test('never shares an upstream failure', async () => {
+  const store = installCache();
+  globalThis.fetch = async () => new Response('{"error":"quota"}', { status: 429 });
+  const response = await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys?from=A'), environment(), context);
+  await settled();
+  assert.equal(response.status, 429);
+  assert.equal(store.size, 0);
+});
+
+test('a client is still served when the cache is unavailable', async () => {
+  globalThis.caches = { default: {
+    async match() { throw new Error('cache down'); },
+    put() { throw new Error('cache down'); },
+  } };
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return new Response('{"departures":[]}'); };
+  const response = await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys?from=A'), environment(), context);
+  await settled();
+  assert.equal(response.status, 200);
+  assert.equal(calls, 1);
+  assert.equal(await response.text(), '{"departures":[]}');
 });

@@ -11,11 +11,21 @@ avec la clé du service, mais ne transmet pas les en-têtes IP ou cookies du cli
 Le code applicatif du Worker :
 
 - ne journalise pas les requêtes et ne crée pas de cookies ;
-- ne stocke pas les gares, trajets ou IP en clair dans KV ;
+- n'associe aucune gare, aucun trajet et aucune adresse IP à un utilisateur ;
 - utilise un identifiant pseudonyme HMAC pour la protection contre les abus,
   calculé avec un secret et renouvelé chaque heure ;
 - transmet cet identifiant au limiteur natif Cloudflare, configuré sur 60 secondes ;
-- conserve dans `STATS_KV` un compteur global approximatif des réponses amont.
+- met en cache les réponses de l'API SNCF afin de les partager entre utilisateurs ;
+- comptabilise les réponses amont dans Analytics Engine, sans dimension propre
+  à un utilisateur.
+
+Le cache est indexé par la ressource demandée : sa clé contient les gares et la
+minute de consultation, jamais l'adresse IP ni un identifiant de client. Une
+entrée est donc partagée par tous ceux qui consultent la même gare au même
+moment, et rien ne permet de la rattacher à une personne. Les horaires sont
+conservés une minute, les recherches de gares une journée, et les réponses en
+erreur ne sont jamais mises en cache. Ce partage réduit le nombre d'appels
+transmis à SNCF.
 
 La période de limitation n'est pas une garantie de suppression des données
 techniques de l'hébergeur après 60 secondes. L'identifiant HMAC reste stable au
