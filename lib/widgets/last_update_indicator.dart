@@ -11,10 +11,7 @@ import 'package:surlequai/utils/formatters.dart';
 class LastUpdateIndicator extends StatefulWidget {
   final DateTime? lastUpdate;
 
-  const LastUpdateIndicator({
-    super.key,
-    required this.lastUpdate,
-  });
+  const LastUpdateIndicator({super.key, required this.lastUpdate});
 
   @override
   State<LastUpdateIndicator> createState() => _LastUpdateIndicatorState();
@@ -46,7 +43,7 @@ class _LastUpdateIndicatorState extends State<LastUpdateIndicator> {
   Widget build(BuildContext context) {
     if (widget.lastUpdate == null) {
       return Text(
-        'Chargement...',
+        'Aucune donnée récente',
         style: TextStyle(
           fontSize: 12,
           color: AppTheme.getSecondaryTextColor(context),
@@ -71,10 +68,7 @@ class _LastUpdateIndicatorState extends State<LastUpdateIndicator> {
       'Mis à jour : ${TimeFormatter.formatRelativeTime(widget.lastUpdate!)}',
       style: TextStyle(
         fontSize: 12,
-        color: Theme.of(context)
-            .textTheme
-            .bodySmall
-            ?.color
+        color: Theme.of(context).textTheme.bodySmall?.color
             ?.withValues(alpha: opacity),
       ),
     );

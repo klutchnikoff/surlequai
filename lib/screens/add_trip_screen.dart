@@ -24,13 +24,12 @@ class _AddTripScreenState extends State<AddTripScreen> {
     final station = await Navigator.push<Station>(
       context,
       MaterialPageRoute(
-        builder: (context) => const StationPickerScreen(
-          title: 'Gare de départ',
-        ),
+        builder: (context) =>
+            const StationPickerScreen(title: 'Gare de départ'),
       ),
     );
 
-    if (station != null) {
+    if (mounted && station != null) {
       setState(() {
         _stationA = station;
       });
@@ -41,13 +40,12 @@ class _AddTripScreenState extends State<AddTripScreen> {
     final station = await Navigator.push<Station>(
       context,
       MaterialPageRoute(
-        builder: (context) => const StationPickerScreen(
-          title: 'Gare d\'arrivée',
-        ),
+        builder: (context) =>
+            const StationPickerScreen(title: 'Gare d\'arrivée'),
       ),
     );
 
-    if (station != null) {
+    if (mounted && station != null) {
       setState(() {
         _stationB = station;
       });
@@ -71,11 +69,10 @@ class _AddTripScreenState extends State<AddTripScreen> {
       morningDirection: _morningDirection,
     );
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
-
-    if (!mounted) return;
 
     if (error != null) {
       _showErrorSnackBar(error);
@@ -87,8 +84,9 @@ class _AddTripScreenState extends State<AddTripScreen> {
       // Afficher un message de succès
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Trajet ${_stationA!.name} ⟷ ${_stationB!.name} ajouté'),
+          content: Text(
+            'Trajet ${_stationA!.name} ⟷ ${_stationB!.name} ajouté',
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -110,10 +108,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
     final canSubmit = _stationA != null && _stationB != null && !_isLoading;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouveau trajet'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Nouveau trajet'), elevation: 0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -230,9 +225,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).dividerColor,
-          ),
+          border: Border.all(color: Theme.of(context).dividerColor),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/models/station.dart';
@@ -10,16 +11,14 @@ import 'package:surlequai/utils/stations_data.dart';
 class StationPickerScreen extends StatefulWidget {
   final String title;
 
-  const StationPickerScreen({
-    super.key,
-    required this.title,
-  });
+  const StationPickerScreen({super.key, required this.title});
 
   @override
   State<StationPickerScreen> createState() => _StationPickerScreenState();
 }
 
 class _StationPickerScreenState extends State<StationPickerScreen> {
+  final _searchController = TextEditingController();
   String _searchQuery = '';
   List<Station> _filteredStations = StationsData.mainStations;
   bool _isLoading = false;
@@ -29,6 +28,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -77,7 +77,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
       final results = await apiService.searchStations(query, limit: 50);
 
       // Vérifier que la recherche correspond toujours à la query actuelle
-      if (_searchQuery == query) {
+      if (mounted && _searchQuery == query) {
         setState(() {
           _filteredStations = results;
           _isLoading = false;
@@ -85,7 +85,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
         });
       }
     } on SocketException {
-      if (_searchQuery == query) {
+      if (mounted && _searchQuery == query) {
         setState(() {
           _filteredStations = [];
           _isLoading = false;
@@ -93,7 +93,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
         });
       }
     } on TimeoutException {
-      if (_searchQuery == query) {
+      if (mounted && _searchQuery == query) {
         setState(() {
           _filteredStations = [];
           _isLoading = false;
@@ -101,7 +101,7 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
         });
       }
     } catch (e) {
-      if (_searchQuery == query) {
+      if (mounted && _searchQuery == query) {
         setState(() {
           _filteredStations = [];
           _isLoading = false;
@@ -118,16 +118,14 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text(widget.title), elevation: 0),
       body: Column(
         children: [
           // Barre de recherche
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
+              controller: _searchController,
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'Rechercher une gare...',
@@ -136,10 +134,8 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                            _filteredStations = StationsData.mainStations;
-                          });
+                          _searchController.clear();
+                          _onSearchChanged('');
                         },
                       )
                     : null,
@@ -160,7 +156,11 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
                 child: _errorMessage != null
                     ? Row(
                         children: [
-                          const Icon(Icons.error_outline, size: 16, color: Colors.red),
+                          const Icon(
+                            Icons.error_outline,
+                            size: 16,
+                            color: Colors.red,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             _errorMessage!,
@@ -198,37 +198,37 @@ class _StationPickerScreenState extends State<StationPickerScreen> {
                     ),
                   )
                 : _filteredStations.isEmpty && _searchQuery.isNotEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.search_off, size: 64),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Aucune gare trouvée',
-                              style: AppTextStyles.medium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _errorMessage ?? 'Essayez une autre recherche',
-                              style: AppTextStyles.small.copyWith(
-                                color: Theme.of(context).textTheme.bodySmall?.color,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.search_off, size: 64),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Aucune gare trouvée',
+                          style: AppTextStyles.medium,
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: _filteredStations.length,
-                        itemBuilder: (context, index) {
-                          final station = _filteredStations[index];
-                          return ListTile(
-                            leading: const Icon(Icons.train),
-                            title: Text(station.name),
-                            onTap: () => _selectStation(station),
-                          );
-                        },
-                      ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _errorMessage ?? 'Essayez une autre recherche',
+                          style: AppTextStyles.small.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _filteredStations.length,
+                    itemBuilder: (context, index) {
+                      final station = _filteredStations[index];
+                      return ListTile(
+                        leading: const Icon(Icons.train),
+                        title: Text(station.name),
+                        onTap: () => _selectStation(station),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

@@ -5,104 +5,107 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/departures_result.dart';
+import 'package:uuid/uuid.dart';
 
-/// Service de stockage local (Cache JSON)
-///
-/// Remplace l'ancien stockage SQLite.
-/// Stocke les réponses API (liste de départs) dans des fichiers JSON locaux.
-///
-/// Structure :
-/// - Un fichier par trajet : `cache_fromID_toID.json`
-/// - Contient : timestamp de mise à jour + liste des départs
+/// Cache des derniers départs consultés, par direction (pas une grille GTFS).
 class StorageService {
   Directory? _cacheDir;
+  Future<void>? _initializing;
+  final DateTime Function() _now;
 
-  /// Initialise le service (prépare le dossier de cache)
-  Future<void> init() async {
-    if (_cacheDir != null) return;
+  StorageService({Directory? cacheDirectory, DateTime Function()? now})
+    : _cacheDir = cacheDirectory,
+      _now = now ?? DateTime.now;
 
-    try {
-      final appDir = await getApplicationDocumentsDirectory();
-      _cacheDir = Directory(join(appDir.path, 'schedules_cache'));
-      if (!await _cacheDir!.exists()) {
-        await _cacheDir!.create(recursive: true);
+  Future<void> init() => _initializing ??= _init();
+
+  Future<void> _init() async {
+    if (_cacheDir == null) {
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        _cacheDir = Directory(join(appDir.path, 'schedules_cache'));
+      } catch (_) {
+        final tempDir = await getTemporaryDirectory();
+        _cacheDir = Directory(join(tempDir.path, 'schedules_cache'));
       }
-    } catch (e) {
-      debugPrint('Erreur init StorageService: $e');
-      // Fallback sur dossier temporaire si échec (rare)
-      _cacheDir = await getTemporaryDirectory();
     }
+    await _cacheDir!.create(recursive: true);
   }
 
-  /// Sauvegarde les départs pour un trajet donné
   Future<void> saveCachedDepartures(
-    String fromStationId,
-    String toStationId,
-    List<Departure> departures,
-  ) async {
-    if (_cacheDir == null) await init();
-
+    String from,
+    String to,
+    List<Departure> departures, {
+    DateTime? fetchedAt,
+  }) async {
+    File? temporary;
     try {
-      final file = _getFile(fromStationId, toStationId);
-      final jsonMap = {
-        'updated_at': DateTime.now().toIso8601String(),
-        'departures': departures.map((d) => d.toJson()).toList(),
-      };
-      
-      await file.writeAsString(jsonEncode(jsonMap));
+      await init();
+      final file = _getFile(from, to);
+      temporary = File('${file.path}.${const Uuid().v4()}.tmp');
+      await temporary.writeAsString(
+        jsonEncode({
+          // Le format précédent contenait l'heure réelle dans scheduledTime.
+          'version': 2,
+          'updated_at': (fetchedAt ?? _now()).toIso8601String(),
+          'departures': departures.map((d) => d.toJson()).toList(),
+        }),
+        flush: true,
+      );
+      await temporary.rename(file.path);
     } catch (e) {
       debugPrint('Erreur sauvegarde cache: $e');
+    } finally {
+      if (temporary != null && await temporary.exists()) {
+        await temporary.delete();
+      }
     }
   }
 
-  /// Récupère les départs en cache pour un trajet
-  /// Retourne une liste vide si pas de cache ou erreur
-  Future<List<Departure>> getCachedDepartures(
-    String fromStationId,
-    String toStationId,
-  ) async {
-    if (_cacheDir == null) await init();
-
+  Future<DeparturesResult> readCachedDepartures(String from, String to) async {
     try {
-      final file = _getFile(fromStationId, toStationId);
-      if (!await file.exists()) {
-        return [];
+      await init();
+      final file = _getFile(from, to);
+      if (!await file.exists()) return DeparturesResult();
+      final data =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final updated = DateTime.parse(data['updated_at'] as String);
+      if (data['version'] != 2 ||
+          _now().difference(updated).inHours >= 48 ||
+          updated.isAfter(_now())) {
+        return DeparturesResult();
       }
-
-      final content = await file.readAsString();
-      final jsonMap = jsonDecode(content);
-      
-      // Vérification basique (optionnelle) de l'âge du cache
-      // final updatedAt = DateTime.parse(jsonMap['updated_at']);
-      // if (DateTime.now().difference(updatedAt).inHours > 48) return [];
-
-      final list = jsonMap['departures'] as List;
-      return list.map((d) => Departure.fromJson(d)).toList();
+      return DeparturesResult(
+        departures: (data['departures'] as List)
+            .map((d) => Departure.fromJson(d as Map<String, dynamic>))
+            .toList(),
+        fetchedAt: updated,
+      ).asOffline();
     } catch (e) {
       debugPrint('Erreur lecture cache: $e');
-      return [];
+      return DeparturesResult();
     }
   }
 
-  /// Récupère la date de dernière mise à jour du cache pour ce trajet
-  Future<DateTime?> getLastUpdate(String fromStationId, String toStationId) async {
-     if (_cacheDir == null) await init();
-     try {
-       final file = _getFile(fromStationId, toStationId);
-       if (!await file.exists()) return null;
-       
-       final content = await file.readAsString();
-       final jsonMap = jsonDecode(content);
-       return DateTime.parse(jsonMap['updated_at']);
-     } catch (e) {
-       return null;
-     }
+  Future<void> clearCache() async {
+    await init();
+    await for (final file in _cacheDir!.list()) {
+      if (file is File && basename(file.path).startsWith('cache_')) {
+        await file.delete();
+      }
+    }
   }
 
-  File _getFile(String fromId, String toId) {
-    // Nettoyer les IDs pour le nom de fichier (enlever stop_area:SNCF:)
-    final cleanFrom = fromId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-    final cleanTo = toId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-    return File(join(_cacheDir!.path, 'cache_${cleanFrom}_$cleanTo.json'));
+  Future<void> removeDirection(String from, String to) async {
+    await init();
+    final file = _getFile(from, to);
+    if (await file.exists()) await file.delete();
+  }
+
+  File _getFile(String from, String to) {
+    final a = from.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+    final b = to.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+    return File(join(_cacheDir!.path, 'cache_${a}_$b.json'));
   }
 }

@@ -7,225 +7,234 @@ import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
+import 'package:surlequai/utils/service_day.dart';
 import 'package:surlequai/utils/trip_sorter.dart';
 
-/// Service de gestion du widget écran d'accueil
-///
-/// Prépare et envoie les données de tous les trajets aux widgets natifs
-/// (iOS WidgetKit / Android App Widget)
-///
-/// Utilise un système de clés préfixées par trip ID pour permettre
-/// à plusieurs widgets d'afficher des trajets différents.
+/// Contrat unique Flutter → widgets : directions, dates complètes et provenance.
 class WidgetService {
-  // Nom du widget (Android uniquement) - Nom de la classe
-  static const String _androidWidgetName = 'SurLeQuaiWidgetProvider';
+  static const appGroupId = 'group.com.surlequai.app';
+  final DateTime Function() _now;
 
-  // Nom du App Group (iOS uniquement)
-  static const String _iOSAppGroupId = 'group.com.surlequai.app';
+  WidgetService({DateTime Function()? now}) : _now = now ?? DateTime.now;
+  bool get _supported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
-  /// Retourne la couleur du statut en code (pour parsing côté natif)
-  ///
-  /// Codes : onTime, delayed, cancelled, offline, secondary
-  /// Le code natif mappera ces codes vers les vraies couleurs
-  String _getStatusColorHex(DepartureStatus status) {
-    switch (status) {
-      case DepartureStatus.onTime:
-        return 'onTime';
-      case DepartureStatus.delayed:
-        return 'delayed';
-      case DepartureStatus.cancelled:
-        return 'cancelled';
-      case DepartureStatus.offline:
-        return 'offline';
-    }
-  }
-
-  /// Configure le callback pour ouvrir l'app quand on tap sur le widget
-  ///
-  /// Cette méthode doit être appelée dans main() pour écouter les taps
-  static Future<void> registerBackgroundCallback() async {
-    await HomeWidget.setAppGroupId(_iOSAppGroupId);
-  }
-
-  /// Sauvegarde la liste de tous les trajets pour la configuration du widget
-  ///
-  /// Cette méthode est utilisée par la Configuration Activity Android
-  /// pour afficher la liste des trajets disponibles.
   Future<void> saveAllTrips(List<Trip> trips) async {
-    try {
-      await HomeWidget.setAppGroupId(_iOSAppGroupId);
-
-      // Convertir la liste des trajets en JSON
-      final tripsJson = jsonEncode(
-        trips.map((trip) => trip.toJson()).toList(),
-      );
-
-      await HomeWidget.saveWidgetData<String>('trips', tripsJson);
-    } catch (e) {
-      debugPrint('Erreur lors de la sauvegarde de la liste des trajets : $e');
-    }
+    if (!_supported) return;
+    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.saveWidgetData<String>(
+      'trips',
+      jsonEncode(trips.map((t) => t.toJson()).toList()),
+    );
   }
 
-  /// Met à jour les données d'un trajet spécifique pour les widgets
-  ///
-  /// Cette méthode sauvegarde les données d'un trajet avec un préfixe
-  /// pour permettre à plusieurs widgets d'afficher des trajets différents.
-  ///
-  /// Format des clés : trip_{tripId}_direction1_time, etc.
+  Map<String, String> _direction(
+    String title,
+    List<Departure> departures,
+    int dayStart,
+    DateTime date,
+  ) {
+    final vm = DirectionCardViewModel.fromDepartures(
+      title: title,
+      departures: departures,
+      serviceDayStartTime: dayStart,
+      now: date,
+    );
+    return switch (vm) {
+      DirectionCardWithDepartures() => {
+        'title': vm.title,
+        'time': vm.time,
+        'platform': vm.platform,
+        'status': vm.statusText,
+        'color': vm.statusType.name,
+      },
+      DirectionCardNoDepartures() => {
+        'title': vm.title,
+        'time': vm.noTrainTimeDisplay,
+        'platform': '',
+        'status': vm.noTrainStatusDisplay,
+        'color': 'secondary',
+      },
+    };
+  }
+
+  Map<String, dynamic> _frame(
+    Trip trip,
+    List<Departure> go,
+    List<Departure> back,
+    int split,
+    int dayStart,
+    DateTime date,
+    DateTime? fetchedAt,
+  ) {
+    // Une timeline locale ne peut pas prolonger indéfiniment un statut temps réel.
+    if (fetchedAt == null ||
+        date.difference(fetchedAt) >= const Duration(minutes: 5)) {
+      List<Departure> offline(List<Departure> list) => list
+          .map(
+            (d) => d.copyWith(
+              status: DepartureStatus.offline,
+              delayMinutes: 0,
+              platform: '?',
+            ),
+          )
+          .toList();
+      go = offline(go);
+      back = offline(back);
+    }
+    final swap = TripSorter.shouldSwapOrder(
+      currentHour: date.hour,
+      morningEveningSplitHour: split,
+      serviceDayStartHour: dayStart,
+      morningDirection: trip.morningDirection,
+    );
+    final a = _direction('→ ${trip.stationB.name}', go, dayStart, date);
+    final b = _direction('→ ${trip.stationA.name}', back, dayStart, date);
+    return {
+      'date': date.millisecondsSinceEpoch,
+      'direction1': swap ? b : a,
+      'direction2': swap ? a : b,
+    };
+  }
+
   Future<void> updateWidgetForTrip({
     required Trip trip,
     required List<Departure> departuresGo,
     required List<Departure> departuresReturn,
     int? morningEveningSplitHour,
     int? serviceDayStartHour,
-    DateTime? now, // Pour les tests
+    DateTime? now,
+    DateTime? lastUpdate,
   }) async {
-    try {
-      await HomeWidget.setAppGroupId(_iOSAppGroupId);
-
-      final tripId = trip.id;
-      final tripName = '${trip.stationA.name} ⟷ ${trip.stationB.name}';
-      final referenceDate = now ?? DateTime.now();
-
-      // Déterminer l'ordre d'affichage selon l'heure (logique matin/soir)
-      final shouldSwap = TripSorter.shouldSwapOrder(
-        currentHour: referenceDate.hour,
-        morningEveningSplitHour: morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour,
-        serviceDayStartHour: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
-        morningDirection: trip.morningDirection,
-      );
-
-      // Si shouldSwap = true, on inverse : direction1 = B→A, direction2 = A→B
-      final direction1Departures = shouldSwap ? departuresReturn : departuresGo;
-      final direction2Departures = shouldSwap ? departuresGo : departuresReturn;
-      final direction1Title = shouldSwap ? '→ ${trip.stationA.name}' : '→ ${trip.stationB.name}';
-      final direction2Title = shouldSwap ? '→ ${trip.stationB.name}' : '→ ${trip.stationA.name}';
-
-      // Nom du trajet
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_name', tripName);
-
-      // Helper pour sauvegarder une direction
-      Future<void> saveDirection(String suffix, String title, List<Departure> departures) async {
-        final vm = DirectionCardViewModel.fromDepartures(
-          title: title,
-          departures: departures,
-          serviceDayStartTime: serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
-          now: referenceDate,
-        );
-
+    if (!_supported) return;
+    await HomeWidget.setAppGroupId(appGroupId);
+    final date = now ?? _now();
+    final frame = _frame(
+      trip,
+      departuresGo,
+      departuresReturn,
+      morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour,
+      serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
+      date,
+      lastUpdate,
+    );
+    await HomeWidget.saveWidgetData<String>(
+      'trip_${trip.id}_name',
+      '${trip.stationA.name} ⟷ ${trip.stationB.name}',
+    );
+    for (final suffix in ['direction1', 'direction2']) {
+      final direction = frame[suffix] as Map<String, String>;
+      for (final entry in direction.entries) {
+        final field = entry.key == 'color' ? 'status_color' : entry.key;
         await HomeWidget.saveWidgetData<String>(
-            'trip_${tripId}_${suffix}_title', vm.title);
-
-        if (vm is DirectionCardWithDepartures) {
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_time', vm.time);
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_platform', vm.platform);
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_status', vm.statusText);
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_status_color', _getStatusColorHex(vm.statusType));
-        } else if (vm is DirectionCardNoDepartures) {
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_time', vm.noTrainTimeDisplay);
-          // Le widget natif n'a pas de champ "statusDisplay" long, on met "Aucun train" ou un texte court
-          // TODO: Adapter le widget natif pour gérer les messages "Demain à 08:00" si possible
-          // Pour l'instant on reste simple pour ne pas casser l'UI native
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_platform', '');
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_status', 'Aucun train');
-          await HomeWidget.saveWidgetData<String>(
-              'trip_${tripId}_${suffix}_status_color', 'secondary');
-        }
+          'trip_${trip.id}_${suffix}_$field',
+          entry.value,
+        );
       }
-
-      // Sauvegarder Direction 1
-      await saveDirection('direction1', direction1Title, direction1Departures);
-
-      // Sauvegarder Direction 2
-      await saveDirection('direction2', direction2Title, direction2Departures);
-
-      // Timestamp de la dernière mise à jour
-      await HomeWidget.saveWidgetData<String>(
-          'trip_${tripId}_last_update', TimeFormatter.formatTime(referenceDate));
-    } catch (e) {
-      debugPrint(
-          'Erreur lors de la mise à jour du widget pour le trajet ${trip.id} : $e');
     }
+    await HomeWidget.saveWidgetData<String>(
+      'trip_${trip.id}_last_update',
+      lastUpdate == null
+          ? 'Jamais'
+          : '${DateFormatter.formatShortDate(lastUpdate)} ${TimeFormatter.formatTime(lastUpdate)}',
+    );
+    final future =
+        [
+            ...departuresGo,
+            ...departuresReturn,
+          ].map((d) => d.effectiveTime).where((d) => d.isAfter(date)).toList()
+          ..sort();
+    await HomeWidget.saveWidgetData<String>(
+      'trip_${trip.id}_next_departure',
+      future.isEmpty ? null : future.first.millisecondsSinceEpoch.toString(),
+    );
   }
 
-  /// Met à jour tous les widgets en sauvegardant les données de tous les trajets
-  ///
-  /// Cette méthode est appelée quand les données sont rafraîchies pour mettre
-  /// à jour tous les widgets actifs (qui peuvent afficher des trajets différents).
   Future<void> updateAllWidgets({
     required List<Trip> allTrips,
     required Map<String, List<Departure>> departuresGoByTrip,
     required Map<String, List<Departure>> departuresReturnByTrip,
+    Map<String, DateTime?> lastUpdatesByTrip = const {},
     int? morningEveningSplitHour,
     int? serviceDayStartHour,
   }) async {
-    try {
-      // Sauvegarder la liste des trajets pour la configuration
-      await saveAllTrips(allTrips);
-
-      // Sauvegarder les données de chaque trajet
-      for (final trip in allTrips) {
-        final departuresGo = departuresGoByTrip[trip.id] ?? [];
-        final departuresReturn = departuresReturnByTrip[trip.id] ?? [];
-
-        await updateWidgetForTrip(
-          trip: trip,
-          departuresGo: departuresGo,
-          departuresReturn: departuresReturn,
-          morningEveningSplitHour: morningEveningSplitHour,
-          serviceDayStartHour: serviceDayStartHour,
-        );
-      }
-
-      // Déclencher le refresh de tous les widgets natifs
-      await HomeWidget.updateWidget(
-        androidName: _androidWidgetName,
-        iOSName: 'SurLeQuaiWidget',
+    if (!_supported) return;
+    await saveAllTrips(allTrips);
+    final now = _now();
+    final split =
+        morningEveningSplitHour ?? AppConstants.defaultMorningEveningSplitHour;
+    final dayStart =
+        serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour;
+    final snapshots = <Map<String, dynamic>>[];
+    for (final trip in allTrips) {
+      final go = departuresGoByTrip[trip.id] ?? [];
+      final back = departuresReturnByTrip[trip.id] ?? [];
+      final updated = lastUpdatesByTrip[trip.id];
+      await updateWidgetForTrip(
+        trip: trip,
+        departuresGo: go,
+        departuresReturn: back,
+        morningEveningSplitHour: split,
+        serviceDayStartHour: dayStart,
+        lastUpdate: updated,
+        now: now,
       );
-    } catch (e) {
-      debugPrint('Erreur lors de la mise à jour de tous les widgets : $e');
+      // Préparer les changements de train, de fraîcheur et de jour pour WidgetKit.
+      final dates = <DateTime>{now};
+      final end = ServiceDay.next(
+        ServiceDay.next(ServiceDay.start(now, dayStart)),
+      );
+      for (final d in [...go, ...back]) {
+        dates.add(d.scheduledTime);
+        dates.add(d.effectiveTime);
+      }
+      if (updated != null) dates.add(updated.add(const Duration(minutes: 5)));
+      for (var offset = 0; offset <= 2; offset++) {
+        dates.add(DateTime(now.year, now.month, now.day + offset, split));
+        dates.add(DateTime(now.year, now.month, now.day + offset, dayStart));
+      }
+      final timeline =
+          dates.where((d) => !d.isBefore(now) && !d.isAfter(end)).toList()
+            ..sort();
+      snapshots.add({
+        'id': trip.id,
+        'name': '${trip.stationA.name} ⟷ ${trip.stationB.name}',
+        'updatedAt': updated?.millisecondsSinceEpoch,
+        'frames': timeline
+            .map((d) => _frame(trip, go, back, split, dayStart, d, updated))
+            .toList(),
+      });
     }
+    // Un seul JSON évite que WidgetKit lise un mélange de deux publications.
+    await HomeWidget.saveWidgetData<String>(
+      'widget_snapshot',
+      jsonEncode({'trips': snapshots}),
+    );
+    await HomeWidget.updateWidget(
+      androidName: 'SurLeQuaiWidgetProvider',
+      iOSName: 'SurLeQuaiWidget',
+    );
   }
 
-  /// Nettoie les données d'un trajet supprimé pour tous les widgets
-  ///
-  /// Cette méthode supprime toutes les clés SharedPreferences associées
-  /// à un tripId spécifique. Les widgets qui affichaient ce trajet
-  /// passeront automatiquement en mode "Trajet supprimé".
   Future<void> clearWidgetDataForTrip(String tripId) async {
-    try {
-      await HomeWidget.setAppGroupId(_iOSAppGroupId);
-
-      // Supprimer toutes les clés associées à ce trajet
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_name', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_title', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_time', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_platform', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_status', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction1_status_color', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_title', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_time', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_platform', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_status', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_direction2_status_color', null);
-      await HomeWidget.saveWidgetData<String>('trip_${tripId}_last_update', null);
-
-      // Déclencher le refresh des widgets pour qu'ils détectent le trajet supprimé
-      await HomeWidget.updateWidget(
-        androidName: _androidWidgetName,
-        iOSName: 'SurLeQuaiWidget',
-      );
-
-      debugPrint('Données du trajet $tripId nettoyées des widgets');
-    } catch (e) {
-      debugPrint('Erreur lors du nettoyage des données du trajet $tripId : $e');
+    if (!_supported) return;
+    for (final field in [
+      'name',
+      'last_update',
+      'next_departure',
+      for (final direction in ['direction1', 'direction2'])
+        for (final key in [
+          'title',
+          'time',
+          'platform',
+          'status',
+          'status_color',
+        ])
+          '${direction}_$key',
+    ]) {
+      await HomeWidget.saveWidgetData<String>('trip_${tripId}_$field', null);
     }
   }
 }

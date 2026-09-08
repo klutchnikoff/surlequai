@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/departures_result.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/screens/home_screen.dart';
 import 'package:surlequai/services/api_key_service.dart';
@@ -16,7 +18,6 @@ import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/storage_service.dart';
-import 'package:surlequai/services/timetable_service.dart';
 import 'package:surlequai/services/trip_provider.dart';
 import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/theme/app_theme.dart';
@@ -30,7 +31,7 @@ bool get isMobilePlatform {
 
 /// Callback pour les mises à jour en arrière-plan du widget
 @pragma('vm:entry-point')
-void backgroundCallback(Uri? uri) async {
+Future<void> backgroundCallback(Uri? uri) async {
   // Indispensable pour utiliser les plugins (SharedPreferences, SQFlite) en background
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -39,80 +40,91 @@ void backgroundCallback(Uri? uri) async {
   // --- Initialisation des services ---
   final apiKeyService = ApiKeyService();
   final api = ApiService(apiKeyService: apiKeyService);
-  await api.init(); // Charge la clé personnalisée si configurée
-
   final storage = StorageService();
-  await storage.init(); 
-  
-  final timetableService = TimetableService(apiService: api, storageService: storage);
-  await timetableService.init();
 
   final realtimeService = RealtimeService(
-    apiService: api, 
-    timetableService: timetableService,
+    apiService: api,
     storageService: storage,
   );
   final widgetService = WidgetService();
 
-  debugPrint('--- Services Initialized ---');
+  try {
+    await api.init();
+    await storage.init();
+    // --- Logique de mise à jour ---
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
 
-  // --- Logique de mise à jour ---
-  final prefs = await SharedPreferences.getInstance();
-  final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
-  
-  List<Trip> trips;
-  if (tripsJson != null) {
-    final List<dynamic> tripsData = jsonDecode(tripsJson);
-    trips = tripsData.map((data) => Trip.fromJson(data)).toList();
-  } else {
-    trips = [];
-  }
+    List<Trip> trips;
+    if (tripsJson != null) {
+      final List<dynamic> tripsData = jsonDecode(tripsJson);
+      trips = tripsData.map((data) => Trip.fromJson(data)).toList();
+    } else {
+      trips = [];
+    }
 
-  if (trips.isEmpty) {
-    debugPrint('--- No trips found, stopping ---');
-    return;
-  }
+    if (trips.isEmpty) {
+      debugPrint('--- No trips found, stopping ---');
+      return;
+    }
 
-  debugPrint('--- Updating ${trips.length} trips ---');
+    debugPrint('--- Updating ${trips.length} trips ---');
 
-  // Préparer les données pour updateAllWidgets
-  final departuresGoByTrip = <String, List<Departure>>{};
-  final departuresReturnByTrip = <String, List<Departure>>{};
+    // Préparer les données pour updateAllWidgets
+    final departuresGoByTrip = <String, List<Departure>>{};
+    final departuresReturnByTrip = <String, List<Departure>>{};
 
-  for (final trip in trips) {
-    final now = DateTime.now();
-    departuresGoByTrip[trip.id] = await realtimeService.getDeparturesWithRealtime(
-      fromStationId: trip.stationA.id,
-      toStationId: trip.stationB.id,
-      datetime: now,
-      tripId: trip.id,
+    final lastUpdates = <String, DateTime?>{};
+    for (final trip in trips) {
+      final now = DateTime.now();
+      final results = await Future.wait([
+        realtimeService.getDeparturesWithRealtime(
+          fromStationId: trip.stationA.id,
+          toStationId: trip.stationB.id,
+          datetime: now,
+        ),
+        realtimeService.getDeparturesWithRealtime(
+          fromStationId: trip.stationB.id,
+          toStationId: trip.stationA.id,
+          datetime: now,
+        ),
+      ]);
+      final go = results[0];
+      final back = results[1];
+      departuresGoByTrip[trip.id] = go.departures;
+      departuresReturnByTrip[trip.id] = back.departures;
+      lastUpdates[trip.id] = TripDepartures(go, back).fetchedAt;
+    }
+
+    debugPrint('--- Saving data to widgets ---');
+
+    // L'application a pu supprimer ou modifier un trajet pendant le réseau.
+    await prefs.reload();
+    if (prefs.getString(AppConstants.tripsStorageKey) != tripsJson) return;
+
+    // Charger les préférences utilisateur pour l'ordre matin/soir
+    final morningEveningSplitHour =
+        prefs.getInt(AppConstants.splitTimeKey) ??
+        AppConstants.defaultMorningEveningSplitHour;
+    final serviceDayStartHour =
+        prefs.getInt(AppConstants.dayStartTimeKey) ??
+        AppConstants.defaultServiceDayStartHour;
+
+    // Appeler la méthode centralisée de WidgetService
+    await widgetService.updateAllWidgets(
+      allTrips: trips,
+      lastUpdatesByTrip: lastUpdates,
+      departuresGoByTrip: departuresGoByTrip,
+      departuresReturnByTrip: departuresReturnByTrip,
+      morningEveningSplitHour: morningEveningSplitHour,
+      serviceDayStartHour: serviceDayStartHour,
     );
-    departuresReturnByTrip[trip.id] = await realtimeService.getDeparturesWithRealtime(
-      fromStationId: trip.stationB.id,
-      toStationId: trip.stationA.id,
-      datetime: now,
-      tripId: trip.id,
-    );
+  } catch (e) {
+    debugPrint('Erreur actualisation widgets: $e');
+  } finally {
+    api.dispose();
   }
-  
-  debugPrint('--- Saving data to widgets ---');
-
-  // Charger les préférences utilisateur pour l'ordre matin/soir
-  final morningEveningSplitHour = prefs.getInt(AppConstants.splitTimeKey) ??
-      AppConstants.defaultMorningEveningSplitHour;
-  final serviceDayStartHour = prefs.getInt(AppConstants.dayStartTimeKey) ??
-      AppConstants.defaultServiceDayStartHour;
-
-  // Appeler la méthode centralisée de WidgetService
-  await widgetService.updateAllWidgets(
-    allTrips: trips,
-    departuresGoByTrip: departuresGoByTrip,
-    departuresReturnByTrip: departuresReturnByTrip,
-    morningEveningSplitHour: morningEveningSplitHour,
-    serviceDayStartHour: serviceDayStartHour,
-  );
-  
-  debugPrint('--- Background Callback Finished ---');
 }
 
 void main() async {
@@ -133,15 +145,8 @@ void main() async {
   final storageService = StorageService();
   await storageService.init();
 
-  final timetableService = TimetableService(
-    apiService: apiService,
-    storageService: storageService,
-  );
-  await timetableService.init();
-
   final realtimeService = RealtimeService(
     apiService: apiService,
-    timetableService: timetableService,
     storageService: storageService,
   );
 
@@ -152,20 +157,17 @@ void main() async {
         Provider<ApiKeyService>.value(value: apiKeyService),
         Provider<ApiService>.value(value: apiService),
         Provider<StorageService>.value(value: storageService),
-        Provider<TimetableService>.value(value: timetableService),
         Provider<RealtimeService>.value(value: realtimeService),
 
         // Providers avec état
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
-        ChangeNotifierProxyProvider<SettingsProvider, TripProvider>(
+        ChangeNotifierProvider(
           create: (context) => TripProvider(
             context.read<SettingsProvider>(),
             apiService: context.read<ApiService>(),
             storageService: context.read<StorageService>(),
-            timetableService: context.read<TimetableService>(),
             realtimeService: context.read<RealtimeService>(),
           ),
-          update: (context, settings, previous) => previous!..update(),
         ),
       ],
       child: const MyApp(),
@@ -182,6 +184,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   static const platform = MethodChannel('com.surlequai.app/widget');
+  StreamSubscription<Uri?>? _widgetClicks;
 
   @override
   void initState() {
@@ -197,14 +200,13 @@ class _MyAppState extends State<MyApp> {
   void _handleWidgetLaunch() {
     if (!isMobilePlatform) return;
     HomeWidget.initiallyLaunchedFromHomeWidget().then(_launchedFromWidget);
-    HomeWidget.widgetClicked.listen(_launchedFromWidget);
+    _widgetClicks = HomeWidget.widgetClicked.listen(_launchedFromWidget);
   }
 
   void _launchedFromWidget(Uri? uri) {
     if (uri != null) {
-      // Si on utilise des Uris, on peut extraire le tripId
-      // final tripId = uri.queryParameters['tripId'];
-      // if (tripId != null) _switchToTrip(tripId);
+      final tripId = uri.queryParameters['tripId'];
+      if (tripId != null) unawaited(_switchToTrip(tripId));
     }
   }
 
@@ -225,26 +227,33 @@ class _MyAppState extends State<MyApp> {
         }
       }
     });
+    platform
+        .invokeMethod<String>('takeInitialTrip')
+        .then((id) {
+          if (mounted && id != null) unawaited(_switchToTrip(id));
+        })
+        .catchError((Object _) {});
   }
 
   /// Bascule vers le trajet correspondant au tripId
-  void _switchToTrip(String tripId) {
-    // Petit délai pour s'assurer que le provider est prêt si l'app vient de se lancer
-    final tripProvider = context.read<TripProvider>();
-    if (tripProvider.isLoading) {
-      Future.delayed(const Duration(milliseconds: 500), () => _switchToTrip(tripId));
-      return;
+  Future<void> _switchToTrip(String tripId) async {
+    if (!mounted) return;
+    final provider = context.read<TripProvider>();
+    await provider.ready;
+    if (!mounted) return;
+    for (final trip in provider.trips) {
+      if (trip.id == tripId) {
+        await provider.setActiveTrip(trip);
+        return;
+      }
     }
+  }
 
-    try {
-      final trip = tripProvider.trips.firstWhere(
-        (t) => t.id == tripId,
-        orElse: () => tripProvider.trips.first,
-      );
-      tripProvider.setActiveTrip(trip);
-    } catch (e) {
-      // Ignorer si trip introuvable
-    }
+  @override
+  void dispose() {
+    _widgetClicks?.cancel();
+    if (isMobilePlatform) platform.setMethodCallHandler(null);
+    super.dispose();
   }
 
   @override

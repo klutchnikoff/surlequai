@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/connection_status.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/departures_result.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/trip.dart';
@@ -12,7 +14,6 @@ import 'package:surlequai/services/api_service.dart';
 import 'package:surlequai/services/realtime_service.dart';
 import 'package:surlequai/services/settings_provider.dart';
 import 'package:surlequai/services/storage_service.dart';
-import 'package:surlequai/services/timetable_service.dart';
 import 'package:surlequai/services/widget_service.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/station_id_migration.dart';
@@ -20,419 +21,449 @@ import 'package:surlequai/utils/trip_sorter.dart';
 import 'package:uuid/uuid.dart';
 
 class TripProvider with ChangeNotifier {
-  // Public loading state
-  bool isLoading = true;
-
-  // Private state - now nullable or initialized empty
-  List<Trip> _trips = [];
-  Trip? _activeTrip;
-  DirectionCardViewModel? _directionGoViewModel;
-  DirectionCardViewModel? _directionReturnViewModel;
-
-  List<Departure> _departuresGo = [];
-  List<Departure> _departuresReturn = [];
-
-  // Timestamp de la dernière mise à jour
-  DateTime? _lastUpdate;
-  
-  // Timestamp de la dernière mise à jour globale des widgets
-  DateTime? _lastWidgetUpdate;
-
-  // État de la connexion
-  ConnectionStatus _connectionStatus = ConnectionStatus.offline;
-
-  // Dependencies
   final SettingsProvider _settingsProvider;
-
-  // Services
+  final DateTime Function() _now;
+  final bool automaticUpdates;
   late final ApiService _apiService;
   late final StorageService _storageService;
-  late final TimetableService _timetableService;
   late final RealtimeService _realtimeService;
   late final WidgetService _widgetService;
+  final bool _ownsApi;
+  late final Future<void> ready;
 
-  // Public getters - now nullable
-  List<Trip> get trips => _trips;
+  bool isLoading = true;
+  bool _disposed = false;
+  bool _foreground = true;
+  final List<Trip> _trips = [];
+  Trip? _activeTrip;
+  final Map<String, TripDepartures> _data = {};
+  final Map<String, Future<void>> _requests = {};
+  DateTime? _lastAttempt;
+  DateTime? _lastOtherTripsRefresh;
+  Timer? _timer;
+  Future<void> _widgetWrites = Future.value();
+  int _selection = 0;
+  int _cacheGeneration = 0;
+  Future<void>? _clearingCache;
+  DirectionCardViewModel? _directionGoViewModel;
+  DirectionCardViewModel? _directionReturnViewModel;
+  bool _swapped = false;
+  ConnectionStatus _connectionStatus = ConnectionStatus.offline;
+
+  List<Trip> get trips => List.unmodifiable(_trips);
   Trip? get activeTrip => _activeTrip;
   DirectionCardViewModel? get directionGoViewModel => _directionGoViewModel;
   DirectionCardViewModel? get directionReturnViewModel =>
       _directionReturnViewModel;
-  List<Departure> get departuresGo => _departuresGo;
-  List<Departure> get departuresReturn => _departuresReturn;
-  DateTime? get lastUpdate => _lastUpdate;
+  TripDepartures? get _activeData => _data[_activeTrip?.id];
+  // Les données restent toujours A→B et B→A. Seuls les ViewModels sont ordonnés.
+  List<Departure> get departuresGo => _activeData?.go.departures ?? const [];
+  List<Departure> get departuresReturn =>
+      _activeData?.back.departures ?? const [];
+  DateTime? get lastUpdate => _activeData?.fetchedAt;
   ConnectionStatus get connectionStatus => _connectionStatus;
-  
-  /// Indique si l'ordre des trajets est inversé (B->A puis A->B)
-  bool get isSwapped => _shouldSwapOrder();
+  bool get isSwapped => _swapped;
 
   TripProvider(
     this._settingsProvider, {
     ApiService? apiService,
     StorageService? storageService,
-    TimetableService? timetableService,
     RealtimeService? realtimeService,
     WidgetService? widgetService,
-  }) {
-    // Initialise les services (ou utilise ceux injectés)
+    DateTime Function()? now,
+    this.automaticUpdates = true,
+  }) : _now = now ?? DateTime.now,
+       _ownsApi = apiService == null {
     _apiService = apiService ?? ApiService();
     _storageService = storageService ?? StorageService();
-    _timetableService = timetableService ??
-        TimetableService(
-          apiService: _apiService,
-          storageService: _storageService,
-        );
-    _realtimeService = realtimeService ??
+    _realtimeService =
+        realtimeService ??
         RealtimeService(
           apiService: _apiService,
-          timetableService: _timetableService,
           storageService: _storageService,
         );
     _widgetService = widgetService ?? WidgetService();
+    _settingsProvider.addListener(_settingsChanged);
+    ready = _loadTrips();
+  }
 
-    _loadTrips();
+  void _notify() {
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> _loadTrips() async {
-    // Initialise les services (SQLite, etc.)
-    await _storageService.init();
-    await _timetableService.init();
-
     try {
+      await _settingsProvider.ready;
+      if (_ownsApi) await _apiService.init();
       final prefs = await SharedPreferences.getInstance();
-      final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
-
-      if (tripsJson != null) {
-        final List<dynamic> tripsData = jsonDecode(tripsJson);
-        _trips = tripsData.map((data) => Trip.fromJson(data)).toList();
-
-        // Migration automatique des anciens IDs vers les IDs Navitia
-        if (StationIdMigration.tripsNeedMigration(_trips)) {
-          debugPrint('[TripProvider] Migration des IDs de gares détectée...');
-          _trips = StationIdMigration.migrateTrips(_trips);
-          // Sauvegarde les trips migrés
-          await _saveTrips();
-          debugPrint('[TripProvider] Migration terminée et sauvegardée');
+      final json = prefs.getString(AppConstants.tripsStorageKey);
+      if (json != null) {
+        final raw = jsonDecode(json) as List;
+        // Un favori invalide ne doit pas faire disparaître tous les autres.
+        for (final entry in raw) {
+          try {
+            _trips.add(StationIdMigration.migrateTrip(Trip.fromJson(entry)));
+          } catch (e) {
+            debugPrint('Favori illisible: $e');
+          }
         }
-      } else {
-        _trips = [];
       }
-
+      if (_disposed) return;
       if (_trips.isNotEmpty) {
-        _activeTrip = _trips.first;
-        await _buildViewModels();
-        _lastUpdate = DateTime.now();
-      } else {
-        _activeTrip = null;
+        final activeId = prefs.getString(AppConstants.activeTripIdKey);
+        _activeTrip = _trips.firstWhere(
+          (t) => t.id == activeId,
+          orElse: () => _trips.first,
+        );
+        await _loadCache(_activeTrip!);
       }
     } catch (e) {
-      debugPrint('[TripProvider] Erreur critique lors du chargement des trajets : $e');
-      // En cas d'erreur (ex: changement de format JSON), on repart à zéro
-      _trips = [];
-      _activeTrip = null;
+      debugPrint('Erreur chargement des trajets: $e');
     } finally {
       isLoading = false;
-      notifyListeners();
+      _buildViewModels();
+      _notify();
     }
-
-    // Après avoir affiché les données locales, tente automatiquement
-    // de se "connecter" pour passer en mode online
-    // (En Phase 1 : simule juste le délai réseau, en Phase 2 : vrai appel API)
-    if (_trips.isNotEmpty) {
-      await refreshDepartures();
+    if (_disposed) return;
+    if (automaticUpdates) {
+      _timer = Timer.periodic(const Duration(seconds: 15), (_) => tick());
     }
+    // ready signifie « cache visible », sans attendre le réseau.
+    unawaited(refreshDepartures(forceRefreshWidgets: false, feedback: false));
   }
 
   Future<void> _saveTrips() async {
     final prefs = await SharedPreferences.getInstance();
-    final tripsJson = jsonEncode(_trips.map((trip) => trip.toJson()).toList());
-    await prefs.setString(AppConstants.tripsStorageKey, tripsJson);
-  }
-
-  Future<void> update() async {
-    if (!isLoading) {
-      await _buildViewModels();
-      notifyListeners();
-    }
-  }
-
-  /// Rafraîchit les données de départs (temps réel)
-  Future<void> refreshDepartures() async {
-    if (_activeTrip == null) return;
-
-    // Passer en mode synchronisation
-    _connectionStatus = ConnectionStatus.syncing;
-    notifyListeners();
-
-    try {
-      // Récupère les départs avec temps réel via RealtimeService
-      // Force le rafraîchissement des widgets (Action utilisateur explicite)
-      await _buildViewModels(forceRefreshWidgets: true);
-      _lastUpdate = DateTime.now();
-
-      // Succès : mode online
-      _connectionStatus = ConnectionStatus.online;
-      notifyListeners();
-
-      // Feedback haptique pour indiquer que le rafraîchissement est terminé
-      HapticFeedback.mediumImpact();
-    } catch (e) {
-      // En cas d'erreur, passer en mode erreur
-      _connectionStatus = ConnectionStatus.error;
-      notifyListeners();
-
-      // Revenir en mode offline après 3 secondes
-      Future.delayed(const Duration(seconds: 3), () {
-        if (_connectionStatus == ConnectionStatus.error) {
-          _connectionStatus = ConnectionStatus.offline;
-          notifyListeners();
-        }
-      });
-    }
-  }
-
-  Future<void> _buildViewModels({bool forceRefreshWidgets = false}) async {
-    if (_activeTrip == null) return;
-
-    final now = DateTime.now();
-
-    final rawDeparturesGo = await _realtimeService.getDeparturesWithRealtime(
-      fromStationId: _activeTrip!.stationA.id,
-      toStationId: _activeTrip!.stationB.id,
-      datetime: now,
-      tripId: _activeTrip!.id,
+    await prefs.setString(
+      AppConstants.tripsStorageKey,
+      jsonEncode(_trips.map((t) => t.toJson()).toList()),
     );
-
-    final rawDeparturesReturn =
-        await _realtimeService.getDeparturesWithRealtime(
-      fromStationId: _activeTrip!.stationB.id,
-      toStationId: _activeTrip!.stationA.id,
-      datetime: now,
-      tripId: _activeTrip!.id,
-    );
-
-    final goViewModel = DirectionCardViewModel.fromDepartures(
-      title: '${_activeTrip!.stationA.name} → ${_activeTrip!.stationB.name}',
-      departures: rawDeparturesGo,
-      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
-    );
-    final returnViewModel = DirectionCardViewModel.fromDepartures(
-      title: '${_activeTrip!.stationB.name} → ${_activeTrip!.stationA.name}',
-      departures: rawDeparturesReturn,
-      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
-    );
-
-    if (_shouldSwapOrder()) {
-      _directionGoViewModel = returnViewModel;
-      _directionReturnViewModel = goViewModel;
-      _departuresGo = rawDeparturesReturn;
-      _departuresReturn = rawDeparturesGo;
+    if (_activeTrip == null) {
+      await prefs.remove(AppConstants.activeTripIdKey);
     } else {
-      _directionGoViewModel = goViewModel;
-      _directionReturnViewModel = returnViewModel;
-      _departuresGo = rawDeparturesGo;
-      _departuresReturn = rawDeparturesReturn;
+      await prefs.setString(AppConstants.activeTripIdKey, _activeTrip!.id);
     }
-
-    // Met à jour le widget écran d'accueil avec les nouvelles données
-    // Optimisation : Ne met à jour que si nécessaire
-    _updateWidget(forceRefresh: forceRefreshWidgets);
   }
 
-  /// Met à jour le widget écran d'accueil
-  /// 
-  /// [forceRefresh] : Si true, met à jour tous les trajets immédiatement.
-  /// Sinon, applique un throttle de 5 minutes.
-  Future<void> _updateWidget({bool forceRefresh = false}) async {
-    if (_activeTrip == null ||
-        _directionGoViewModel == null ||
-        _directionReturnViewModel == null) {
-      return;
+  Future<void> _loadCache(Trip trip) async {
+    if (_clearingCache != null) return;
+    final generation = _cacheGeneration;
+    final results = await Future.wait([
+      _realtimeService.getCachedDepartures(
+        fromStationId: trip.stationA.id,
+        toStationId: trip.stationB.id,
+      ),
+      _realtimeService.getCachedDepartures(
+        fromStationId: trip.stationB.id,
+        toStationId: trip.stationA.id,
+      ),
+    ]);
+    if (!_disposed &&
+        generation == _cacheGeneration &&
+        _trips.any((t) => t.id == trip.id)) {
+      _data.putIfAbsent(trip.id, () => TripDepartures(results[0], results[1]));
     }
+  }
 
-    final now = DateTime.now();
-    
-    // Throttle : Si la dernière mise à jour a eu lieu il y a moins de 5 minutes
-    // et qu'on ne force pas le refresh, on annule.
-    if (!forceRefresh && 
-        _lastWidgetUpdate != null && 
-        now.difference(_lastWidgetUpdate!).inMinutes < 5) {
-      debugPrint('[TripProvider] Widget update throttled (< 5 min)');
-      return;
-    }
+  /// Regroupe les demandes simultanées pour un même trajet.
+  Future<void> _refreshTrip(Trip trip) {
+    if (_clearingCache != null) return Future.value();
+    if (_requests.containsKey(trip.id)) return _requests[trip.id]!;
+    final future = _fetchTrip(trip);
+    _requests[trip.id] = future;
+    return future;
+  }
 
-    debugPrint('[TripProvider] Updating widgets (Force: $forceRefresh)');
-
-    // Préparer les données de tous les trajets pour les widgets
-    final departuresGoByTrip = <String, List<Departure>>{};
-    final departuresReturnByTrip = <String, List<Departure>>{};
-
-    for (final trip in _trips) {
-      try {
-        // Optimisation : Si c'est le trajet actif, on a DÉJÀ les données fraîches !
-        // Pas besoin de refaire l'appel API.
-        if (trip.id == _activeTrip!.id) {
-          departuresGoByTrip[trip.id] = _departuresGo;
-          departuresReturnByTrip[trip.id] = _departuresReturn;
-          continue;
-        }
-
-        // Pour les autres trajets, on doit faire un appel API
-        final departuresGo = await _realtimeService.getDeparturesWithRealtime(
+  Future<void> _fetchTrip(Trip trip) async {
+    try {
+      final date = _now();
+      final results = await Future.wait([
+        _realtimeService.getDeparturesWithRealtime(
           fromStationId: trip.stationA.id,
           toStationId: trip.stationB.id,
-          datetime: now,
-          tripId: trip.id,
-        );
-
-        final departuresReturn = await _realtimeService.getDeparturesWithRealtime(
+          datetime: date,
+        ),
+        _realtimeService.getDeparturesWithRealtime(
           fromStationId: trip.stationB.id,
           toStationId: trip.stationA.id,
-          datetime: now,
-          tripId: trip.id,
+          datetime: date,
+        ),
+      ]);
+      if (!_disposed && _trips.any((t) => t.id == trip.id)) {
+        _data[trip.id] = TripDepartures(results[0], results[1]);
+      }
+    } catch (e) {
+      debugPrint('Erreur rafraîchissement: $e');
+      final previous = _data[trip.id];
+      if (previous != null && !_disposed) {
+        _data[trip.id] = TripDepartures(
+          previous.go.asOffline(),
+          previous.back.asOffline(),
         );
-
-        departuresGoByTrip[trip.id] = departuresGo;
-        departuresReturnByTrip[trip.id] = departuresReturn;
-      } catch (e) {
-        debugPrint('Erreur lors de la mise à jour du trajet ${trip.id}: $e');
-        // En cas d'erreur, ajouter des listes vides pour ce trajet
-        departuresGoByTrip[trip.id] = [];
-        departuresReturnByTrip[trip.id] = [];
+      }
+    } finally {
+      _requests.remove(trip.id);
+      if (!_disposed && _activeTrip?.id == trip.id) {
+        _buildViewModels();
+        _notify();
       }
     }
-
-    // Mettre à jour tous les widgets (sauvegarde + déclenchement du refresh)
-    await _widgetService.updateAllWidgets(
-      allTrips: _trips,
-      departuresGoByTrip: departuresGoByTrip,
-      departuresReturnByTrip: departuresReturnByTrip,
-      morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
-      serviceDayStartHour: _settingsProvider.serviceDayStartTime,
-    );
-    
-    _lastWidgetUpdate = now;
   }
 
-  bool _shouldSwapOrder() {
-    if (_activeTrip == null) return false;
+  Future<void> refreshDepartures({
+    bool forceRefreshWidgets = true,
+    bool feedback = true,
+  }) async {
+    final trip = _activeTrip;
+    if (_disposed || isLoading || trip == null || _clearingCache != null) {
+      return;
+    }
+    final generation = _cacheGeneration;
+    _lastAttempt = _now();
+    final request = _refreshTrip(trip);
+    _connectionStatus = ConnectionStatus.syncing;
+    _notify();
+    await request;
+    if (_disposed) return;
+    await _publishWidgets();
+    if (_disposed || generation != _cacheGeneration) return;
+    if (feedback &&
+        _activeTrip?.id == trip.id &&
+        _activeData?.fromNetwork == true) {
+      unawaited(HapticFeedback.mediumImpact());
+    }
+    if (forceRefreshWidgets ||
+        _lastOtherTripsRefresh == null ||
+        _now().difference(_lastOtherTripsRefresh!) >=
+            const Duration(minutes: 5)) {
+      _lastOtherTripsRefresh = _now();
+      // Les autres favoris ne bloquent pas le rendu du trajet actif.
+      for (final other in List<Trip>.of(_trips)) {
+        if (_disposed || generation != _cacheGeneration) return;
+        if (other.id != trip.id) await _refreshTrip(other);
+      }
+      if (!_disposed) await _publishWidgets();
+    }
+  }
 
-    return TripSorter.shouldSwapOrder(
-      currentHour: DateTime.now().hour,
+  void _buildViewModels() {
+    final trip = _activeTrip;
+    if (trip == null) {
+      _directionGoViewModel = null;
+      _directionReturnViewModel = null;
+      _swapped = false;
+      _connectionStatus = ConnectionStatus.offline;
+      return;
+    }
+    final date = _now();
+    _swapped = TripSorter.shouldSwapOrder(
+      currentHour: date.hour,
       morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
       serviceDayStartHour: _settingsProvider.serviceDayStartTime,
-      morningDirection: _activeTrip!.morningDirection,
+      morningDirection: trip.morningDirection,
     );
+    final go = DirectionCardViewModel.fromDepartures(
+      title: '${trip.stationA.name} → ${trip.stationB.name}',
+      departures: departuresGo,
+      now: date,
+      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
+    );
+    final back = DirectionCardViewModel.fromDepartures(
+      title: '${trip.stationB.name} → ${trip.stationA.name}',
+      departures: departuresReturn,
+      now: date,
+      serviceDayStartTime: _settingsProvider.serviceDayStartTime,
+    );
+    _directionGoViewModel = _swapped ? back : go;
+    _directionReturnViewModel = _swapped ? go : back;
+    _connectionStatus = _requests.containsKey(trip.id)
+        ? ConnectionStatus.syncing
+        : (_activeData?.fromNetwork == true
+              ? ConnectionStatus.online
+              : ConnectionStatus.offline);
+  }
+
+  void _settingsChanged() {
+    if (isLoading || _disposed) return;
+    _buildViewModels();
+    _notify();
+    unawaited(_publishWidgets());
+  }
+
+  /// Le temps qui passe actualise le rendu même sans réponse réseau.
+  void tick() {
+    if (_disposed || !_foreground || isLoading) return;
+    _buildViewModels();
+    _notify();
+    final interval = _activeData?.fromNetwork == true
+        ? AppConstants.refreshInterval
+        : AppConstants.refreshIntervalOffline;
+    if (_lastAttempt == null || _now().difference(_lastAttempt!) >= interval) {
+      unawaited(refreshDepartures(forceRefreshWidgets: false, feedback: false));
+    }
+  }
+
+  void setForeground(bool value) {
+    if (_disposed || _foreground == value) return;
+    _foreground = value;
+    if (value) {
+      _buildViewModels();
+      _notify();
+      unawaited(refreshDepartures(forceRefreshWidgets: false, feedback: false));
+    }
+  }
+
+  /// Sérialiser les écritures empêche une ancienne publication de finir en dernier.
+  Future<void> _publishWidgets({String? removedTripId}) {
+    _widgetWrites = _widgetWrites
+        .then((_) async {
+          if (_disposed) return;
+          if (removedTripId != null) {
+            await _widgetService.clearWidgetDataForTrip(removedTripId);
+          }
+          final currentTrips = List<Trip>.of(_trips);
+          await _widgetService.updateAllWidgets(
+            allTrips: currentTrips,
+            departuresGoByTrip: {
+              for (final t in currentTrips)
+                t.id: _data[t.id]?.go.departures ?? [],
+            },
+            departuresReturnByTrip: {
+              for (final t in currentTrips)
+                t.id: _data[t.id]?.back.departures ?? [],
+            },
+            lastUpdatesByTrip: {
+              for (final t in currentTrips) t.id: _data[t.id]?.fetchedAt,
+            },
+            morningEveningSplitHour: _settingsProvider.morningEveningSplitTime,
+            serviceDayStartHour: _settingsProvider.serviceDayStartTime,
+          );
+        })
+        .catchError((Object e) {
+          debugPrint('Erreur publication widgets: $e');
+        });
+    return _widgetWrites;
   }
 
   Future<void> setActiveTrip(Trip trip) async {
-    if (_activeTrip?.id != trip.id) {
-      _activeTrip = trip;
-      await _buildViewModels();
-      notifyListeners();
+    if (_disposed ||
+        _activeTrip?.id == trip.id ||
+        !_trips.any((t) => t.id == trip.id)) {
+      return;
     }
+    final selection = ++_selection;
+    _activeTrip = trip;
+    _buildViewModels();
+    _notify();
+    await _saveTrips();
+    await _loadCache(trip);
+    if (_disposed || selection != _selection) return;
+    _buildViewModels();
+    _notify();
+    // Le sélecteur peut se fermer dès que le cache est visible.
+    unawaited(refreshDepartures(forceRefreshWidgets: false, feedback: false));
   }
 
   Future<void> updateActiveTripMorningDirection(
-      MorningDirection direction) async {
-    if (_activeTrip == null || _activeTrip!.morningDirection == direction) {
-      return;
-    }
-
-    final updatedTrip = _activeTrip!.copyWith(morningDirection: direction);
-
-    final tripIndex = _trips.indexWhere((t) => t.id == updatedTrip.id);
-    if (tripIndex != -1) {
-      _trips[tripIndex] = updatedTrip;
-      _activeTrip = updatedTrip;
-      await _saveTrips();
-      await _buildViewModels();
-      notifyListeners();
-    }
+    MorningDirection direction,
+  ) async {
+    final trip = _activeTrip;
+    if (trip == null || trip.morningDirection == direction) return;
+    final updated = trip.copyWith(morningDirection: direction);
+    _trips[_trips.indexWhere((t) => t.id == trip.id)] = updated;
+    _activeTrip = updated;
+    _buildViewModels();
+    _notify();
+    await _saveTrips();
+    await _publishWidgets();
   }
 
-  /// Ajoute un nouveau trajet
-  ///
-  /// Retourne un message d'erreur si l'ajout échoue, null sinon.
   Future<String?> addTrip({
     required Station stationA,
     required Station stationB,
     required MorningDirection morningDirection,
   }) async {
-    // Validation : maximum de trajets atteint
+    await ready;
     if (_trips.length >= AppConstants.maxFavoriteTrips) {
       return 'Vous avez atteint le nombre maximum de trajets (${AppConstants.maxFavoriteTrips})';
     }
-
-    // Validation : même gare pour A et B
     if (stationA.id == stationB.id) {
-      return 'Les gares de départ et d\'arrivée doivent être différentes';
+      return 'Les gares de départ et d’arrivée doivent être différentes';
     }
-
-    // Validation : vérifier les doublons (même paire de gares, dans un sens ou l'autre)
-    final isDuplicate = _trips.any((trip) {
-      return (trip.stationA.id == stationA.id &&
-              trip.stationB.id == stationB.id) ||
-          (trip.stationA.id == stationB.id && trip.stationB.id == stationA.id);
-    });
-
-    if (isDuplicate) {
+    if (_trips.any(
+      (t) =>
+          (t.stationA.id == stationA.id && t.stationB.id == stationB.id) ||
+          (t.stationA.id == stationB.id && t.stationB.id == stationA.id),
+    )) {
       return 'Ce trajet existe déjà';
     }
-
-    // Créer le nouveau trajet
-    final newTrip = Trip(
+    final trip = Trip(
       id: 'trip-${const Uuid().v4()}',
       stationA: stationA,
       stationB: stationB,
       morningDirection: morningDirection,
     );
-
-    _trips.add(newTrip);
-    await _saveTrips();
-    
-    // Si c'est le premier trajet, ou pour basculer directement sur le nouveau,
-    // on le définit comme actif. Cela déclenche aussi le chargement des données.
-    await setActiveTrip(newTrip);
-    
-    // notifyListeners() est déjà appelé par setActiveTrip, mais saveTrips a pu changer l'état
-    // setActiveTrip notifie.
-    
-    return null; // Succès
+    _trips.add(trip);
+    try {
+      await setActiveTrip(trip);
+      await _publishWidgets();
+      return null;
+    } catch (e) {
+      return 'Impossible d’enregistrer le trajet';
+    }
   }
 
-  /// Supprime un trajet
-  ///
-  /// Retourne un message d'erreur si la suppression échoue, null sinon.
   Future<String?> removeTrip(String tripId) async {
-    final tripIndex = _trips.indexWhere((t) => t.id == tripId);
-
-    if (tripIndex == -1) {
-      return 'Trajet introuvable';
-    }
-
-    _trips.removeAt(tripIndex);
-
-    if (_trips.isEmpty) {
+    final index = _trips.indexWhere((t) => t.id == tripId);
+    if (index == -1) return 'Trajet introuvable';
+    final removed = _trips.removeAt(index);
+    _data.remove(tripId);
+    if (_activeTrip?.id == tripId) {
+      ++_selection;
       _activeTrip = null;
-      _directionGoViewModel = null;
-      _directionReturnViewModel = null;
-    } else if (_activeTrip?.id == tripId) {
-      // Si le trajet supprimé était le trajet actif, basculer vers le premier
-      _activeTrip = _trips.first;
-      await _buildViewModels();
+      if (_trips.isNotEmpty) await setActiveTrip(_trips.first);
     }
-    // Si on a supprimé un trajet non actif, pas besoin de rebuild les viewModels
-    // mais il faut quand même sauvegarder et notifier.
-
     await _saveTrips();
-    notifyListeners();
+    _buildViewModels();
+    _notify();
+    await _publishWidgets(removedTripId: tripId);
+    // Ne pas supprimer un cache en cours d'écriture.
+    await _requests[tripId];
+    await _storageService.removeDirection(
+      removed.stationA.id,
+      removed.stationB.id,
+    );
+    await _storageService.removeDirection(
+      removed.stationB.id,
+      removed.stationA.id,
+    );
+    return null;
+  }
 
-    // Nettoyer les données du trajet supprimé des widgets
-    await _widgetService.clearWidgetDataForTrip(tripId);
+  Future<void> clearCache() {
+    return _clearingCache ??= _clearCache().whenComplete(() {
+      _clearingCache = null;
+    });
+  }
 
-    // Mettre à jour les widgets avec les trajets restants
-    _updateWidget(forceRefresh: true); // Force refresh pour supprimer le trajet
+  Future<void> _clearCache() async {
+    // Bloquer les nouveaux chargements avant d’attendre ceux déjà en cours.
+    _cacheGeneration++;
+    await Future.wait(_requests.values.toList());
+    await _storageService.clearCache();
+    await _apiService.clearTheoreticalCache();
+    _data.clear();
+    _buildViewModels();
+    _notify();
+    await _publishWidgets();
+  }
 
-    return null; // Succès
+  @override
+  void dispose() {
+    _disposed = true;
+    _timer?.cancel();
+    _settingsProvider.removeListener(_settingsChanged);
+    if (_ownsApi) _apiService.dispose();
+    super.dispose();
   }
 }

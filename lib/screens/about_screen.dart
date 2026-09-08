@@ -23,6 +23,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Future<void> _loadVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _version = '${packageInfo.version}+${packageInfo.buildNumber}';
     });
@@ -77,7 +78,9 @@ class _AboutScreenState extends State<AboutScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Version $_version',
-                    style: AppTextStyles.small.copyWith(color: AppColors.secondary),
+                    style: AppTextStyles.small.copyWith(
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ],
               ),

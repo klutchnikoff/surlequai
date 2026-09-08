@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/screens/about_screen.dart';
@@ -48,13 +47,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paramètres'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Paramètres'), centerTitle: true),
       body: Consumer2<SettingsProvider, TripProvider>(
         builder: (context, settingsProvider, tripProvider, child) {
           return ListView(
@@ -92,8 +89,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Vider le cache'),
             content: const Text(
-                'Cela supprimera tous les horaires théoriques en cache. '
-                'Les données seront rechargées à la prochaine consultation.'),
+              'Cela supprimera tous les horaires théoriques en cache. '
+              'Les données seront rechargées à la prochaine consultation.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -109,22 +107,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         if (confirmed == true && context.mounted) {
           try {
-            final prefs = await SharedPreferences.getInstance();
-            final keys = prefs.getKeys();
-
-            // Supprimer uniquement les clés de cache (commencent par "journeys_")
-            int removed = 0;
-            for (final key in keys) {
-              if (key.startsWith('journeys_')) {
-                await prefs.remove(key);
-                removed++;
-              }
-            }
+            await context.read<TripProvider>().clearCache();
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Cache vidé ($removed entrée${removed > 1 ? 's' : ''})'),
+                const SnackBar(
+                  content: Text('Cache vidé'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -149,22 +137,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Text(
         title,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
+        style: Theme.of(context).textTheme.titleSmall
             ?.copyWith(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }
 
   Widget _buildThemeSetting(
-      BuildContext context, SettingsProvider settingsProvider) {
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ListTile(
-          title: Text('Thème'),
-        ),
+        const ListTile(title: Text('Thème')),
         RadioGroup<AppThemeMode>(
           groupValue: settingsProvider.themeMode,
           onChanged: (AppThemeMode? value) {
@@ -185,15 +171,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildThemeRadio(
-      BuildContext context, AppThemeMode mode, String text) {
-    return RadioListTile<AppThemeMode>(
-      title: Text(text),
-      value: mode,
-    );
+    BuildContext context,
+    AppThemeMode mode,
+    String text,
+  ) {
+    return RadioListTile<AppThemeMode>(title: Text(text), value: mode);
   }
 
   Widget _buildDisplayOrderSetting(
-      BuildContext context, TripProvider tripProvider) {
+    BuildContext context,
+    TripProvider tripProvider,
+  ) {
     final activeTrip = tripProvider.activeTrip;
 
     if (activeTrip == null) {
@@ -210,29 +198,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const ListTile(
           title: Text('Ordre d\'affichage automatique'),
           subtitle: Text(
-              'Le trajet du matin est affiché en premier avant l\'heure de bascule.'),
+            'Le trajet du matin est affiché en premier avant l\'heure de bascule.',
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-              'Trajet du matin pour "${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}"',
-              style: Theme.of(context).textTheme.titleSmall),
+            'Trajet du matin pour "${activeTrip.stationA.name} ⟷ ${activeTrip.stationB.name}"',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
         ),
         RadioGroup<MorningDirection>(
           groupValue: tripProvider.activeTrip?.morningDirection,
           onChanged: (MorningDirection? value) {
             if (value != null) {
-              context
-                  .read<TripProvider>()
-                  .updateActiveTripMorningDirection(value);
+              context.read<TripProvider>().updateActiveTripMorningDirection(
+                value,
+              );
             }
           },
           child: Column(
             children: [
-              _buildMorningDirectionRadio(context, MorningDirection.aToB,
-                  '${activeTrip.stationA.name} → ${activeTrip.stationB.name}'),
-              _buildMorningDirectionRadio(context, MorningDirection.bToA,
-                  '${activeTrip.stationB.name} → ${activeTrip.stationA.name}'),
+              _buildMorningDirectionRadio(
+                context,
+                MorningDirection.aToB,
+                '${activeTrip.stationA.name} → ${activeTrip.stationB.name}',
+              ),
+              _buildMorningDirectionRadio(
+                context,
+                MorningDirection.bToA,
+                '${activeTrip.stationB.name} → ${activeTrip.stationA.name}',
+              ),
             ],
           ),
         ),
@@ -241,17 +237,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildMorningDirectionRadio(
-      BuildContext context, MorningDirection direction, String text) {
+    BuildContext context,
+    MorningDirection direction,
+    String text,
+  ) {
     return ListTile(
       title: Text(text),
-      leading: Radio<MorningDirection>(
-        value: direction,
-      ),
+      leading: Radio<MorningDirection>(value: direction),
     );
   }
 
   Widget _buildTimeBehaviorSetting(
-      BuildContext context, SettingsProvider settingsProvider) {
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -259,36 +258,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           title: const Text('Bascule matin/soir'),
           subtitle: Text(
-              'Heure à partir de laquelle le trajet du soir est prioritaire : ${settingsProvider.morningEveningSplitTime}h'),
+            'Heure à partir de laquelle le trajet du soir est prioritaire : ${settingsProvider.morningEveningSplitTime}h',
+          ),
           trailing: const Icon(Icons.edit),
           onTap: () async {
             final TimeOfDay? picked = await showTimePicker(
               context: context,
               initialTime: TimeOfDay(
-                  hour: settingsProvider.morningEveningSplitTime, minute: 0),
+                hour: settingsProvider.morningEveningSplitTime,
+                minute: 0,
+              ),
             );
             if (picked != null && context.mounted) {
-              context
-                  .read<SettingsProvider>()
-                  .setMorningEveningSplitTime(picked.hour);
+              context.read<SettingsProvider>().setMorningEveningSplitTime(
+                picked.hour,
+              );
             }
           },
         ),
         ListTile(
           title: const Text('Début du jour de service'),
           subtitle: Text(
-              'Heure de départ du premier train de la journée : ${settingsProvider.serviceDayStartTime}h'),
+            'Heure de départ du premier train de la journée : ${settingsProvider.serviceDayStartTime}h',
+          ),
           trailing: const Icon(Icons.edit),
           onTap: () async {
             final TimeOfDay? picked = await showTimePicker(
               context: context,
               initialTime: TimeOfDay(
-                  hour: settingsProvider.serviceDayStartTime, minute: 0),
+                hour: settingsProvider.serviceDayStartTime,
+                minute: 0,
+              ),
             );
             if (picked != null && context.mounted) {
-              context
-                  .read<SettingsProvider>()
-                  .setServiceDayStartTime(picked.hour);
+              context.read<SettingsProvider>().setServiceDayStartTime(
+                picked.hour,
+              );
             }
           },
         ),
@@ -343,12 +348,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               children: [
                 Icon(
-                  _keyTestResult == 'valid'
-                      ? Icons.check_circle
-                      : Icons.error,
-                  color: _keyTestResult == 'valid'
-                      ? Colors.green
-                      : Colors.red,
+                  _keyTestResult == 'valid' ? Icons.check_circle : Icons.error,
+                  color: _keyTestResult == 'valid' ? Colors.green : Colors.red,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -513,10 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
         HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }

@@ -5,6 +5,8 @@ import 'package:surlequai/utils/constants.dart';
 
 class SettingsProvider with ChangeNotifier {
   late SharedPreferences _prefs;
+  late final Future<void> ready;
+  bool _disposed = false;
 
   // State
   late AppThemeMode _themeMode;
@@ -21,7 +23,7 @@ class SettingsProvider with ChangeNotifier {
     _themeMode = AppThemeMode.system;
     _morningEveningSplitTime = AppConstants.defaultMorningEveningSplitHour;
     _serviceDayStartTime = AppConstants.defaultServiceDayStartHour;
-    _loadSettings();
+    ready = _loadSettings();
   }
 
   Future<void> _loadSettings() async {
@@ -30,38 +32,53 @@ class SettingsProvider with ChangeNotifier {
     // Load theme
     final themeIndex =
         _prefs.getInt(AppConstants.themeModeKey) ?? AppThemeMode.system.index;
-    _themeMode = AppThemeMode.values[themeIndex];
+    _themeMode = themeIndex >= 0 && themeIndex < AppThemeMode.values.length
+        ? AppThemeMode.values[themeIndex]
+        : AppThemeMode.system;
 
     // Load split time
-    _morningEveningSplitTime = _prefs.getInt(AppConstants.splitTimeKey) ??
+    _morningEveningSplitTime =
+        _prefs.getInt(AppConstants.splitTimeKey) ??
         AppConstants.defaultMorningEveningSplitHour;
 
     // Load service day start time
-    _serviceDayStartTime = _prefs.getInt(AppConstants.dayStartTimeKey) ??
+    _serviceDayStartTime =
+        _prefs.getInt(AppConstants.dayStartTimeKey) ??
         AppConstants.defaultServiceDayStartHour;
 
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> setThemeMode(AppThemeMode mode) async {
+    await ready;
     if (_themeMode == mode) return;
     _themeMode = mode;
     await _prefs.setInt(AppConstants.themeModeKey, mode.index);
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> setMorningEveningSplitTime(int hour) async {
+    await ready;
+    if (hour < 0 || hour > 23) throw ArgumentError.value(hour);
     if (_morningEveningSplitTime == hour) return;
     _morningEveningSplitTime = hour;
     await _prefs.setInt(AppConstants.splitTimeKey, hour);
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> setServiceDayStartTime(int hour) async {
+    await ready;
+    if (hour < 0 || hour > 23) throw ArgumentError.value(hour);
     if (_serviceDayStartTime == hour) return;
     _serviceDayStartTime = hour;
     await _prefs.setInt(AppConstants.dayStartTimeKey, hour);
-    notifyListeners();
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   ThemeMode get currentThemeMode {

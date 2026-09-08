@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/services/api_service.dart';
+import 'package:surlequai/services/settings_provider.dart';
+import 'package:surlequai/utils/service_day.dart';
 import 'package:surlequai/theme/app_theme.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/theme/text_styles.dart';
@@ -27,7 +29,9 @@ class SchedulesModal extends StatefulWidget {
 class _SchedulesModalState extends State<SchedulesModal> {
   bool _hasScrolled = false;
   bool _isLoading = true;
-  String? _errorMessage;
+  String? _todayError;
+  String? _tomorrowError;
+  int _pendingDays = 2;
   List<Departure> _todayDepartures = [];
   List<Departure> _tomorrowDepartures = [];
 
@@ -41,66 +45,59 @@ class _SchedulesModalState extends State<SchedulesModal> {
     final apiService = context.read<ApiService>();
     final now = DateTime.now();
 
-    // Calculer le début de la journée de service actuelle (4h du matin)
-    DateTime todayServiceStart;
-    final currentHour = now.hour;
-    if (currentHour < AppConstants.defaultServiceDayStartHour) {
-      // On est entre minuit et 4h → journée actuelle = hier 4h
-      final yesterday = now.subtract(const Duration(days: 1));
-      todayServiceStart = DateTime(yesterday.year, yesterday.month, yesterday.day, AppConstants.defaultServiceDayStartHour);
-    } else {
-      // On est après 4h → journée actuelle = aujourd'hui 4h
-      todayServiceStart = DateTime(now.year, now.month, now.day, AppConstants.defaultServiceDayStartHour);
-    }
+    final hour = context.read<SettingsProvider>().serviceDayStartTime;
+    final todayServiceStart = ServiceDay.start(now, hour);
+    final tomorrowServiceStart = ServiceDay.next(todayServiceStart);
 
-    // Calculer le début de la prochaine journée de service (4h du lendemain)
-    final tomorrowServiceStart = todayServiceStart.add(const Duration(days: 1));
-
-    try {
-      // Appel 1 : Horaires théoriques aujourd'hui (tous les trains depuis 4h du matin)
-      final today = await apiService.getTheoreticalSchedule(
-        fromStationId: widget.fromStationId,
-        toStationId: widget.toStationId,
-        datetime: todayServiceStart, // 4h du matin, pas "now"
-        count: AppConstants.maxTrainsPerDay,
-      );
-
-      // Appel 2 : Horaires théoriques demain (tous les trains depuis 4h du lendemain)
-      final tomorrow = await apiService.getTheoreticalSchedule(
-        fromStationId: widget.fromStationId,
-        toStationId: widget.toStationId,
-        datetime: tomorrowServiceStart,
-        count: AppConstants.maxTrainsPerDay,
-      );
-
-      // Filtrer les trains : garder uniquement ceux de la journée concernée
-      // Aujourd'hui : entre todayServiceStart (4h) et tomorrowServiceStart (4h lendemain)
-      final filteredToday = today.where((d) => d.scheduledTime.isBefore(tomorrowServiceStart)).toList();
-
-      // Demain : entre tomorrowServiceStart (4h demain) et dayAfterServiceStart (4h après-demain)
-      final dayAfterServiceStart = tomorrowServiceStart.add(const Duration(days: 1));
-      final filteredTomorrow = tomorrow.where((d) => d.scheduledTime.isBefore(dayAfterServiceStart)).toList();
-
-      if (AppConstants.enableDebugLogs) {
-        debugPrint('[SchedulesModal] Filtered today: ${today.length} → ${filteredToday.length}');
-        debugPrint('[SchedulesModal] Filtered tomorrow: ${tomorrow.length} → ${filteredTomorrow.length}');
+    Future<void> loadDay(DateTime start, {required bool tomorrow}) async {
+      List<Departure> departures = [];
+      String? error;
+      try {
+        final result = await apiService.getTheoreticalSchedule(
+          fromStationId: widget.fromStationId,
+          toStationId: widget.toStationId,
+          datetime: start,
+          count: AppConstants.maxTrainsPerDay,
+          serviceDayStartHour: hour,
+        );
+        final end = ServiceDay.next(start);
+        departures = result
+            .where(
+              (d) =>
+                  !d.scheduledTime.isBefore(start) &&
+                  d.scheduledTime.isBefore(end),
+            )
+            .toList();
+      } catch (_) {
+        error = tomorrow
+            ? 'Horaires de demain indisponibles.'
+            : 'Horaires d’aujourd’hui indisponibles.';
       }
-
+      if (!mounted) return;
       setState(() {
-        _todayDepartures = filteredToday;
-        _tomorrowDepartures = filteredTomorrow;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Erreur de chargement: $e';
+        if (tomorrow) {
+          _tomorrowDepartures = departures;
+          _tomorrowError = error;
+        } else {
+          _todayDepartures = departures;
+          _todayError = error;
+        }
+        _pendingDays--;
         _isLoading = false;
       });
     }
+
+    // Chaque journée peut s’afficher même si l’autre échoue ou reste en attente.
+    await Future.wait([
+      loadDay(todayServiceStart, tomorrow: false),
+      loadDay(tomorrowServiceStart, tomorrow: true),
+    ]);
   }
 
   void _scrollToNextDeparture(
-      ScrollController controller, int nextDepartureIndex) {
+    ScrollController controller,
+    int nextDepartureIndex,
+  ) {
     // Ne scroller qu'une seule fois
     if (_hasScrolled || nextDepartureIndex == -1) return;
 
@@ -130,8 +127,9 @@ class _SchedulesModalState extends State<SchedulesModal> {
 
   Widget _buildDeparturesList(ScrollController controller) {
     final now = DateTime.now();
-    final nextDepartureIndex =
-        _todayDepartures.indexWhere((d) => d.scheduledTime.isAfter(now));
+    final nextDepartureIndex = _todayDepartures.indexWhere(
+      (d) => d.scheduledTime.isAfter(now),
+    );
 
     // Scroller vers le prochain train
     if (nextDepartureIndex != -1) {
@@ -139,7 +137,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
     }
 
     // Construire la liste combinée
-    final items = <Widget>[];
+    final items = <Widget>[if (_todayError != null) Text(_todayError!)];
 
     // Trains d'aujourd'hui
     for (int i = 0; i < _todayDepartures.length; i++) {
@@ -179,13 +177,19 @@ class _SchedulesModalState extends State<SchedulesModal> {
       }
     }
 
-    return ListView(
-      controller: controller,
-      children: items,
-    );
+    if (_tomorrowError != null) items.add(Text(_tomorrowError!));
+    if (_pendingDays > 0) {
+      items.add(const Text('Chargement des autres horaires...'));
+    }
+    return ListView(controller: controller, children: items);
   }
 
-  Widget _buildDepartureItem(Departure departure, bool isNext, bool isPast, bool isTomorrow) {
+  Widget _buildDepartureItem(
+    Departure departure,
+    bool isNext,
+    bool isPast,
+    bool isTomorrow,
+  ) {
     // Déterminer la couleur selon le statut
     Color statusColor;
     switch (departure.status) {
@@ -234,9 +238,13 @@ class _SchedulesModalState extends State<SchedulesModal> {
     } else if (isPast) {
       // Trains passés : gris + barré
       timeStyle = AppTextStyles.medium.copyWith(
-          color: AppColors.secondary, decoration: TextDecoration.lineThrough);
+        color: AppColors.secondary,
+        decoration: TextDecoration.lineThrough,
+      );
       platformStyle = AppTextStyles.medium.copyWith(
-          color: AppColors.secondary, decoration: TextDecoration.lineThrough);
+        color: AppColors.secondary,
+        decoration: TextDecoration.lineThrough,
+      );
     } else {
       // Trains futurs : style normal
       timeStyle = AppTextStyles.medium;
@@ -315,14 +323,20 @@ class _SchedulesModalState extends State<SchedulesModal> {
               const SizedBox(height: 16),
               // Header
               const Text('Fiche horaire', style: AppTextStyles.large),
-              Text(widget.title,
-                  style: AppTextStyles.small.copyWith(
-                      color: AppTheme.getSecondaryTextColor(context))),
+              Text(
+                widget.title,
+                style: AppTextStyles.small.copyWith(
+                  color: AppTheme.getSecondaryTextColor(context),
+                ),
+              ),
               const SizedBox(height: 4),
-              Text('Horaires théoriques',
-                  style: AppTextStyles.tiny.copyWith(
-                      color: AppTheme.getSecondaryTextColor(context),
-                      fontStyle: FontStyle.italic)),
+              Text(
+                'Horaires théoriques',
+                style: AppTextStyles.tiny.copyWith(
+                  color: AppTheme.getSecondaryTextColor(context),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
               const SizedBox(height: 16),
               const Divider(),
               // Content
@@ -334,26 +348,14 @@ class _SchedulesModalState extends State<SchedulesModal> {
                           children: [
                             CircularProgressIndicator(),
                             SizedBox(height: 16),
-                            Text('Chargement des horaires...',
-                                style: AppTextStyles.small),
+                            Text(
+                              'Chargement des horaires...',
+                              style: AppTextStyles.small,
+                            ),
                           ],
                         ),
                       )
-                    : _errorMessage != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.error_outline,
-                                    size: 64, color: AppColors.cancelled),
-                                const SizedBox(height: 16),
-                                Text(_errorMessage!,
-                                    style: AppTextStyles.medium,
-                                    textAlign: TextAlign.center),
-                              ],
-                            ),
-                          )
-                        : _buildDeparturesList(controller),
+                    : _buildDeparturesList(controller),
               ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'package:surlequai/models/departure.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
+import 'package:surlequai/utils/service_day.dart';
 
 sealed class DirectionCardViewModel {
   final String title;
@@ -23,43 +24,45 @@ sealed class DirectionCardViewModel {
   }) {
     final referenceDate = now ?? DateTime.now();
 
-    // Calcule la fin de la "journée de service actuelle"
-    // La journée de service va de dayStartTime (ex: 4h) à dayStartTime du lendemain
-    DateTime endOfServiceDay;
-    if (referenceDate.hour < serviceDayStartTime) {
-      // Entre minuit et dayStartTime (ex: 1h du matin)
-      // → La journée de service se termine à dayStartTime (4h) aujourd'hui
-      endOfServiceDay = DateTime(referenceDate.year, referenceDate.month, referenceDate.day, serviceDayStartTime);
-    } else {
-      // Après dayStartTime → journée se termine à dayStartTime (4h) demain
-      final tomorrow = referenceDate.add(const Duration(days: 1));
-      endOfServiceDay = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, serviceDayStartTime);
-    }
+    final endOfServiceDay = ServiceDay.next(
+      ServiceDay.start(referenceDate, serviceDayStartTime),
+    );
+    final endOfNextDay = ServiceDay.next(endOfServiceDay);
 
     // Filtre les trains "aujourd'hui" (avant la fin de journée de service)
     // IMPORTANT : On compare l'heure RÉELLE de départ (heure prévue + retard)
     final trainsToday = departures.where((d) {
-      final actualDepartureTime = d.scheduledTime.add(Duration(minutes: d.delayMinutes));
+      final actualDepartureTime = d.effectiveTime;
       return actualDepartureTime.isAfter(referenceDate) &&
-             d.scheduledTime.isBefore(endOfServiceDay);
+          d.scheduledTime.isBefore(endOfServiceDay);
     }).toList();
 
     // Trier par heure réelle de départ (gère les retards importants)
     trainsToday.sort((a, b) {
-      final aActual = a.scheduledTime.add(Duration(minutes: a.delayMinutes));
-      final bActual = b.scheduledTime.add(Duration(minutes: b.delayMinutes));
+      final aActual = a.effectiveTime;
+      final bActual = b.effectiveTime;
       return aActual.compareTo(bActual);
     });
 
     // Filtre les trains "demain" (après la fin de journée de service)
     final trainsTomorrow =
-        departures.where((d) => d.scheduledTime.isAfter(endOfServiceDay)).toList();
+        departures
+            .where(
+              (d) =>
+                  !d.scheduledTime.isBefore(endOfServiceDay) &&
+                  d.scheduledTime.isBefore(endOfNextDay) &&
+                  d.status != DepartureStatus.cancelled,
+            )
+            .toList()
+          ..sort((a, b) => a.effectiveTime.compareTo(b.effectiveTime));
 
     // Cas 1 : Aucun train aujourd'hui, mais il y en a demain
     if (trainsToday.isEmpty && trainsTomorrow.isNotEmpty) {
       return DirectionCardNoDepartures.nextTrainTomorrow(
         title: title,
-        tomorrowTime: TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime),
+        tomorrowTime: TimeFormatter.formatTime(
+          trainsTomorrow.first.scheduledTime,
+        ),
       );
     }
 
@@ -73,11 +76,10 @@ sealed class DirectionCardViewModel {
     final nextDeparture = trainsToday.first;
 
     // Limiter le nombre de départs suivants à afficher
-    final subsequentDepartures =
-        trainsToday
-            .skip(1)
-            .take(AppConstants.subsequentDeparturesCount)
-            .toList();
+    final subsequentDepartures = trainsToday
+        .skip(1)
+        .take(AppConstants.subsequentDeparturesCount)
+        .toList();
 
     Color statusBarColor;
     String statusText;
@@ -105,7 +107,9 @@ sealed class DirectionCardViewModel {
       title: title,
       statusBarColor: statusBarColor,
       time: TimeFormatter.formatTime(nextDeparture.scheduledTime),
-      platform: nextDeparture.platform == '?' ? '' : 'Voie ${nextDeparture.platform}',
+      platform: nextDeparture.platform == '?'
+          ? ''
+          : 'Voie ${nextDeparture.platform}',
       statusText: statusText,
       statusColor: statusBarColor,
       statusType: nextDeparture.status, // Nouveau champ
@@ -170,7 +174,8 @@ class DirectionCardNoDepartures extends DirectionCardViewModel {
       title: title,
       statusBarColor: AppColors.secondary,
       noTrainTimeDisplay: '__ : __',
-      noTrainStatusDisplay: 'Aucun train aujourd\'hui\nPremier train demain: $tomorrowTime',
+      noTrainStatusDisplay:
+          'Aucun train aujourd\'hui\nPremier train demain: $tomorrowTime',
       noTrainStatusColor: AppColors.secondary,
     );
   }

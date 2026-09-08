@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:surlequai/models/departure.dart';
@@ -15,13 +17,15 @@ void main() {
     setUp(() {
       widgetService = WidgetService();
       log.clear();
-      
+
       // Mock du channel home_widget
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(const MethodChannel('home_widget'), (MethodCall methodCall) async {
-        log.add(methodCall);
-        return true; // Simule un succès pour toutes les méthodes (saveWidgetData, setAppGroupId, etc.)
-      });
+          .setMockMethodCallHandler(const MethodChannel('home_widget'), (
+            MethodCall methodCall,
+          ) async {
+            log.add(methodCall);
+            return true; // Simule un succès pour toutes les méthodes (saveWidgetData, setAppGroupId, etc.)
+          });
     });
 
     tearDown(() {
@@ -32,10 +36,10 @@ void main() {
     test('updateWidgetForTrip saves correct data for on-time train', () async {
       // Arrange
       final fixedNow = DateTime(2026, 1, 29, 10, 0); // 10h00
-      
-      final stationA = const Station(id: 'A', name: 'Gare A');
-      final stationB = const Station(id: 'B', name: 'Gare B');
-      final trip = Trip(
+
+      const stationA = Station(id: 'A', name: 'Gare A');
+      const stationB = Station(id: 'B', name: 'Gare B');
+      const trip = Trip(
         id: 'trip1',
         stationA: stationA,
         stationB: stationB,
@@ -56,20 +60,23 @@ void main() {
         departuresReturn: [],
         morningEveningSplitHour: 12,
         serviceDayStartHour: 4,
-        now: fixedNow, // Injection de dépendance
+        now: fixedNow,
+        lastUpdate: fixedNow,
       );
 
       // Assert
-      final colorCall = log.firstWhere((call) => 
-        call.method == 'saveWidgetData' && 
-        call.arguments['id'] == 'trip_trip1_direction1_status_color'
+      final colorCall = log.firstWhere(
+        (call) =>
+            call.method == 'saveWidgetData' &&
+            call.arguments['id'] == 'trip_trip1_direction1_status_color',
       );
-      
+
       expect(colorCall.arguments['data'], 'onTime');
-      
-      final timeCall = log.firstWhere((call) => 
-        call.method == 'saveWidgetData' && 
-        call.arguments['id'] == 'trip_trip1_direction1_time'
+
+      final timeCall = log.firstWhere(
+        (call) =>
+            call.method == 'saveWidgetData' &&
+            call.arguments['id'] == 'trip_trip1_direction1_time',
       );
       expect(timeCall.arguments['data'], isNotNull);
     });
@@ -78,10 +85,10 @@ void main() {
       // Arrange
       final fixedNow = DateTime(2026, 1, 29, 10, 0); // 10h00
 
-      final trip = Trip(
+      const trip = Trip(
         id: 'trip2',
-        stationA: const Station(id: 'A', name: 'A'),
-        stationB: const Station(id: 'B', name: 'B'),
+        stationA: Station(id: 'A', name: 'A'),
+        stationB: Station(id: 'B', name: 'B'),
         morningDirection: MorningDirection.aToB,
       );
 
@@ -98,16 +105,117 @@ void main() {
         trip: trip,
         departuresGo: [departure],
         departuresReturn: [],
-        now: fixedNow, // Injection de dépendance
+        now: fixedNow,
+        lastUpdate: fixedNow,
       );
 
       // Assert
-      final colorCall = log.firstWhere((call) => 
-        call.method == 'saveWidgetData' && 
-        call.arguments['id'] == 'trip_trip2_direction1_status_color'
+      final colorCall = log.firstWhere(
+        (call) =>
+            call.method == 'saveWidgetData' &&
+            call.arguments['id'] == 'trip_trip2_direction1_status_color',
       );
-      
+
       expect(colorCall.arguments['data'], 'delayed');
     });
+    test(
+      'evening widget keeps titles paired with the correct trains',
+      () async {
+        final now = DateTime(2026, 9, 8, 18);
+        const trip = Trip(
+          id: 'evening',
+          stationA: Station(id: 'A', name: 'A'),
+          stationB: Station(id: 'B', name: 'B'),
+          morningDirection: MorningDirection.aToB,
+        );
+        await widgetService.updateWidgetForTrip(
+          trip: trip,
+          now: now,
+          lastUpdate: now,
+          departuresGo: [
+            Departure(
+              id: 'go',
+              platform: '?',
+              scheduledTime: now.add(const Duration(minutes: 10)),
+            ),
+          ],
+          departuresReturn: [
+            Departure(
+              id: 'back',
+              platform: '?',
+              scheduledTime: now.add(const Duration(minutes: 20)),
+            ),
+          ],
+        );
+        Object? saved(String suffix) => log
+            .firstWhere(
+              (call) =>
+                  call.method == 'saveWidgetData' &&
+                  call.arguments['id'] == 'trip_evening_$suffix',
+            )
+            .arguments['data'];
+        expect(saved('direction1_title'), '→ A');
+        expect(saved('direction1_time'), '18:20');
+        expect(saved('direction2_title'), '→ B');
+        expect(saved('direction2_time'), '18:10');
+        expect(
+          saved('next_departure'),
+          now
+              .add(const Duration(minutes: 10))
+              .millisecondsSinceEpoch
+              .toString(),
+        );
+      },
+    );
+
+    test(
+      'iOS timeline expires live status and advances past departures',
+      () async {
+        final now = DateTime(2026, 9, 8, 10);
+        widgetService = WidgetService(now: () => now);
+        const trip = Trip(
+          id: 'timeline',
+          stationA: Station(id: 'A', name: 'A'),
+          stationB: Station(id: 'B', name: 'B'),
+          morningDirection: MorningDirection.aToB,
+        );
+        await widgetService.updateAllWidgets(
+          allTrips: [trip],
+          departuresGoByTrip: {
+            'timeline': [
+              Departure(
+                id: 'go',
+                scheduledTime: now.add(const Duration(minutes: 10)),
+                status: DepartureStatus.delayed,
+                delayMinutes: 3,
+                platform: '2',
+              ),
+            ],
+          },
+          departuresReturnByTrip: const {},
+          lastUpdatesByTrip: {'timeline': now},
+        );
+        final encoded =
+            log
+                    .firstWhere(
+                      (call) =>
+                          call.method == 'saveWidgetData' &&
+                          call.arguments['id'] == 'widget_snapshot',
+                    )
+                    .arguments['data']
+                as String;
+        final frames = jsonDecode(encoded)['trips'][0]['frames'] as List;
+        Map frameAt(int minutes) => frames.firstWhere(
+          (frame) =>
+              frame['date'] ==
+              now.add(Duration(minutes: minutes)).millisecondsSinceEpoch,
+        ) as Map;
+        expect(frameAt(0)['direction1']['color'], 'delayed');
+        expect(frameAt(5)['direction1']['color'], 'offline');
+        expect(frameAt(5)['direction1']['platform'], '');
+        expect(frameAt(10)['direction1']['color'], 'secondary');
+        expect(log.last.method, 'updateWidget');
+      },
+    );
   });
 }

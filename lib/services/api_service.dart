@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,7 @@ import 'package:surlequai/models/station.dart';
 import 'package:surlequai/services/api_key_service.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/navitia_config.dart';
+import 'package:surlequai/utils/service_day.dart';
 
 /// Service d'accès à l'API SNCF via Navitia
 ///
@@ -33,11 +35,9 @@ class ApiService {
   String? _customKey;
   bool _useCustomKey = false;
 
-  ApiService({
-    http.Client? client,
-    ApiKeyService? apiKeyService,
-  })  : _client = client ?? http.Client(),
-        _apiKeyService = apiKeyService ?? ApiKeyService();
+  ApiService({http.Client? client, ApiKeyService? apiKeyService})
+    : _client = client ?? http.Client(),
+      _apiKeyService = apiKeyService ?? ApiKeyService();
 
   /// Initialise le service (charge la clé personnalisée si configurée)
   Future<void> init() async {
@@ -51,18 +51,15 @@ class ApiService {
   /// Méthode centrale pour effectuer les appels HTTP
   /// Gère la construction d'URL, les headers, les timeouts et les erreurs communes.
   Future<Map<String, dynamic>> _get(
-    String endpoint,
-    {
+    String endpoint, {
     Map<String, String>? queryParameters,
-  }
-  ) async {
+  }) async {
     try {
       final baseUrl = NavitiaConfig.getBaseUrl(useCustomKey: _useCustomKey);
-      
+
       // Construction de l'URL
-      final uri = Uri.parse('$baseUrl/$endpoint').replace(
-        queryParameters: queryParameters,
-      );
+      final uri = Uri.parse('$baseUrl/$endpoint')
+          .replace(queryParameters: queryParameters);
 
       if (AppConstants.enableDebugLogs) {
         debugPrint('[ApiService] GET: $uri');
@@ -70,7 +67,10 @@ class ApiService {
 
       // Appel HTTP avec timeout
       final response = await _client
-          .get(uri, headers: NavitiaConfig.getAuthHeaders(customKey: _customKey))
+          .get(
+            uri,
+            headers: NavitiaConfig.getAuthHeaders(customKey: _customKey),
+          )
           .timeout(AppConstants.apiTimeout);
 
       if (response.statusCode == 200) {
@@ -81,7 +81,8 @@ class ApiService {
         throw HttpException('Ressource non trouvée (404) : $uri');
       } else {
         throw HttpException(
-            'Erreur API: ${response.statusCode} - ${response.body}');
+          'Erreur API: ${response.statusCode} - ${response.body}',
+        );
       }
     } on SocketException {
       throw const SocketException('Pas de connexion Internet');
@@ -174,7 +175,9 @@ class ApiService {
     final departures = _mapJourneys(response.journeys ?? []);
 
     if (AppConstants.enableDebugLogs) {
-      debugPrint('[ApiService] Parsed ${departures.length} theoretical schedules');
+      debugPrint(
+        '[ApiService] Parsed ${departures.length} theoretical schedules',
+      );
     }
 
     return departures;
@@ -186,9 +189,12 @@ class ApiService {
     required String toStationId,
     required DateTime datetime,
     int count = AppConstants.maxTrainsPerDay,
+    int serviceDayStartHour = AppConstants.defaultServiceDayStartHour,
   }) async {
     // Calculer le jour de service (change à 4h du matin, pas à minuit)
-    final serviceDay = _getServiceDay(datetime);
+    final serviceStart = ServiceDay.start(datetime, serviceDayStartHour);
+    final serviceDay = serviceStart.toIso8601String();
+    await _pruneTheoreticalCache();
     final cacheKey = _getCacheKey(fromStationId, toStationId, serviceDay);
 
     if (AppConstants.enableDebugLogs) {
@@ -205,7 +211,9 @@ class ApiService {
         final departures = jsonList.map((j) => Departure.fromJson(j)).toList();
 
         if (AppConstants.enableDebugLogs) {
-          debugPrint('[ApiService] ✅ Cache hit: ${departures.length} departures');
+          debugPrint(
+            '[ApiService] ✅ Cache hit: ${departures.length} departures',
+          );
         }
 
         return departures;
@@ -218,13 +226,15 @@ class ApiService {
 
     // Cache manquant ou invalide → appel API
     if (AppConstants.enableDebugLogs) {
-      debugPrint('[ApiService] ❌ Cache miss, fetching theoretical schedule from API');
+      debugPrint(
+        '[ApiService] ❌ Cache miss, fetching theoretical schedule from API',
+      );
     }
 
     final departures = await _fetchTheoreticalJourneys(
       fromStationId: fromStationId,
       toStationId: toStationId,
-      datetime: datetime,
+      datetime: serviceStart,
       count: count,
     );
 
@@ -248,12 +258,7 @@ class ApiService {
   }
 
   /// Recherche des gares par nom (autocomplete)
-  Future<List<Station>> searchStations(
-    String query,
-    {
-    int limit = 10,
-  }
-  ) async {
+  Future<List<Station>> searchStations(String query, {int limit = 10}) async {
     if (query.length < 2) {
       return [];
     }
@@ -287,9 +292,10 @@ class ApiService {
         final network = dep.displayInformation?.network ?? 'unknown';
 
         final networkUpper = network.toUpperCase();
-        final isExpensiveTrain = networkUpper.contains('TGV') ||
-                                networkUpper.contains('OUIGO') ||
-                                networkUpper.contains('TRANSILIEN');
+        final isExpensiveTrain =
+            networkUpper.contains('TGV') ||
+            networkUpper.contains('OUIGO') ||
+            networkUpper.contains('TRANSILIEN');
 
         if (isExpensiveTrain) {
           continue;
@@ -304,8 +310,9 @@ class ApiService {
         final delayMinutes = actualTime.difference(scheduledTime).inMinutes;
 
         DepartureStatus status;
-        if (dep.stopDateTime.dataFreshness == 'base_schedule' ||
-            delayMinutes == 0) {
+        if (dep.stopDateTime.dataFreshness != 'realtime') {
+          status = DepartureStatus.offline;
+        } else if (delayMinutes == 0) {
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
           status = DepartureStatus.delayed;
@@ -315,17 +322,18 @@ class ApiService {
 
         final platform = dep.stopDateTime.platform ?? '?';
 
-        final tripId = dep.displayInformation?.tripShortName ??
-            dep.route?.id ??
-            'unknown';
+        final tripId =
+            dep.displayInformation?.tripShortName ?? dep.route?.id ?? 'unknown';
 
-        departures.add(Departure(
-          id: '$tripId-${scheduledTime.millisecondsSinceEpoch}',
-          scheduledTime: scheduledTime,
-          platform: platform,
-          status: status,
-          delayMinutes: delayMinutes.abs(),
-        ));
+        departures.add(
+          Departure(
+            id: '$tripId-${scheduledTime.millisecondsSinceEpoch}',
+            scheduledTime: scheduledTime,
+            platform: platform,
+            status: status,
+            delayMinutes: delayMinutes,
+          ),
+        );
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
           debugPrint('[ApiService] Failed to map departure: $e');
@@ -357,9 +365,10 @@ class ApiService {
 
         final network = displayInfo.network ?? 'unknown';
         final networkUpper = network.toUpperCase();
-        final isExpensiveTrain = networkUpper.contains('TGV') ||
-                                networkUpper.contains('OUIGO') ||
-                                networkUpper.contains('TRANSILIEN');
+        final isExpensiveTrain =
+            networkUpper.contains('TGV') ||
+            networkUpper.contains('OUIGO') ||
+            networkUpper.contains('TRANSILIEN');
 
         if (isExpensiveTrain) {
           continue;
@@ -377,10 +386,16 @@ class ApiService {
         final arrivalTime = _parseNavitiaDateTime(arrivalDateTime);
 
         final durationMinutes = arrivalTime.difference(scheduledTime).inMinutes;
-        final delayMinutes = scheduledTime.difference(baseScheduledTime).inMinutes;
+        final delayMinutes = scheduledTime
+            .difference(baseScheduledTime)
+            .inMinutes;
 
         DepartureStatus status;
-        if (trainSection.dataFreshness == 'base_schedule' || delayMinutes == 0) {
+        if (journey.status == 'NO_SERVICE') {
+          status = DepartureStatus.cancelled;
+        } else if (trainSection.dataFreshness != 'realtime') {
+          status = DepartureStatus.offline;
+        } else if (delayMinutes == 0) {
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
           status = DepartureStatus.delayed;
@@ -392,18 +407,19 @@ class ApiService {
         final firstStop = stopDateTimes.isNotEmpty ? stopDateTimes.first : null;
         final platform = firstStop?.departureStopPoint?.platform ?? '?';
 
-        final tripId = displayInfo.tripShortName ??
-                      trainSection.id ??
-                      'unknown';
+        final tripId =
+            displayInfo.tripShortName ?? trainSection.id ?? 'unknown';
 
-        departures.add(Departure(
-          id: '$tripId-${scheduledTime.millisecondsSinceEpoch}',
-          scheduledTime: scheduledTime,
-          platform: platform,
-          status: status,
-          delayMinutes: delayMinutes.abs(),
-          durationMinutes: durationMinutes,
-        ));
+        departures.add(
+          Departure(
+            id: '$tripId-${baseScheduledTime.millisecondsSinceEpoch}',
+            scheduledTime: baseScheduledTime,
+            platform: platform,
+            status: status,
+            delayMinutes: delayMinutes,
+            durationMinutes: durationMinutes,
+          ),
+        );
       } catch (e) {
         if (AppConstants.enableDebugLogs) {
           debugPrint('[ApiService] Failed to map journey: $e');
@@ -435,19 +451,34 @@ class ApiService {
 
   // --- UTILS ---
 
-  String _getServiceDay(DateTime datetime) {
-    final hour = datetime.hour;
-    if (hour < AppConstants.defaultServiceDayStartHour) {
-      final previousDay = datetime.subtract(const Duration(days: 1));
-      return '${previousDay.year}-${previousDay.month.toString().padLeft(2, '0')}-${previousDay.day.toString().padLeft(2, '0')}';
+  Future<void> clearTheoreticalCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in prefs.getKeys().where((k) => k.startsWith('journeys_'))) {
+      await prefs.remove(key);
     }
-    return '${datetime.year}-${datetime.month.toString().padLeft(2, '0')}-${datetime.day.toString().padLeft(2, '0')}';
   }
 
-  String _getCacheKey(String fromStationId, String toStationId, String serviceDay) {
+  Future<void> _pruneTheoreticalCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cutoff = DateTime.now().subtract(const Duration(days: 2));
+    for (final key in prefs.getKeys().where((k) => k.startsWith('journeys_'))) {
+      final date = DateTime.tryParse(key.split('_').last);
+      if (!key.startsWith('journeys_v2_') ||
+          date == null ||
+          date.isBefore(cutoff)) {
+        await prefs.remove(key);
+      }
+    }
+  }
+
+  String _getCacheKey(
+    String fromStationId,
+    String toStationId,
+    String serviceDay,
+  ) {
     final fromId = fromStationId.split(':').last;
     final toId = toStationId.split(':').last;
-    return 'journeys_${fromId}_${toId}_$serviceDay';
+    return 'journeys_v2_${fromId}_${toId}_$serviceDay';
   }
 
   String _formatNavitiaDateTime(DateTime datetime) {

@@ -33,15 +33,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // Quand l'app revient au premier plan, forcer un rafraîchissement
-    if (state == AppLifecycleState.resumed) {
-      final tripProvider = context.read<TripProvider>();
-      tripProvider.refreshDepartures();
-    }
+    context.read<TripProvider>().setForeground(
+      state == AppLifecycleState.resumed,
+    );
   }
 
   void _showSchedulesModal(
-      BuildContext context, String title, String fromStationId, String toStationId) {
+    BuildContext context,
+    String title,
+    String fromStationId,
+    String toStationId,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Important for DraggableScrollableSheet
@@ -111,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
-                'assets/icon/icon-ios.png',
+                'assets/images/app-icon.png',
                 width: 64,
                 height: 64,
               ),
@@ -132,13 +134,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AddTripScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const AddTripScreen(),
+                  ),
                 );
               },
               icon: const Icon(Icons.add),
               label: const Text('Ajouter mon trajet'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -172,22 +179,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     viewModel: viewModelGo,
                     onTap: activeTrip != null
                         ? () => _showSchedulesModal(
-                              context,
-                              viewModelGo.title,
-                              isSwapped ? activeTrip.stationB.id : activeTrip.stationA.id,
-                              isSwapped ? activeTrip.stationA.id : activeTrip.stationB.id,
-                            )
+                            context,
+                            viewModelGo.title,
+                            isSwapped
+                                ? activeTrip.stationB.id
+                                : activeTrip.stationA.id,
+                            isSwapped
+                                ? activeTrip.stationA.id
+                                : activeTrip.stationB.id,
+                          )
                         : null,
                   ),
                   DirectionCard(
                     viewModel: viewModelReturn,
                     onTap: activeTrip != null
                         ? () => _showSchedulesModal(
-                              context,
-                              viewModelReturn.title,
-                              isSwapped ? activeTrip.stationA.id : activeTrip.stationB.id,
-                              isSwapped ? activeTrip.stationB.id : activeTrip.stationA.id,
-                            )
+                            context,
+                            viewModelReturn.title,
+                            isSwapped
+                                ? activeTrip.stationA.id
+                                : activeTrip.stationB.id,
+                            isSwapped
+                                ? activeTrip.stationB.id
+                                : activeTrip.stationA.id,
+                          )
                         : null,
                   ),
                 ],
