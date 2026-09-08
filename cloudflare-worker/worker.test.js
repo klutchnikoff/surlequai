@@ -108,6 +108,19 @@ test('keeps stations for a day and schedules for a minute', async () => {
   assert.equal(ttl('https://api.sncf.com/v1/coverage/sncf/journeys?from=A'), 'max-age=60');
 });
 
+test('refuses to follow an upstream redirect', async () => {
+  const store = installCache();
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(options.redirect, 'manual');
+    return new Response(null, { status: 302, headers: { Location: 'https://elsewhere.test/' } });
+  };
+  const response = await worker.fetch(new Request('https://proxy.test/coverage/sncf/journeys?from=A'), environment(), context);
+  await settled();
+  assert.equal(response.status, 502);
+  assert.equal(response.headers.get('Location'), null);
+  assert.equal(store.size, 0);
+});
+
 test('never shares an upstream failure', async () => {
   const store = installCache();
   globalThis.fetch = async () => new Response('{"error":"quota"}', { status: 429 });

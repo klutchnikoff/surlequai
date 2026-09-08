@@ -52,14 +52,23 @@ export default {
           Authorization: `Basic ${btoa(env.NAVITIA_API_KEY + ':')}`,
           Accept: 'application/json',
         },
-        redirect: 'error',
+        // Le runtime refuse `error` : on ne suit aucune redirection et on la
+        // traite nous-mêmes comme une panne amont.
+        redirect: 'manual',
         signal: AbortSignal.timeout(9000),
       });
+      if (upstream.status >= 300 && upstream.status < 400) {
+        return errorResponse(502, 'Upstream unavailable');
+      }
+      // Le corps est lu une fois puis réémis : un clone dont la copie n'est pas
+      // consommée — ce qui arrive là où la Cache API est inopérante — casse la
+      // réponse rendue au client.
+      const body = await upstream.arrayBuffer();
       // Seules les réponses complètes sont partagées : une erreur amont ne doit
       // pas être resservie à tous les utilisateurs pendant la durée du cache.
       if (cache && upstream.status === 200) {
         const ttl = matched[1] === 'places' ? cacheTtl.places : cacheTtl.realtime;
-        const stored = new Response(upstream.clone().body, {
+        const stored = new Response(body, {
           status: 200,
           headers: {
             'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
@@ -69,8 +78,10 @@ export default {
         ctx.waitUntil(Promise.resolve().then(() => cache.put(cacheKey, stored)).catch(() => {}));
       }
       record(env, 'miss');
-      return clientResponse(upstream, 'MISS');
-    } catch (_) {
+      return clientResponse(upstream, 'MISS', body);
+    } catch (error) {
+      // Trace serveur seulement : le client ne reçoit aucun détail interne.
+      console.error('upstream', error && error.stack || error);
       return errorResponse(502, 'Upstream unavailable');
     }
   },
@@ -88,7 +99,7 @@ function sharedCache() {
   return typeof caches !== 'undefined' && caches.default ? caches.default : null;
 }
 
-function clientResponse(source, state) {
+function clientResponse(source, state, body) {
   const headers = new Headers(cors);
   headers.set('Content-Type', source.headers.get('Content-Type') || 'application/json');
   // Le partage a lieu dans le proxy : les clients gardent leur propre cadence.
@@ -96,7 +107,7 @@ function clientResponse(source, state) {
   headers.set('X-Cache', state);
   const retry = source.headers.get('Retry-After');
   if (retry) headers.set('Retry-After', retry);
-  return new Response(source.body, { status: source.status, headers });
+  return new Response(body === undefined ? source.body : body, { status: source.status, headers });
 }
 
 async function rateLimitKey(request, secret) {
