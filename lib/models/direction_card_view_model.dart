@@ -99,7 +99,10 @@ sealed class DirectionCardViewModel {
         break;
       case DepartureStatus.offline:
         statusBarColor = AppColors.offline;
-        statusText = 'Horaire prévu';
+        // Ce statut ne concerne plus que les données servies sans réseau :
+        // le dire explicitement vaut mieux que « horaire prévu », que l'on
+        // confondait avec un horaire théorique obtenu en ligne.
+        statusText = 'Hors ligne';
         break;
     }
 

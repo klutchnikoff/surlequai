@@ -259,7 +259,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
       } else if (departure.status == DepartureStatus.cancelled) {
         statusText = 'Supprimé';
       } else if (departure.status == DepartureStatus.offline) {
-        statusText = 'Horaire prévu';
+        statusText = 'Hors ligne';
       }
     }
 
