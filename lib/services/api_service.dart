@@ -310,9 +310,11 @@ class ApiService {
         final delayMinutes = actualTime.difference(scheduledTime).inMinutes;
 
         DepartureStatus status;
-        if (dep.stopDateTime.dataFreshness != 'realtime') {
-          status = DepartureStatus.offline;
-        } else if (delayMinutes == 0) {
+        // Faute d'information temps réel, l'horaire théorique fait foi et le
+        // train est annoncé à l'heure. Le statut hors connexion reste réservé
+        // aux données servies depuis le cache local.
+        if (dep.stopDateTime.dataFreshness == 'base_schedule' ||
+            delayMinutes == 0) {
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
           status = DepartureStatus.delayed;
@@ -393,9 +395,9 @@ class ApiService {
         DepartureStatus status;
         if (journey.status == 'NO_SERVICE') {
           status = DepartureStatus.cancelled;
-        } else if (trainSection.dataFreshness != 'realtime') {
-          status = DepartureStatus.offline;
-        } else if (delayMinutes == 0) {
+        } else if (trainSection.dataFreshness == 'base_schedule' ||
+            delayMinutes == 0) {
+          // Même règle que pour les départs : théorique n'est pas hors connexion.
           status = DepartureStatus.onTime;
         } else if (delayMinutes > 0) {
           status = DepartureStatus.delayed;

@@ -83,10 +83,12 @@ void main() {
       DepartureStatus.cancelled,
     );
   });
-  test('base schedules never promise an on-time live train', () async {
+  test('base schedules are announced on time, not as offline', () async {
+    // Hors connexion reste réservé au cache local : une réponse théorique
+    // obtenue en ligne ne doit pas emprunter cette convention d'affichage.
     expect(
       (await fetch(freshness: 'base_schedule')).single.status,
-      DepartureStatus.offline,
+      DepartureStatus.onTime,
     );
   });
   test(
