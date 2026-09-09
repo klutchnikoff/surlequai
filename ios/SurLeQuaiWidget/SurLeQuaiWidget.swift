@@ -30,6 +30,8 @@ struct TripSnapshot: Decodable {
     let id: String
     let name: String
     let updatedAt: Double?
+    /// Échéance du prochain réveil, décidée par Flutter (millisecondes epoch).
+    let nextRefreshDue: Double?
     let frames: [WidgetFrame]
 }
 
@@ -123,13 +125,21 @@ struct TrainProvider: AppIntentTimelineProvider {
     }
     func timeline(for configuration: TripConfiguration, in context: Context) async -> Timeline<TrainEntry> {
         let items = entries(configuration)
+        let now = Date()
+        // L'échéance publiée par Flutter fait foi : la cadence est décidée à un
+        // seul endroit. La règle locale ne sert que si elle manque, par exemple
+        // avant le tout premier rafraîchissement.
+        let published = items.first?.trip?.nextRefreshDue
+            .map { Date(timeIntervalSince1970: $0 / 1000) }
         // La première entrée décrit l'instant présent ; la suivante correspond au
         // prochain changement d'affichage, donc au prochain départ connu.
-        let nextDeparture = items.dropFirst().first?.date
-        return Timeline(
-            entries: items,
-            policy: .after(RefreshBudget.nextRefresh(after: Date(), nextDeparture: nextDeparture))
+        let fallback = RefreshBudget.nextRefresh(
+            after: now,
+            nextDeparture: items.dropFirst().first?.date
         )
+        // WidgetKit ignore une date déjà passée : on garde une minute de plancher.
+        let next = max(published ?? fallback, now.addingTimeInterval(60))
+        return Timeline(entries: items, policy: .after(next))
     }
     private func entries(_ configuration: TripConfiguration) -> [TrainEntry] {
         let now = Date()

@@ -241,11 +241,20 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             val now = System.currentTimeMillis()
             val component = android.content.ComponentName(context, SurLeQuaiWidgetProvider::class.java)
             val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(component)
-            val nextDeparture = (widgetIds.toList() + appWidgetId).mapNotNull { id ->
+            val ids = widgetIds.toList() + appWidgetId
+            fun readAll(field: String) = ids.mapNotNull { id ->
                 val selected = prefs.getString("widget_${id}_trip_id", null)
-                prefs.getString("trip_${selected}_next_departure", null)?.toLongOrNull()
+                prefs.getString("trip_${selected}_$field", null)?.toLongOrNull()
             }.filter { it > now }.minOrNull()
-            val delay = RefreshBudget.nextDelay(now, nextDeparture)
+            // L'échéance publiée par Flutter fait foi : la cadence est décidée
+            // à un seul endroit. Le calcul local ne sert que si elle manque,
+            // par exemple avant le tout premier rafraîchissement.
+            val due = readAll("next_refresh")
+            val delay = if (due != null) {
+                due - now
+            } else {
+                RefreshBudget.nextDelay(now, readAll("next_departure"))
+            }
 
             // Planifier le Worker
             try {

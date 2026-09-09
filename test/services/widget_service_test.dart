@@ -185,7 +185,9 @@ void main() {
             'timeline': [
               Departure(
                 id: 'go',
-                scheduledTime: now.add(const Duration(minutes: 10)),
+                // Départ lointain : le réveil suivant est alors dû au bout de
+                // la cadence de repos, bien avant l'heure du train.
+                scheduledTime: now.add(const Duration(minutes: 60)),
                 status: DepartureStatus.delayed,
                 delayMinutes: 3,
                 platform: '2',
@@ -211,9 +213,12 @@ void main() {
               now.add(Duration(minutes: minutes)).millisecondsSinceEpoch,
         ) as Map;
         expect(frameAt(0)['direction1']['color'], 'delayed');
-        expect(frameAt(5)['direction1']['color'], 'offline');
-        expect(frameAt(5)['direction1']['platform'], '');
-        expect(frameAt(10)['direction1']['color'], 'secondary');
+        // Réveil dû à 30 min, tolérance d'une minute : le retard n'est plus
+        // affirmé au-delà.
+        expect(frameAt(31)['direction1']['color'], 'offline');
+        expect(frameAt(31)['direction1']['platform'], '');
+        // Passé l'heure théorique, plus aucun train à annoncer.
+        expect(frameAt(63)['direction1']['color'], 'secondary');
         expect(log.last.method, 'updateWidget');
       },
     );

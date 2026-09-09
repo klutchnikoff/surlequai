@@ -7,6 +7,7 @@ import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
+import 'package:surlequai/utils/refresh_budget.dart';
 import 'package:surlequai/utils/service_day.dart';
 import 'package:surlequai/utils/trip_sorter.dart';
 
@@ -60,6 +61,34 @@ class WidgetService {
     };
   }
 
+  /// Instant où le widget devrait avoir rafraîchi ses données, ou null si
+  /// aucune donnée n'a encore été récupérée.
+  static DateTime? _nextRefreshDue(
+    DateTime? fetchedAt,
+    List<Departure> go,
+    List<Departure> back,
+  ) => fetchedAt == null
+      ? null
+      : RefreshBudget.nextRefresh(
+          fetchedAt,
+          nextDeparture: _nextDeparture(fetchedAt, go, back),
+        );
+
+  /// Premier départ postérieur à [moment], toutes directions confondues.
+  static DateTime? _nextDeparture(
+    DateTime moment,
+    List<Departure> go,
+    List<Departure> back,
+  ) {
+    final future =
+        [...go, ...back]
+            .map((d) => d.effectiveTime)
+            .where((t) => t.isAfter(moment))
+            .toList()
+          ..sort();
+    return future.isEmpty ? null : future.first;
+  }
+
   Map<String, dynamic> _frame(
     Trip trip,
     List<Departure> go,
@@ -69,9 +98,16 @@ class WidgetService {
     DateTime date,
     DateTime? fetchedAt,
   ) {
-    // Une timeline locale ne peut pas prolonger indéfiniment un statut temps réel.
-    if (fetchedAt == null ||
-        date.difference(fetchedAt) >= const Duration(minutes: 5)) {
+    // Une timeline locale ne peut pas prolonger indéfiniment un statut temps
+    // réel : il expire quand le réveil attendu a été manqué, et non après un
+    // délai fixe qui ignorerait la cadence réellement programmée.
+    if (RefreshBudget.isStale(
+      now: date,
+      fetchedAt: fetchedAt,
+      nextDeparture: fetchedAt == null
+          ? null
+          : _nextDeparture(fetchedAt, go, back),
+    )) {
       List<Departure> offline(List<Departure> list) => list
           .map(
             (d) => d.copyWith(
@@ -140,15 +176,24 @@ class WidgetService {
           ? 'Jamais'
           : '${DateFormatter.formatShortDate(lastUpdate)} ${TimeFormatter.formatTime(lastUpdate)}',
     );
-    final future =
-        [
-            ...departuresGo,
-            ...departuresReturn,
-          ].map((d) => d.effectiveTime).where((d) => d.isAfter(date)).toList()
-          ..sort();
     await HomeWidget.saveWidgetData<String>(
       'trip_${trip.id}_next_departure',
-      future.isEmpty ? null : future.first.millisecondsSinceEpoch.toString(),
+      _nextDeparture(
+        date,
+        departuresGo,
+        departuresReturn,
+      )?.millisecondsSinceEpoch.toString(),
+    );
+    // Échéance du prochain réveil : les widgets natifs la lisent au lieu de
+    // rejouer la règle, ce qui garantit une cadence unique sur les trois
+    // plateformes.
+    await HomeWidget.saveWidgetData<String>(
+      'trip_${trip.id}_next_refresh',
+      _nextRefreshDue(
+        lastUpdate,
+        departuresGo,
+        departuresReturn,
+      )?.millisecondsSinceEpoch.toString(),
     );
   }
 
@@ -190,7 +235,10 @@ class WidgetService {
         dates.add(d.scheduledTime);
         dates.add(d.effectiveTime);
       }
-      if (updated != null) dates.add(updated.add(const Duration(minutes: 5)));
+      // Instant exact où le statut temps réel expire, pour que WidgetKit
+      // dispose d'une entrée à ce moment-là.
+      final due = _nextRefreshDue(updated, go, back);
+      if (due != null) dates.add(due.add(RefreshBudget.grace));
       for (var offset = 0; offset <= 2; offset++) {
         dates.add(DateTime(now.year, now.month, now.day + offset, split));
         dates.add(DateTime(now.year, now.month, now.day + offset, dayStart));
@@ -202,6 +250,7 @@ class WidgetService {
         'id': trip.id,
         'name': '${trip.stationA.name} ⟷ ${trip.stationB.name}',
         'updatedAt': updated?.millisecondsSinceEpoch,
+        'nextRefreshDue': due?.millisecondsSinceEpoch,
         'frames': timeline
             .map((d) => _frame(trip, go, back, split, dayStart, d, updated))
             .toList(),
@@ -224,6 +273,7 @@ class WidgetService {
       'name',
       'last_update',
       'next_departure',
+      'next_refresh',
       for (final direction in ['direction1', 'direction2'])
         for (final key in [
           'title',
