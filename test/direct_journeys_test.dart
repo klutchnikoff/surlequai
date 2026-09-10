@@ -47,6 +47,16 @@ void main() {
         expect(request.url.path, '/coverage/sncf/journeys');
         expect(request.url.queryParameters['from'], 'A');
         expect(request.url.queryParameters['to'], 'B');
+        final excluded = request.url.queryParametersAll['forbidden_uris[]']!;
+        expect(excluded, isNot(contains('physical_mode:LongDistanceTrain')));
+        expect(
+          excluded,
+          containsAll([
+            'commercial_mode:OUI',
+            'commercial_mode:TGVOUIGO',
+            'commercial_mode:OUIGO_TC',
+          ]),
+        );
         return http.Response(
           jsonEncode({
             'journeys': [journey(status: status, freshness: freshness)],

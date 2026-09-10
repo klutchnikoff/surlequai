@@ -150,3 +150,13 @@ arm64 iOS Simulator 17 avec le SDK iOS Simulator 26.5. La compilation complète
 iOS n'est pas validée : Flutter ne récupère pas les build settings et la
 compilation directe du schéma de l'extension indique « Found no destinations ».
 Les essais sur appareils physiques restent à effectuer.
+
+### Correction issue du test réel des terminus de Rennes
+
+Le relevé du 10 septembre montre 18 circulations régionales BreizhGo classées
+`LongDistanceTrain`. Ce mode n'est donc plus exclu des requêtes : les identifiants
+commerciaux TGV INOUI, OUIGO et OUIGO Train Classique le sont à sa place. Le
+mapper admet le mode grande vitesse quand la marque est explicitement régionale
+(BreizhGo, NOMAD ou TER), tout en conservant l'exclusion TGV/OUIGO/Transilien.
+Voir `DATA_AUDIT_2026-09-10.md` pour le résultat des 17 trajets et la limite
+d'exhaustivité observée sur Nantes, qui subsiste côté calcul Navitia.

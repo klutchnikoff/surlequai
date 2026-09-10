@@ -8,3 +8,8 @@ géographiques, administratives et les métadonnées sans rôle dans le traiteme
 ont été retirées. Les sections, horaires, modes et liens utiles sont conservés.
 Les tests modifient explicitement cette base pour construire les cas limites ;
 ces variantes ne sont pas des observations de suppressions ou de cars réels.
+
+`rennes_nantes_20260910.json` contient le premier trajet de la réponse réelle
+Rennes → Nantes du même jour, train 858311 (08:35 → 08:40), marqué BreizhGo
+et `LongDistanceTrain`. Même réduction des métadonnées ; la liste des
+perturbations est retirée pour isoler le calcul horaire et la classification.

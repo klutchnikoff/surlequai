@@ -1,0 +1,187 @@
+{
+  "context": {
+    "car_direct_path": {
+      "co2_emission": {
+        "value": 24600.1120324953,
+        "unit": "gEC"
+      },
+      "air_pollutants": {
+        "unit": "g",
+        "values": {
+          "nox": 43.5751,
+          "pm": 5.5459
+        }
+      }
+    },
+    "current_datetime": "20260910T082603",
+    "timezone": "Europe/Paris"
+  },
+  "journeys": [
+    {
+      "nb_transfers": 0,
+      "status": "SIGNIFICANT_DELAYS",
+      "sections": [
+        {
+          "type": "crow_fly",
+          "id": "SVXoowDnZQRAQA5t99QXEb_0",
+          "duration": 0,
+          "departure_date_time": "20260910T084000",
+          "arrival_date_time": "20260910T084000",
+          "links": [],
+          "from": {
+            "id": "stop_area:SNCF:87471003",
+            "embedded_type": "stop_area"
+          },
+          "to": {
+            "id": "stop_point:SNCF:87471003:LongDistanceTrain",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:LongDistanceTrain",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          }
+        },
+        {
+          "type": "public_transport",
+          "id": "section_5_0",
+          "duration": 4620,
+          "departure_date_time": "20260910T084000",
+          "base_departure_date_time": "20260910T083500",
+          "arrival_date_time": "20260910T095700",
+          "data_freshness": "realtime",
+          "links": [
+            {
+              "type": "company",
+              "id": "company:SNCF:1187"
+            },
+            {
+              "type": "vehicle_journey",
+              "id": "vehicle_journey:SNCF:2026-09-10:858311:1187:LongDistanceTrain:RealTime:a2cee286-d185-4f9f-9d13-d84f418b9175"
+            },
+            {
+              "type": "line",
+              "id": "line:SNCF:FR:Line::C7CAE674-56E6-44EC-8881-EE52570D5BA2:"
+            },
+            {
+              "type": "route",
+              "id": "route:SNCF:FR:Line::C7CAE674-56E6-44EC-8881-EE52570D5BA2:"
+            },
+            {
+              "type": "commercial_mode",
+              "id": "commercial_mode:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            },
+            {
+              "type": "physical_mode",
+              "id": "physical_mode:LongDistanceTrain"
+            },
+            {
+              "type": "network",
+              "id": "network:SNCF:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            }
+          ],
+          "display_informations": {
+            "commercial_mode": "BreizhGo",
+            "network": "BreizhGo",
+            "direction": "Nantes (Nantes)",
+            "label": "K5",
+            "color": "",
+            "code": "K5",
+            "headsign": "858311",
+            "name": "K5",
+            "links": [
+              {
+                "templated": false,
+                "rel": "disruptions",
+                "internal": true,
+                "type": "disruption",
+                "id": "96794b9b-60da-47f9-9bcc-0f2b63b13d2f"
+              },
+              {
+                "templated": false,
+                "rel": "terminus",
+                "internal": true,
+                "type": "stop_area",
+                "id": "stop_area:SNCF:87481002"
+              }
+            ],
+            "text_color": "",
+            "trip_short_name": "858311",
+            "company": "SNCF Voyageurs",
+            "description": "",
+            "physical_mode": "Train grande vitesse",
+            "equipments": []
+          },
+          "from": {
+            "id": "stop_point:SNCF:87471003:LongDistanceTrain",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:LongDistanceTrain",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_point:SNCF:87481002:LongDistanceTrain",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87481002:LongDistanceTrain",
+              "stop_area": {
+                "id": "stop_area:SNCF:87481002"
+              }
+            }
+          },
+          "stop_date_times": [
+            {
+              "departure_date_time": "20260910T084000",
+              "base_departure_date_time": "20260910T083500",
+              "arrival_date_time": "20260910T084000",
+              "base_arrival_date_time": "20260910T083500",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87471003:LongDistanceTrain"
+              }
+            },
+            {
+              "departure_date_time": "20260910T095700",
+              "base_departure_date_time": "20260910T095200",
+              "arrival_date_time": "20260910T095700",
+              "base_arrival_date_time": "20260910T095200",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87481002:LongDistanceTrain"
+              }
+            }
+          ]
+        },
+        {
+          "type": "crow_fly",
+          "id": "BK9fiGUS2CCeJ3mqbNR7VL_0",
+          "duration": 0,
+          "departure_date_time": "20260910T095700",
+          "arrival_date_time": "20260910T095700",
+          "links": [],
+          "from": {
+            "id": "stop_point:SNCF:87481002:LongDistanceTrain",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87481002:LongDistanceTrain",
+              "stop_area": {
+                "id": "stop_area:SNCF:87481002"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_area:SNCF:87481002",
+            "embedded_type": "stop_area"
+          }
+        }
+      ]
+    }
+  ],
+  "disruptions": []
+}

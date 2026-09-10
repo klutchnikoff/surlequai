@@ -119,9 +119,23 @@ class JourneyMapper {
         modeIds.contains('physical_mode:Coach') ||
         physical == 'autocar' ||
         physical == 'coach';
+    // Observé à Rennes le 10/09/2026 : Nantes, Laval et Le Mans ont des
+    // circulations BreizhGo étiquetées « Train grande vitesse ». La marque
+    // régionale explicite permet de conserver ces TER sans admettre les TGV.
+    final commercial = (info['commercial_mode'] as String? ?? '')
+        .trim()
+        .toUpperCase();
+    final regional =
+        commercial == 'BREIZHGO' ||
+        commercial == 'NOMAD' ||
+        commercial == 'TER' ||
+        commercial.startsWith('TER ');
     final train =
         modeIds.contains('physical_mode:Train') ||
-        physical == 'ter / intercités';
+        physical == 'ter / intercités' ||
+        (regional &&
+            (modeIds.contains('physical_mode:LongDistanceTrain') ||
+                physical == 'train grande vitesse'));
     if (!coach && !train) return null;
     // Une marque régionale seule ne prouve pas qu'il s'agit d'un car SNCF.
     // On exige SNCF comme transporteur ou un identifiant de circulation SNCF.

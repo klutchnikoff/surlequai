@@ -164,7 +164,11 @@ class ApiService {
         'min_nb_journeys': count.toString(),
         'max_nb_transfers': '0',
         'forbidden_uris[]': [
-          'physical_mode:LongDistanceTrain',
+          // Certains TER BreizhGo sont classés LongDistanceTrain par SNCF.
+          // Exclure les marques TGV/OUIGO, jamais ce mode physique globalement.
+          'commercial_mode:OUI',
+          'commercial_mode:TGVOUIGO',
+          'commercial_mode:OUIGO_TC',
           'physical_mode:RapidTransit',
           'physical_mode:Metro',
           'physical_mode:Tramway',
@@ -203,7 +207,11 @@ class ApiService {
         'data_freshness': 'base_schedule',
         'max_nb_transfers': '0',
         'forbidden_uris[]': [
-          'physical_mode:LongDistanceTrain',
+          // Certains TER BreizhGo sont classés LongDistanceTrain par SNCF.
+          // Exclure les marques TGV/OUIGO, jamais ce mode physique globalement.
+          'commercial_mode:OUI',
+          'commercial_mode:TGVOUIGO',
+          'commercial_mode:OUIGO_TC',
           'physical_mode:RapidTransit',
           'physical_mode:Metro',
           'physical_mode:Tramway',

@@ -79,6 +79,25 @@ void main() {
       expect(parse, throwsFormatException);
     },
   );
+  test(
+    'observed BreizhGo train labelled LongDistanceTrain remains a delayed TER',
+    () {
+      final response = jsonDecode(
+        File('test/fixtures/rennes_nantes_20260910.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final result = JourneyMapper.parse(
+        response,
+        fromStationId: 'stop_area:SNCF:87471003',
+        toStationId: 'stop_area:SNCF:87481002',
+      ).single;
+      expect(result.id, startsWith('858311-'));
+      expect(result.isCoach, false);
+      expect(result.status, DepartureStatus.delayed);
+      expect(result.delayMinutes, 5);
+      expect(result.effectiveTime, DateTime(2026, 9, 10, 8, 40));
+    },
+  );
+
   test('known empty response is valid', () {
     data['journeys'] = [];
     expect(parse(), isEmpty);
