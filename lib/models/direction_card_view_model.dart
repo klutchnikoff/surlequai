@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/data_failure.dart';
 import 'package:surlequai/theme/colors.dart';
 import 'package:surlequai/utils/constants.dart';
 import 'package:surlequai/utils/formatters.dart';
@@ -20,6 +21,8 @@ sealed class DirectionCardViewModel {
     required String title,
     required List<Departure> departures,
     required int serviceDayStartTime,
+    bool fromNetwork = true,
+    DataFailure? failure,
     DateTime? now, // Pour les tests
   }) {
     final referenceDate = now ?? DateTime.now();
@@ -51,24 +54,39 @@ sealed class DirectionCardViewModel {
               (d) =>
                   !d.scheduledTime.isBefore(endOfServiceDay) &&
                   d.scheduledTime.isBefore(endOfNextDay) &&
-                  d.status != DepartureStatus.cancelled,
+                  d.status != DepartureStatus.cancelled &&
+                  d.lastKnownStatus != DepartureStatus.cancelled,
             )
             .toList()
           ..sort((a, b) => a.effectiveTime.compareTo(b.effectiveTime));
 
+    final failureText = switch (failure) {
+      DataFailure.authentication => 'Clé API à vérifier dans les paramètres.',
+      DataFailure.rateLimited =>
+        'Limite de requêtes atteinte. Réessayez plus tard.',
+      DataFailure.server => 'Service horaires indisponible.',
+      DataFailure.invalidData => 'Réponse horaires illisible.',
+      DataFailure.timeout => 'Le service met trop de temps à répondre.',
+      _ => null,
+    };
     // Cas 1 : Aucun train aujourd'hui, mais il y en a demain
     if (trainsToday.isEmpty && trainsTomorrow.isNotEmpty) {
       return DirectionCardNoDepartures.nextTrainTomorrow(
         title: title,
-        tomorrowTime: TimeFormatter.formatTime(
-          trainsTomorrow.first.scheduledTime,
-        ),
+        tomorrowTime:
+            '${trainsTomorrow.first.isCoach ? 'Car · ' : ''}${TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime)}',
+        fromNetwork: fromNetwork,
       );
     }
 
     // Cas 2 : Aucun train du tout
     if (trainsToday.isEmpty && trainsTomorrow.isEmpty) {
-      return DirectionCardNoDepartures.defaultEmpty(title: title);
+      return DirectionCardNoDepartures.defaultEmpty(
+        title: title,
+        message:
+            failureText ??
+            (!fromNetwork ? 'Horaires indisponibles hors ligne.' : null),
+      );
     }
 
     // Cas 3 : Il y a des trains aujourd'hui
@@ -102,7 +120,11 @@ sealed class DirectionCardViewModel {
         // Ce statut ne concerne plus que les données servies sans réseau :
         // le dire explicitement vaut mieux que « horaire prévu », que l'on
         // confondait avec un horaire théorique obtenu en ligne.
-        statusText = 'Hors ligne';
+        statusText = nextDeparture.lastKnownStatus == DepartureStatus.cancelled
+            ? 'Hors ligne · dernière info : supprimé'
+            : nextDeparture.lastKnownStatus == DepartureStatus.delayed
+            ? 'Hors ligne · dernier retard : +${nextDeparture.lastKnownDelayMinutes ?? 0} min'
+            : 'Hors ligne';
         break;
     }
 
@@ -113,14 +135,25 @@ sealed class DirectionCardViewModel {
       platform: nextDeparture.platform == '?'
           ? ''
           : 'Voie ${nextDeparture.platform}',
-      statusText: statusText,
+      statusText:
+          '${nextDeparture.isCoach ? 'Car · ' : ''}$statusText${failureText == null ? '' : '\n$failureText'}',
       statusColor: statusBarColor,
       statusType: nextDeparture.status, // Nouveau champ
       subsequentDepartures: subsequentDepartures.isNotEmpty
-          ? 'Puis: ${TimeFormatter.formatTimeList(subsequentDepartures.map((d) => d.scheduledTime).toList())}'
+          ? 'Puis : ${subsequentDepartures.map(_subsequent).join(' · ')}'
           : null,
       durationMinutes: nextDeparture.durationMinutes,
     );
+  }
+
+  static String _subsequent(Departure d) {
+    final status = switch (d.status) {
+      DepartureStatus.delayed => ' (+${d.delayMinutes} min)',
+      DepartureStatus.cancelled => ' (supprimé)',
+      DepartureStatus.offline => ' (hors ligne)',
+      _ => '',
+    };
+    return '${d.isCoach ? 'Car ' : ''}${TimeFormatter.formatTime(d.scheduledTime)}$status';
   }
 }
 
@@ -159,12 +192,16 @@ class DirectionCardNoDepartures extends DirectionCardViewModel {
     required this.noTrainStatusColor,
   });
 
-  factory DirectionCardNoDepartures.defaultEmpty({required String title}) {
+  factory DirectionCardNoDepartures.defaultEmpty({
+    required String title,
+    String? message,
+  }) {
     return DirectionCardNoDepartures(
       title: title,
       statusBarColor: AppColors.secondary,
       noTrainTimeDisplay: '__ : __',
-      noTrainStatusDisplay: 'Aucun train prévu pour le moment.',
+      noTrainStatusDisplay:
+          message ?? 'Aucun départ direct trouvé pour le moment.',
       noTrainStatusColor: AppColors.secondary,
     );
   }
@@ -172,13 +209,15 @@ class DirectionCardNoDepartures extends DirectionCardViewModel {
   factory DirectionCardNoDepartures.nextTrainTomorrow({
     required String title,
     required String tomorrowTime,
+    bool fromNetwork = true,
   }) {
     return DirectionCardNoDepartures(
       title: title,
       statusBarColor: AppColors.secondary,
       noTrainTimeDisplay: '__ : __',
-      noTrainStatusDisplay:
-          'Aucun train aujourd\'hui\nPremier train demain: $tomorrowTime',
+      noTrainStatusDisplay: fromNetwork
+          ? 'Prochain départ direct trouvé demain : $tomorrowTime'
+          : 'Hors ligne · prochain départ enregistré demain : $tomorrowTime',
       noTrainStatusColor: AppColors.secondary,
     );
   }

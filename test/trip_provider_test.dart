@@ -51,6 +51,7 @@ class RecordingWidgets extends WidgetService {
     required Map<String, List<Departure>> departuresGoByTrip,
     required Map<String, List<Departure>> departuresReturnByTrip,
     Map<String, DateTime?> lastUpdatesByTrip = const {},
+    Map<String, TripDepartures> dataByTrip = const {},
     int? morningEveningSplitHour,
     int? serviceDayStartHour,
   }) async {

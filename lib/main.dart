@@ -76,6 +76,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     final departuresReturnByTrip = <String, List<Departure>>{};
 
     final lastUpdates = <String, DateTime?>{};
+    final dataByTrip = <String, TripDepartures>{};
     for (final trip in trips) {
       final now = DateTime.now();
       final results = await Future.wait([
@@ -94,7 +95,8 @@ Future<void> backgroundCallback(Uri? uri) async {
       final back = results[1];
       departuresGoByTrip[trip.id] = go.departures;
       departuresReturnByTrip[trip.id] = back.departures;
-      lastUpdates[trip.id] = TripDepartures(go, back).fetchedAt;
+      dataByTrip[trip.id] = TripDepartures(go, back);
+      lastUpdates[trip.id] = dataByTrip[trip.id]!.fetchedAt;
     }
 
     debugPrint('--- Saving data to widgets ---');
@@ -114,6 +116,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     // Appeler la méthode centralisée de WidgetService
     await widgetService.updateAllWidgets(
       allTrips: trips,
+      dataByTrip: dataByTrip,
       lastUpdatesByTrip: lastUpdates,
       departuresGoByTrip: departuresGoByTrip,
       departuresReturnByTrip: departuresReturnByTrip,

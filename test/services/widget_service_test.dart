@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/departures_result.dart';
 import 'package:surlequai/models/station.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/services/widget_service.dart';
@@ -32,6 +33,51 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('home_widget'), null);
     });
+
+    test(
+      'one stale direction does not expire the fresh direction of the snapshot',
+      () async {
+        final now = DateTime(2026, 9, 10, 10);
+        const trip = Trip(
+          id: 'mixed',
+          morningDirection: MorningDirection.aToB,
+          stationA: Station(id: 'A', name: 'A'),
+          stationB: Station(id: 'B', name: 'B'),
+        );
+        final go = Departure(
+          id: 'go',
+          scheduledTime: now.add(const Duration(minutes: 20)),
+          platform: '1',
+          status: DepartureStatus.onTime,
+        );
+        final back = go.copyWith(id: 'back');
+        final data = TripDepartures(
+          DeparturesResult(departures: [go], fetchedAt: now, fromNetwork: true),
+          DeparturesResult(
+            departures: [back],
+            fetchedAt: now.subtract(const Duration(hours: 1)),
+          ).asOffline(),
+        );
+        await WidgetService(now: () => now).updateAllWidgets(
+          allTrips: [trip],
+          departuresGoByTrip: {trip.id: data.go.departures},
+          departuresReturnByTrip: {trip.id: data.back.departures},
+          lastUpdatesByTrip: {trip.id: data.fetchedAt},
+          dataByTrip: {trip.id: data},
+        );
+        final saved = log.lastWhere(
+          (c) =>
+              c.method == 'saveWidgetData' &&
+              c.arguments['id'] == 'widget_snapshot',
+        );
+        final snapshot = jsonDecode(saved.arguments['data'] as String);
+        final frame = snapshot['trips'][0]['frames'][0];
+        expect(frame['direction1']['status'], "À l'heure");
+        expect(frame['direction1']['platform'], 'Voie 1');
+        expect(frame['direction2']['status'], 'Hors ligne');
+        expect(frame['direction2']['platform'], '');
+      },
+    );
 
     test('updateWidgetForTrip saves correct data for on-time train', () async {
       // Arrange

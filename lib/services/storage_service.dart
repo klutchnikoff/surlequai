@@ -46,8 +46,8 @@ class StorageService {
       temporary = File('${file.path}.${const Uuid().v4()}.tmp');
       await temporary.writeAsString(
         jsonEncode({
-          // Le format précédent contenait l'heure réelle dans scheduledTime.
-          'version': 2,
+          // Filtrage ferroviaire et identification des cars garantis depuis v3.
+          'version': 3,
           'updated_at': (fetchedAt ?? _now()).toIso8601String(),
           'departures': departures.map((d) => d.toJson()).toList(),
         }),
@@ -71,7 +71,7 @@ class StorageService {
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       final updated = DateTime.parse(data['updated_at'] as String);
-      if (data['version'] != 2 ||
+      if (data['version'] != 3 ||
           _now().difference(updated).inHours >= 48 ||
           updated.isAfter(_now())) {
         return DeparturesResult();

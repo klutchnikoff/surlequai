@@ -51,27 +51,35 @@ void main() {
       expect(vm.statusColor, AppColors.delayed);
     });
 
-    test('should return NoDepartures (nextTrainTomorrow) when no trains today', () {
-      // Train demain à 8h00
-      final tomorrowDeparture = Departure(
-        id: '3',
-        scheduledTime: fixedNow.add(const Duration(days: 1)).copyWith(hour: 8, minute: 0),
-        platform: 'C',
-        status: DepartureStatus.onTime,
-      );
+    test(
+      'should return NoDepartures (nextTrainTomorrow) when no trains today',
+      () {
+        // Train demain à 8h00
+        final tomorrowDeparture = Departure(
+          id: '3',
+          scheduledTime: fixedNow
+              .add(const Duration(days: 1))
+              .copyWith(hour: 8, minute: 0),
+          platform: 'C',
+          status: DepartureStatus.onTime,
+        );
 
-      final viewModel = DirectionCardViewModel.fromDepartures(
-        title: 'Tomorrow Trip',
-        departures: [tomorrowDeparture],
-        serviceDayStartTime: 4,
-        now: fixedNow,
-      );
+        final viewModel = DirectionCardViewModel.fromDepartures(
+          title: 'Tomorrow Trip',
+          departures: [tomorrowDeparture],
+          serviceDayStartTime: 4,
+          now: fixedNow,
+        );
 
-      expect(viewModel, isA<DirectionCardNoDepartures>());
-      final vm = viewModel as DirectionCardNoDepartures;
-      expect(vm.noTrainStatusDisplay, contains('Premier train demain: 08:00'));
-    });
-    
+        expect(viewModel, isA<DirectionCardNoDepartures>());
+        final vm = viewModel as DirectionCardNoDepartures;
+        expect(
+          vm.noTrainStatusDisplay,
+          contains('Prochain départ direct trouvé demain : 08:00'),
+        );
+      },
+    );
+
     test('should ignore trains already departed', () {
       // Train passé il y a 5 min (09:55)
       final pastDeparture = Departure(
@@ -90,7 +98,7 @@ void main() {
 
       expect(viewModel, isA<DirectionCardNoDepartures>());
       final vm = viewModel as DirectionCardNoDepartures;
-      expect(vm.noTrainStatusDisplay, contains('Aucun train prévu'));
+      expect(vm.noTrainStatusDisplay, contains('Aucun départ direct trouvé'));
     });
   });
 }

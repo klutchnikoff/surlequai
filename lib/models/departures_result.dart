@@ -1,28 +1,24 @@
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/data_failure.dart';
 
 /// Les données et leur provenance voyagent ensemble jusqu'à l'affichage.
 class DeparturesResult {
   final List<Departure> departures;
   final DateTime? fetchedAt;
   final bool fromNetwork;
+  final DataFailure? failure;
 
   DeparturesResult({
     List<Departure> departures = const [],
     this.fetchedAt,
     this.fromNetwork = false,
+    this.failure,
   }) : departures = List.unmodifiable(departures);
 
-  DeparturesResult asOffline() => DeparturesResult(
-    departures: departures
-        .map(
-          (d) => d.copyWith(
-            status: DepartureStatus.offline,
-            delayMinutes: 0,
-            platform: '?',
-          ),
-        )
-        .toList(),
+  DeparturesResult asOffline({DataFailure? failure}) => DeparturesResult(
+    departures: departures.map((d) => d.asOffline()).toList(),
     fetchedAt: fetchedAt,
+    failure: failure ?? this.failure,
   );
 }
 

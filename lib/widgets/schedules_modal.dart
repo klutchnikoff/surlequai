@@ -271,7 +271,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
       title: Row(
         children: [
           Text(
-            TimeFormatter.formatTime(departure.scheduledTime),
+            '${departure.isCoach ? 'Car · ' : ''}${TimeFormatter.formatTime(departure.scheduledTime)}',
             style: timeStyle,
           ),
           if (statusText != null) ...[

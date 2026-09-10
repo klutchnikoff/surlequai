@@ -18,9 +18,17 @@ Map<String, dynamic> journey({
     {
       'type': 'public_transport',
       'id': 'train123',
-      'display_informations': {'network': 'TER', 'trip_short_name': '123'},
+      'display_informations': {
+        'network': 'TER',
+        'trip_short_name': '123',
+        'physical_mode': 'TER / Intercités',
+      },
+      'from': {'id': 'A', 'embedded_type': 'stop_area'},
+      'to': {'id': 'B', 'embedded_type': 'stop_area'},
       'base_departure_date_time': '20260908T100000',
-      'departure_date_time': '20260908T100500',
+      'departure_date_time': freshness == 'base_schedule'
+          ? '20260908T100000'
+          : '20260908T100500',
       'arrival_date_time': '20260908T103500',
       'data_freshness': freshness,
     },
@@ -83,14 +91,17 @@ void main() {
       DepartureStatus.cancelled,
     );
   });
-  test('base schedules are announced on time, not as offline', () async {
-    // Hors connexion reste réservé au cache local : une réponse théorique
-    // obtenue en ligne ne doit pas emprunter cette convention d'affichage.
-    expect(
-      (await fetch(freshness: 'base_schedule')).single.status,
-      DepartureStatus.onTime,
-    );
-  });
+  test(
+    'unchanged base schedules are announced on time, not as offline',
+    () async {
+      // Hors connexion reste réservé au cache local : une réponse théorique
+      // obtenue en ligne ne doit pas emprunter cette convention d'affichage.
+      expect(
+        (await fetch(freshness: 'base_schedule')).single.status,
+        DepartureStatus.onTime,
+      );
+    },
+  );
   test(
     'custom service start participates in the daily cache key and query',
     () async {

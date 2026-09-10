@@ -68,9 +68,11 @@ class RefreshBudget {
   /// Début de la prochaine plage active, ou null si elle est déjà ouverte.
   static DateTime? _resume(DateTime from) {
     if (from.hour >= activeFromHour && from.hour < activeUntilHour) return null;
-    final day = from.hour >= activeUntilHour
-        ? from.add(const Duration(days: 1))
-        : from;
-    return DateTime(day.year, day.month, day.day, activeFromHour);
+    return DateTime(
+      from.year,
+      from.month,
+      from.day + (from.hour >= activeUntilHour ? 1 : 0),
+      activeFromHour,
+    );
   }
 }

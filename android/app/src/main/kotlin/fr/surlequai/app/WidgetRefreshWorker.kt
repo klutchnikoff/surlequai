@@ -1,6 +1,8 @@
 package fr.surlequai.app
 
 import android.content.Context
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -10,6 +12,12 @@ class WidgetRefreshWorker(context: Context, params: WorkerParameters) : Worker(c
 
     override fun doWork(): Result {
         Log.d("SurLeQuai", "WidgetRefreshWorker: doWork() started")
+
+        val manager = AppWidgetManager.getInstance(applicationContext)
+        val component = ComponentName(applicationContext, SurLeQuaiWidgetProvider::class.java)
+        for (id in manager.getAppWidgetIds(component)) {
+            SurLeQuaiWidgetProvider.updateAppWidget(applicationContext, manager, id)
+        }
 
         // Le réveil périodique de secours ne doit pas interroger l'API la nuit :
         // personne ne consulte ses horaires, et le quota est partagé.

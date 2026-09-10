@@ -55,7 +55,23 @@ class TripProvider with ChangeNotifier {
   DirectionCardViewModel? get directionGoViewModel => _directionGoViewModel;
   DirectionCardViewModel? get directionReturnViewModel =>
       _directionReturnViewModel;
-  TripDepartures? get _activeData => _data[_activeTrip?.id];
+  TripDepartures? get _activeData {
+    final data = _data[_activeTrip?.id];
+    if (data == null) return null;
+    DeparturesResult current(DeparturesResult result) {
+      final fetched = result.fetchedAt;
+      if (result.fromNetwork &&
+          (fetched == null ||
+              _now().difference(fetched) >
+                  AppConstants.refreshInterval + AppConstants.apiTimeout)) {
+        return result.asOffline();
+      }
+      return result;
+    }
+
+    return TripDepartures(current(data.go), current(data.back));
+  }
+
   // Les données restent toujours A→B et B→A. Seuls les ViewModels sont ordonnés.
   List<Departure> get departuresGo => _activeData?.go.departures ?? const [];
   List<Departure> get departuresReturn =>
@@ -265,12 +281,16 @@ class TripProvider with ChangeNotifier {
     final go = DirectionCardViewModel.fromDepartures(
       title: '${trip.stationA.name} → ${trip.stationB.name}',
       departures: departuresGo,
+      fromNetwork: _activeData?.go.fromNetwork ?? false,
+      failure: _activeData?.go.failure,
       now: date,
       serviceDayStartTime: _settingsProvider.serviceDayStartTime,
     );
     final back = DirectionCardViewModel.fromDepartures(
       title: '${trip.stationB.name} → ${trip.stationA.name}',
       departures: departuresReturn,
+      fromNetwork: _activeData?.back.fromNetwork ?? false,
+      failure: _activeData?.back.failure,
       now: date,
       serviceDayStartTime: _settingsProvider.serviceDayStartTime,
     );
@@ -324,6 +344,7 @@ class TripProvider with ChangeNotifier {
           final currentTrips = List<Trip>.of(_trips);
           await _widgetService.updateAllWidgets(
             allTrips: currentTrips,
+            dataByTrip: Map.of(_data),
             departuresGoByTrip: {
               for (final t in currentTrips)
                 t.id: _data[t.id]?.go.departures ?? [],

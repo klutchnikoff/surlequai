@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Departure {
 
- String get id; DateTime get scheduledTime; String get platform; DepartureStatus get status; int get delayMinutes; int? get durationMinutes;
+ String get id; DateTime get scheduledTime; String get platform; DepartureStatus get status; int get delayMinutes; int? get durationMinutes; bool get isCoach; DepartureStatus? get lastKnownStatus; int? get lastKnownDelayMinutes;
 /// Create a copy of Departure
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $DepartureCopyWith<Departure> get copyWith => _$DepartureCopyWithImpl<Departure>
 @override
 bool operator ==(Object other) {
   final _this = this as Departure;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Departure&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.scheduledTime, _this.scheduledTime) || other.scheduledTime == _this.scheduledTime)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.delayMinutes, _this.delayMinutes) || other.delayMinutes == _this.delayMinutes)&&(identical(other.durationMinutes, _this.durationMinutes) || other.durationMinutes == _this.durationMinutes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Departure&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.scheduledTime, _this.scheduledTime) || other.scheduledTime == _this.scheduledTime)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.delayMinutes, _this.delayMinutes) || other.delayMinutes == _this.delayMinutes)&&(identical(other.durationMinutes, _this.durationMinutes) || other.durationMinutes == _this.durationMinutes)&&(identical(other.isCoach, _this.isCoach) || other.isCoach == _this.isCoach)&&(identical(other.lastKnownStatus, _this.lastKnownStatus) || other.lastKnownStatus == _this.lastKnownStatus)&&(identical(other.lastKnownDelayMinutes, _this.lastKnownDelayMinutes) || other.lastKnownDelayMinutes == _this.lastKnownDelayMinutes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Departure;
-  return Object.hash(runtimeType,_this.id,_this.scheduledTime,_this.platform,_this.status,_this.delayMinutes,_this.durationMinutes);
+  return Object.hash(runtimeType,_this.id,_this.scheduledTime,_this.platform,_this.status,_this.delayMinutes,_this.durationMinutes,_this.isCoach,_this.lastKnownStatus,_this.lastKnownDelayMinutes);
 }
 
 @override
 String toString() {
   final _this = this as Departure;
-  return 'Departure(id: ${_this.id}, scheduledTime: ${_this.scheduledTime}, platform: ${_this.platform}, status: ${_this.status}, delayMinutes: ${_this.delayMinutes}, durationMinutes: ${_this.durationMinutes})';
+  return 'Departure(id: ${_this.id}, scheduledTime: ${_this.scheduledTime}, platform: ${_this.platform}, status: ${_this.status}, delayMinutes: ${_this.delayMinutes}, durationMinutes: ${_this.durationMinutes}, isCoach: ${_this.isCoach}, lastKnownStatus: ${_this.lastKnownStatus}, lastKnownDelayMinutes: ${_this.lastKnownDelayMinutes})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $DepartureCopyWith<$Res>  {
   factory $DepartureCopyWith(Departure value, $Res Function(Departure) _then) = _$DepartureCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime scheduledTime, String platform, DepartureStatus status, int delayMinutes, int? durationMinutes
+ String id, DateTime scheduledTime, String platform, DepartureStatus status, int delayMinutes, int? durationMinutes, bool isCoach, DepartureStatus? lastKnownStatus, int? lastKnownDelayMinutes
 });
 
 
@@ -71,7 +71,7 @@ class _$DepartureCopyWithImpl<$Res>
 
 /// Create a copy of Departure
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? scheduledTime = null,Object? platform = null,Object? status = null,Object? delayMinutes = null,Object? durationMinutes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? scheduledTime = null,Object? platform = null,Object? status = null,Object? delayMinutes = null,Object? durationMinutes = freezed,Object? isCoach = null,Object? lastKnownStatus = freezed,Object? lastKnownDelayMinutes = freezed,}) {
   return _then(Departure(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,scheduledTime: null == scheduledTime ? _self.scheduledTime : scheduledTime // ignore: cast_nullable_to_non_nullable
@@ -79,6 +79,9 @@ as DateTime,platform: null == platform ? _self.platform : platform // ignore: ca
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as DepartureStatus,delayMinutes: null == delayMinutes ? _self.delayMinutes : delayMinutes // ignore: cast_nullable_to_non_nullable
 as int,durationMinutes: freezed == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
+as int?,isCoach: null == isCoach ? _self.isCoach : isCoach // ignore: cast_nullable_to_non_nullable
+as bool,lastKnownStatus: freezed == lastKnownStatus ? _self.lastKnownStatus : lastKnownStatus // ignore: cast_nullable_to_non_nullable
+as DepartureStatus?,lastKnownDelayMinutes: freezed == lastKnownDelayMinutes ? _self.lastKnownDelayMinutes : lastKnownDelayMinutes // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -164,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes,  bool isCoach,  DepartureStatus? lastKnownStatus,  int? lastKnownDelayMinutes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Departure() when $default != null:
-return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes);case _:
+return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes,_that.isCoach,_that.lastKnownStatus,_that.lastKnownDelayMinutes);case _:
   return orElse();
 
 }
@@ -185,10 +188,10 @@ return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes,  bool isCoach,  DepartureStatus? lastKnownStatus,  int? lastKnownDelayMinutes)  $default,) {final _that = this;
 switch (_that) {
 case _Departure():
-return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes);case _:
+return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes,_that.isCoach,_that.lastKnownStatus,_that.lastKnownDelayMinutes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +208,10 @@ return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime scheduledTime,  String platform,  DepartureStatus status,  int delayMinutes,  int? durationMinutes,  bool isCoach,  DepartureStatus? lastKnownStatus,  int? lastKnownDelayMinutes)?  $default,) {final _that = this;
 switch (_that) {
 case _Departure() when $default != null:
-return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes);case _:
+return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.delayMinutes,_that.durationMinutes,_that.isCoach,_that.lastKnownStatus,_that.lastKnownDelayMinutes);case _:
   return null;
 
 }
@@ -220,7 +223,7 @@ return $default(_that.id,_that.scheduledTime,_that.platform,_that.status,_that.d
 @JsonSerializable()
 
 class _Departure extends Departure {
-  const _Departure({required this.id, required this.scheduledTime, required this.platform, this.status = DepartureStatus.offline, this.delayMinutes = 0, this.durationMinutes}): super._();
+  const _Departure({required this.id, required this.scheduledTime, required this.platform, this.status = DepartureStatus.offline, this.delayMinutes = 0, this.durationMinutes, this.isCoach = false, this.lastKnownStatus, this.lastKnownDelayMinutes}): super._();
   factory _Departure.fromJson(Map<String, dynamic> json) => _$DepartureFromJson(json);
 
 @override final  String id;
@@ -229,6 +232,9 @@ class _Departure extends Departure {
 @override@JsonKey() final  DepartureStatus status;
 @override@JsonKey() final  int delayMinutes;
 @override final  int? durationMinutes;
+@override@JsonKey() final  bool isCoach;
+@override final  DepartureStatus? lastKnownStatus;
+@override final  int? lastKnownDelayMinutes;
 
 /// Create a copy of Departure
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Departure&&(identical(other.id, id) || other.id == id)&&(identical(other.scheduledTime, scheduledTime) || other.scheduledTime == scheduledTime)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.status, status) || other.status == status)&&(identical(other.delayMinutes, delayMinutes) || other.delayMinutes == delayMinutes)&&(identical(other.durationMinutes, durationMinutes) || other.durationMinutes == durationMinutes));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Departure&&(identical(other.id, id) || other.id == id)&&(identical(other.scheduledTime, scheduledTime) || other.scheduledTime == scheduledTime)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.status, status) || other.status == status)&&(identical(other.delayMinutes, delayMinutes) || other.delayMinutes == delayMinutes)&&(identical(other.durationMinutes, durationMinutes) || other.durationMinutes == durationMinutes)&&(identical(other.isCoach, isCoach) || other.isCoach == isCoach)&&(identical(other.lastKnownStatus, lastKnownStatus) || other.lastKnownStatus == lastKnownStatus)&&(identical(other.lastKnownDelayMinutes, lastKnownDelayMinutes) || other.lastKnownDelayMinutes == lastKnownDelayMinutes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,scheduledTime,platform,status,delayMinutes,durationMinutes);
+    return Object.hash(runtimeType,id,scheduledTime,platform,status,delayMinutes,durationMinutes,isCoach,lastKnownStatus,lastKnownDelayMinutes);
 }
 
 @override
 String toString() {
-    return 'Departure(id: $id, scheduledTime: $scheduledTime, platform: $platform, status: $status, delayMinutes: $delayMinutes, durationMinutes: $durationMinutes)';
+    return 'Departure(id: $id, scheduledTime: $scheduledTime, platform: $platform, status: $status, delayMinutes: $delayMinutes, durationMinutes: $durationMinutes, isCoach: $isCoach, lastKnownStatus: $lastKnownStatus, lastKnownDelayMinutes: $lastKnownDelayMinutes)';
 }
 
 
@@ -265,7 +271,7 @@ abstract mixin class _$DepartureCopyWith<$Res> implements $DepartureCopyWith<$Re
   factory _$DepartureCopyWith(_Departure value, $Res Function(_Departure) _then) = __$DepartureCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime scheduledTime, String platform, DepartureStatus status, int delayMinutes, int? durationMinutes
+ String id, DateTime scheduledTime, String platform, DepartureStatus status, int delayMinutes, int? durationMinutes, bool isCoach, DepartureStatus? lastKnownStatus, int? lastKnownDelayMinutes
 });
 
 
@@ -282,7 +288,7 @@ class __$DepartureCopyWithImpl<$Res>
 
 /// Create a copy of Departure
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? scheduledTime = null,Object? platform = null,Object? status = null,Object? delayMinutes = null,Object? durationMinutes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? scheduledTime = null,Object? platform = null,Object? status = null,Object? delayMinutes = null,Object? durationMinutes = freezed,Object? isCoach = null,Object? lastKnownStatus = freezed,Object? lastKnownDelayMinutes = freezed,}) {
   return _then(_Departure(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,scheduledTime: null == scheduledTime ? _self.scheduledTime : scheduledTime // ignore: cast_nullable_to_non_nullable
@@ -290,6 +296,9 @@ as DateTime,platform: null == platform ? _self.platform : platform // ignore: ca
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as DepartureStatus,delayMinutes: null == delayMinutes ? _self.delayMinutes : delayMinutes // ignore: cast_nullable_to_non_nullable
 as int,durationMinutes: freezed == durationMinutes ? _self.durationMinutes : durationMinutes // ignore: cast_nullable_to_non_nullable
+as int?,isCoach: null == isCoach ? _self.isCoach : isCoach // ignore: cast_nullable_to_non_nullable
+as bool,lastKnownStatus: freezed == lastKnownStatus ? _self.lastKnownStatus : lastKnownStatus // ignore: cast_nullable_to_non_nullable
+as DepartureStatus?,lastKnownDelayMinutes: freezed == lastKnownDelayMinutes ? _self.lastKnownDelayMinutes : lastKnownDelayMinutes // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }

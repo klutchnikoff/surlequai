@@ -137,8 +137,9 @@ struct TrainProvider: AppIntentTimelineProvider {
             after: now,
             nextDeparture: items.dropFirst().first?.date
         )
-        // WidgetKit ignore une date déjà passée : on garde une minute de plancher.
-        let next = max(published ?? fallback, now.addingTimeInterval(60))
+        // Une échéance passée ne doit pas provoquer une boucle de rechargement
+        // chaque minute du même instantané. Reprendre alors la cadence de repli.
+        let next = published.flatMap { $0 > now ? $0 : nil } ?? fallback
         return Timeline(entries: items, policy: .after(next))
     }
     private func entries(_ configuration: TripConfiguration) -> [TrainEntry] {

@@ -1,0 +1,336 @@
+{
+  "context": {
+    "current_datetime": "20260910T074257",
+    "timezone": "Europe/Paris"
+  },
+  "disruptions": [],
+  "journeys": [
+    {
+      "nb_transfers": 0,
+      "status": "",
+      "sections": [
+        {
+          "type": "crow_fly",
+          "id": "cpemgkGyD5FhPoUWBAZgvk_0",
+          "duration": 0,
+          "departure_date_time": "20260910T080900",
+          "arrival_date_time": "20260910T080900",
+          "links": [],
+          "from": {
+            "id": "stop_area:SNCF:87471037",
+            "embedded_type": "stop_area"
+          },
+          "to": {
+            "id": "stop_point:SNCF:87471037:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471037:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471037"
+              }
+            }
+          }
+        },
+        {
+          "type": "public_transport",
+          "id": "section_5_0",
+          "duration": 480,
+          "departure_date_time": "20260910T080900",
+          "base_departure_date_time": "20260910T080900",
+          "arrival_date_time": "20260910T081700",
+          "data_freshness": "base_schedule",
+          "links": [
+            {
+              "type": "company",
+              "id": "company:SNCF:1187"
+            },
+            {
+              "type": "vehicle_journey",
+              "id": "vehicle_journey:SNCF:2026-09-10:856116:1187:Train"
+            },
+            {
+              "type": "line",
+              "id": "line:SNCF:FR:Line::4BBFA233-37AB-432A-BCCF-FB90719B1F8A:"
+            },
+            {
+              "type": "route",
+              "id": "route:SNCF:FR:Line::4BBFA233-37AB-432A-BCCF-FB90719B1F8A:"
+            },
+            {
+              "type": "commercial_mode",
+              "id": "commercial_mode:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            },
+            {
+              "type": "physical_mode",
+              "id": "physical_mode:Train"
+            },
+            {
+              "type": "network",
+              "id": "network:SNCF:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            }
+          ],
+          "from": {
+            "id": "stop_point:SNCF:87471037:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471037:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471037"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_point:SNCF:87471003:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          },
+          "display_informations": {
+            "commercial_mode": "BreizhGo",
+            "network": "BreizhGo",
+            "direction": "Rennes (Rennes)",
+            "label": "P2",
+            "color": "",
+            "code": "P2",
+            "headsign": "856116",
+            "name": "P2",
+            "links": [
+              {
+                "templated": false,
+                "rel": "terminus",
+                "internal": true,
+                "type": "stop_area",
+                "id": "stop_area:SNCF:87471003"
+              }
+            ],
+            "text_color": "",
+            "trip_short_name": "856116",
+            "company": "SNCF Voyageurs",
+            "description": "",
+            "physical_mode": "TER / Intercités",
+            "equipments": []
+          },
+          "stop_date_times": [
+            {
+              "departure_date_time": "20260910T080900",
+              "base_departure_date_time": "20260910T080900",
+              "arrival_date_time": "20260910T080800",
+              "base_arrival_date_time": "20260910T080800",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87471037:Train"
+              }
+            },
+            {
+              "departure_date_time": "20260910T081700",
+              "base_departure_date_time": "20260910T081700",
+              "arrival_date_time": "20260910T081700",
+              "base_arrival_date_time": "20260910T081700",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87471003:Train"
+              }
+            }
+          ]
+        },
+        {
+          "type": "crow_fly",
+          "id": "5VNuXvsFEWMTwV7WUE9GE2_0",
+          "duration": 0,
+          "departure_date_time": "20260910T081700",
+          "arrival_date_time": "20260910T081700",
+          "links": [],
+          "from": {
+            "id": "stop_point:SNCF:87471003:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_area:SNCF:87471003",
+            "embedded_type": "stop_area"
+          }
+        }
+      ]
+    },
+    {
+      "nb_transfers": 0,
+      "status": "",
+      "sections": [
+        {
+          "type": "crow_fly",
+          "id": "r6aze3ZX7FedU4N6QB39kK_0",
+          "duration": 0,
+          "departure_date_time": "20260910T083600",
+          "arrival_date_time": "20260910T083600",
+          "links": [],
+          "from": {
+            "id": "stop_area:SNCF:87471037",
+            "embedded_type": "stop_area"
+          },
+          "to": {
+            "id": "stop_point:SNCF:87471037:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471037:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471037"
+              }
+            }
+          }
+        },
+        {
+          "type": "public_transport",
+          "id": "section_3_0",
+          "duration": 660,
+          "departure_date_time": "20260910T083600",
+          "base_departure_date_time": "20260910T083600",
+          "arrival_date_time": "20260910T084700",
+          "data_freshness": "base_schedule",
+          "links": [
+            {
+              "type": "company",
+              "id": "company:SNCF:1187"
+            },
+            {
+              "type": "vehicle_journey",
+              "id": "vehicle_journey:SNCF:2026-09-10:856120:1187:Train"
+            },
+            {
+              "type": "line",
+              "id": "line:SNCF:FR:Line::4BBFA233-37AB-432A-BCCF-FB90719B1F8A:"
+            },
+            {
+              "type": "route",
+              "id": "route:SNCF:FR:Line::4BBFA233-37AB-432A-BCCF-FB90719B1F8A:"
+            },
+            {
+              "type": "commercial_mode",
+              "id": "commercial_mode:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            },
+            {
+              "type": "physical_mode",
+              "id": "physical_mode:Train"
+            },
+            {
+              "type": "network",
+              "id": "network:SNCF:FR:Branding::7500b3d5-ea82-4597-ad48-edd896ca9ed0:"
+            }
+          ],
+          "from": {
+            "id": "stop_point:SNCF:87471037:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471037:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471037"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_point:SNCF:87471003:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          },
+          "display_informations": {
+            "commercial_mode": "BreizhGo",
+            "network": "BreizhGo",
+            "direction": "Rennes (Rennes)",
+            "label": "P2",
+            "color": "",
+            "code": "P2",
+            "headsign": "856120",
+            "name": "P2",
+            "links": [
+              {
+                "templated": false,
+                "rel": "terminus",
+                "internal": true,
+                "type": "stop_area",
+                "id": "stop_area:SNCF:87471003"
+              }
+            ],
+            "text_color": "",
+            "trip_short_name": "856120",
+            "company": "SNCF Voyageurs",
+            "description": "",
+            "physical_mode": "TER / Intercités",
+            "equipments": []
+          },
+          "stop_date_times": [
+            {
+              "departure_date_time": "20260910T083600",
+              "base_departure_date_time": "20260910T083600",
+              "arrival_date_time": "20260910T083500",
+              "base_arrival_date_time": "20260910T083500",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87471037:Train"
+              }
+            },
+            {
+              "departure_date_time": "20260910T083900",
+              "base_departure_date_time": "20260910T083900",
+              "arrival_date_time": "20260910T083800",
+              "base_arrival_date_time": "20260910T083800",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87159947:Train"
+              }
+            },
+            {
+              "departure_date_time": "20260910T084700",
+              "base_departure_date_time": "20260910T084700",
+              "arrival_date_time": "20260910T084700",
+              "base_arrival_date_time": "20260910T084700",
+              "additional_informations": [],
+              "links": [],
+              "stop_point": {
+                "id": "stop_point:SNCF:87471003:Train"
+              }
+            }
+          ]
+        },
+        {
+          "type": "crow_fly",
+          "id": "USHHx76mqMSrdFnFsTG9L8_0",
+          "duration": 0,
+          "departure_date_time": "20260910T084700",
+          "arrival_date_time": "20260910T084700",
+          "links": [],
+          "from": {
+            "id": "stop_point:SNCF:87471003:Train",
+            "embedded_type": "stop_point",
+            "stop_point": {
+              "id": "stop_point:SNCF:87471003:Train",
+              "stop_area": {
+                "id": "stop_area:SNCF:87471003"
+              }
+            }
+          },
+          "to": {
+            "id": "stop_area:SNCF:87471003",
+            "embedded_type": "stop_area"
+          }
+        }
+      ]
+    }
+  ]
+}

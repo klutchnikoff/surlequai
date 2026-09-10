@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.work.*
 import java.util.concurrent.TimeUnit
+import org.json.JSONObject
 
 class SurLeQuaiWidgetProvider : AppWidgetProvider() {
 
@@ -93,12 +94,45 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
 
             views.setTextViewText(R.id.widget_trip_name, tripName)
 
+            // Même instantané daté que WidgetKit : avancer l'affichage même
+            // lorsque le réseau échoue, sans conserver une ancienne voie.
+            val frame = try {
+                val trips = JSONObject(prefs.getString("widget_snapshot", "{}") ?: "{}").optJSONArray("trips")
+                var selected: JSONObject? = null
+                if (trips != null) for (i in 0 until trips.length()) {
+                    val trip = trips.getJSONObject(i)
+                    if (trip.optString("id") == tripId) selected = trip
+                }
+                val frames = selected?.optJSONArray("frames")
+                var current: JSONObject? = null
+                val now = System.currentTimeMillis()
+                if (frames != null) for (i in 0 until frames.length()) {
+                    val candidate = frames.getJSONObject(i)
+                    if (candidate.optLong("date") <= now &&
+                        candidate.optLong("date") >= (current?.optLong("date") ?: 0L)) current = candidate
+                }
+                current
+            } catch (_: Exception) { null }
+            fun field(direction: String, name: String, fallback: String): String {
+                val key = if (name == "status_color") "color" else name
+                val value = frame?.optJSONObject(direction)?.optString(key)
+                if (value != null) return value
+                // Une ancienne installation sans instantané daté ne peut pas
+                // justifier un statut courant ni une voie.
+                return when (name) {
+                    "status" -> "Hors ligne"
+                    "status_color" -> "offline"
+                    "platform" -> ""
+                    else -> prefs.getString("trip_${tripId}_${direction}_$name", fallback) ?: fallback
+                }
+            }
+
             // Direction 1
-            val dir1Title = prefs.getString("trip_${tripId}_direction1_title", "Direction 1") ?: "Direction 1"
-            val dir1Time = prefs.getString("trip_${tripId}_direction1_time", "__:__") ?: "__:__"
-            val dir1Platform = prefs.getString("trip_${tripId}_direction1_platform", "") ?: ""
-            val dir1Status = prefs.getString("trip_${tripId}_direction1_status", "") ?: ""
-            val dir1StatusColor = prefs.getString("trip_${tripId}_direction1_status_color", "secondary") ?: "secondary"
+            val dir1Title = field("direction1", "title", "Direction 1")
+            val dir1Time = field("direction1", "time", "__:__")
+            val dir1Platform = field("direction1", "platform", "")
+            val dir1Status = field("direction1", "status", "")
+            val dir1StatusColor = field("direction1", "status_color", "secondary")
 
             views.setTextViewText(R.id.widget_direction1_title, dir1Title)
             views.setTextViewText(R.id.widget_direction1_time, dir1Time)
@@ -108,18 +142,18 @@ class SurLeQuaiWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.widget_direction1_status, getStatusColor(dir1StatusColor))
 
             // Direction 2
-            val dir2Title = prefs.getString("trip_${tripId}_direction2_title", "Direction 2") ?: "Direction 2"
-            val dir2Time = prefs.getString("trip_${tripId}_direction2_time", "__:__") ?: "__:__"
-            val dir2Platform = prefs.getString("trip_${tripId}_direction2_platform", "") ?: ""
-            val dir2Status = prefs.getString("trip_${tripId}_direction2_status", "") ?: ""
-            val dir2StatusColor = prefs.getString("trip_${tripId}_direction2_status_color", "secondary") ?: "secondary"
+            val dir2Title = field("direction2", "title", "Direction 2")
+            val dir2Time = field("direction2", "time", "__:__")
+            val dir2Platform = field("direction2", "platform", "")
+            val dir2Status = field("direction2", "status", "")
+            val dir2StatusColor = field("direction2", "status_color", "secondary")
 
             views.setTextViewText(R.id.widget_direction2_title, dir2Title)
             views.setTextViewText(R.id.widget_direction2_time, dir2Time)
             views.setTextViewText(R.id.widget_direction2_platform, dir2Platform)
             views.setTextViewText(R.id.widget_direction2_status, dir2Status)
             views.setTextViewText(R.id.widget_direction2_emoji, getStatusEmoji(dir2StatusColor))
-            views.setTextColor(R.id.widget_direction2_status, Color.parseColor("#9CA3AF"))
+            views.setTextColor(R.id.widget_direction2_status, getStatusColor(dir2StatusColor))
 
             val lastUpdate = prefs.getString("trip_${tripId}_last_update", "—") ?: "—"
             views.setTextViewText(R.id.widget_last_update, "Mis à jour: $lastUpdate")

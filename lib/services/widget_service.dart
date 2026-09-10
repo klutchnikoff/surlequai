@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:surlequai/models/departure.dart';
+import 'package:surlequai/models/departures_result.dart';
 import 'package:surlequai/models/direction_card_view_model.dart';
 import 'package:surlequai/models/trip.dart';
 import 'package:surlequai/utils/constants.dart';
@@ -36,10 +37,12 @@ class WidgetService {
     List<Departure> departures,
     int dayStart,
     DateTime date,
+    bool fromNetwork,
   ) {
     final vm = DirectionCardViewModel.fromDepartures(
       title: title,
       departures: departures,
+      fromNetwork: fromNetwork,
       serviceDayStartTime: dayStart,
       now: date,
     );
@@ -81,10 +84,10 @@ class WidgetService {
     List<Departure> back,
   ) {
     final future =
-        [...go, ...back]
-            .map((d) => d.effectiveTime)
-            .where((t) => t.isAfter(moment))
-            .toList()
+        [
+            ...go,
+            ...back,
+          ].map((d) => d.effectiveTime).where((t) => t.isAfter(moment)).toList()
           ..sort();
     return future.isEmpty ? null : future.first;
   }
@@ -97,37 +100,48 @@ class WidgetService {
     int dayStart,
     DateTime date,
     DateTime? fetchedAt,
+    TripDepartures? data,
   ) {
-    // Une timeline locale ne peut pas prolonger indéfiniment un statut temps
-    // réel : il expire quand le réveil attendu a été manqué, et non après un
-    // délai fixe qui ignorerait la cadence réellement programmée.
-    if (RefreshBudget.isStale(
-      now: date,
-      fetchedAt: fetchedAt,
-      nextDeparture: fetchedAt == null
-          ? null
-          : _nextDeparture(fetchedAt, go, back),
-    )) {
-      List<Departure> offline(List<Departure> list) => list
-          .map(
-            (d) => d.copyWith(
-              status: DepartureStatus.offline,
-              delayMinutes: 0,
-              platform: '?',
-            ),
-          )
-          .toList();
-      go = offline(go);
-      back = offline(back);
-    }
+    final goDate = data == null ? fetchedAt : data.go.fetchedAt;
+    final backDate = data == null ? fetchedAt : data.back.fetchedAt;
+    final goOnline =
+        (data?.go.fromNetwork ?? (goDate != null)) &&
+        !RefreshBudget.isStale(
+          now: date,
+          fetchedAt: goDate,
+          nextDeparture: goDate == null ? null : _nextDeparture(goDate, go, []),
+        );
+    final backOnline =
+        (data?.back.fromNetwork ?? (backDate != null)) &&
+        !RefreshBudget.isStale(
+          now: date,
+          fetchedAt: backDate,
+          nextDeparture: backDate == null
+              ? null
+              : _nextDeparture(backDate, back, []),
+        );
+    if (!goOnline) go = go.map((d) => d.asOffline()).toList();
+    if (!backOnline) back = back.map((d) => d.asOffline()).toList();
     final swap = TripSorter.shouldSwapOrder(
       currentHour: date.hour,
       morningEveningSplitHour: split,
       serviceDayStartHour: dayStart,
       morningDirection: trip.morningDirection,
     );
-    final a = _direction('→ ${trip.stationB.name}', go, dayStart, date);
-    final b = _direction('→ ${trip.stationA.name}', back, dayStart, date);
+    final a = _direction(
+      '→ ${trip.stationB.name}',
+      go,
+      dayStart,
+      date,
+      goOnline,
+    );
+    final b = _direction(
+      '→ ${trip.stationA.name}',
+      back,
+      dayStart,
+      date,
+      backOnline,
+    );
     return {
       'date': date.millisecondsSinceEpoch,
       'direction1': swap ? b : a,
@@ -143,6 +157,7 @@ class WidgetService {
     int? serviceDayStartHour,
     DateTime? now,
     DateTime? lastUpdate,
+    TripDepartures? data,
   }) async {
     if (!_supported) return;
     await HomeWidget.setAppGroupId(appGroupId);
@@ -155,6 +170,7 @@ class WidgetService {
       serviceDayStartHour ?? AppConstants.defaultServiceDayStartHour,
       date,
       lastUpdate,
+      data,
     );
     await HomeWidget.saveWidgetData<String>(
       'trip_${trip.id}_name',
@@ -202,6 +218,7 @@ class WidgetService {
     required Map<String, List<Departure>> departuresGoByTrip,
     required Map<String, List<Departure>> departuresReturnByTrip,
     Map<String, DateTime?> lastUpdatesByTrip = const {},
+    Map<String, TripDepartures> dataByTrip = const {},
     int? morningEveningSplitHour,
     int? serviceDayStartHour,
   }) async {
@@ -224,6 +241,7 @@ class WidgetService {
         morningEveningSplitHour: split,
         serviceDayStartHour: dayStart,
         lastUpdate: updated,
+        data: dataByTrip[trip.id],
         now: now,
       );
       // Préparer les changements de train, de fraîcheur et de jour pour WidgetKit.
@@ -239,6 +257,17 @@ class WidgetService {
       // dispose d'une entrée à ce moment-là.
       final due = _nextRefreshDue(updated, go, back);
       if (due != null) dates.add(due.add(RefreshBudget.grace));
+      final tripData = dataByTrip[trip.id];
+      if (tripData != null) {
+        for (final direction in [tripData.go, tripData.back]) {
+          final expiry = _nextRefreshDue(
+            direction.fetchedAt,
+            direction.departures,
+            [],
+          );
+          if (expiry != null) dates.add(expiry.add(RefreshBudget.grace));
+        }
+      }
       for (var offset = 0; offset <= 2; offset++) {
         dates.add(DateTime(now.year, now.month, now.day + offset, split));
         dates.add(DateTime(now.year, now.month, now.day + offset, dayStart));
@@ -252,7 +281,10 @@ class WidgetService {
         'updatedAt': updated?.millisecondsSinceEpoch,
         'nextRefreshDue': due?.millisecondsSinceEpoch,
         'frames': timeline
-            .map((d) => _frame(trip, go, back, split, dayStart, d, updated))
+            .map(
+              (d) =>
+                  _frame(trip, go, back, split, dayStart, d, updated, tripData),
+            )
             .toList(),
       });
     }

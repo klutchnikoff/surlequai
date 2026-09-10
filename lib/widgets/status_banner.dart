@@ -14,10 +14,7 @@ import 'package:surlequai/utils/constants.dart';
 class StatusBanner extends StatelessWidget {
   final ConnectionStatus status;
 
-  const StatusBanner({
-    super.key,
-    required this.status,
-  });
+  const StatusBanner({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +32,7 @@ class StatusBanner extends StatelessWidget {
       case ConnectionStatus.offline:
         backgroundColor = AppColors.offline;
         icon = Icons.cloud_off;
-        message = 'Mode hors connexion - Horaires théoriques affichés';
+        message = 'Actualisation indisponible pour au moins un sens';
         break;
       case ConnectionStatus.syncing:
         backgroundColor = AppColors.secondary;
@@ -62,11 +59,7 @@ class StatusBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 20,
-          ),
+          Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
