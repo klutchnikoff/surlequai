@@ -9,6 +9,12 @@ enum DepartureStatus { onTime, delayed, cancelled, offline }
 abstract class Departure with _$Departure {
   const Departure._();
 
+  String get transportPrefix => isCoach
+      ? 'Car'
+      : isTgv
+      ? 'TGV'
+      : '';
+
   /// scheduledTime est toujours l'heure théorique, même pour une réponse temps réel.
   DateTime get effectiveTime =>
       scheduledTime.add(Duration(minutes: delayMinutes));
@@ -30,6 +36,7 @@ abstract class Departure with _$Departure {
     @Default(0) int delayMinutes,
     int? durationMinutes,
     @Default(false) bool isCoach,
+    @Default(false) bool isTgv,
     DepartureStatus? lastKnownStatus,
     int? lastKnownDelayMinutes,
   }) = _Departure;

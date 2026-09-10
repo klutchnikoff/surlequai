@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -136,6 +137,7 @@ class ApiService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    TransportPreferences transport = const TransportPreferences(),
     int count = 10,
   }) async {
     return getDirectJourneys(
@@ -143,6 +145,7 @@ class ApiService {
       toStationId: toStationId,
       datetime: datetime,
       count: count,
+      transport: transport,
     );
   }
 
@@ -151,6 +154,7 @@ class ApiService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    TransportPreferences transport = const TransportPreferences(),
     int count = 10,
   }) async {
     final jsonData = await _get(
@@ -163,22 +167,13 @@ class ApiService {
         'data_freshness': 'realtime',
         'min_nb_journeys': count.toString(),
         'max_nb_transfers': '0',
-        'forbidden_uris[]': [
-          // Certains TER BreizhGo sont classés LongDistanceTrain par SNCF.
-          // Exclure les marques TGV/OUIGO, jamais ce mode physique globalement.
-          'commercial_mode:OUI',
-          'commercial_mode:TGVOUIGO',
-          'commercial_mode:OUIGO_TC',
-          'physical_mode:RapidTransit',
-          'physical_mode:Metro',
-          'physical_mode:Tramway',
-          'physical_mode:Bus',
-        ],
+        'forbidden_uris[]': transport.forbiddenUris,
       },
     );
 
     final departures = JourneyMapper.parse(
       jsonData,
+      transport: transport,
       fromStationId: fromStationId,
       toStationId: toStationId,
     );
@@ -195,6 +190,7 @@ class ApiService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    TransportPreferences transport = const TransportPreferences(),
     int count = AppConstants.maxTrainsPerDay,
   }) async {
     final jsonData = await _get(
@@ -206,22 +202,13 @@ class ApiService {
         'count': count.toString(),
         'data_freshness': 'base_schedule',
         'max_nb_transfers': '0',
-        'forbidden_uris[]': [
-          // Certains TER BreizhGo sont classés LongDistanceTrain par SNCF.
-          // Exclure les marques TGV/OUIGO, jamais ce mode physique globalement.
-          'commercial_mode:OUI',
-          'commercial_mode:TGVOUIGO',
-          'commercial_mode:OUIGO_TC',
-          'physical_mode:RapidTransit',
-          'physical_mode:Metro',
-          'physical_mode:Tramway',
-          'physical_mode:Bus',
-        ],
+        'forbidden_uris[]': transport.forbiddenUris,
       },
     );
 
     final departures = JourneyMapper.parse(
       jsonData,
+      transport: transport,
       fromStationId: fromStationId,
       toStationId: toStationId,
     );
@@ -240,6 +227,7 @@ class ApiService {
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
+    TransportPreferences transport = const TransportPreferences(),
     int count = AppConstants.maxTrainsPerDay,
     int serviceDayStartHour = AppConstants.defaultServiceDayStartHour,
   }) async {
@@ -247,7 +235,12 @@ class ApiService {
     final serviceStart = ServiceDay.start(datetime, serviceDayStartHour);
     final serviceDay = serviceStart.toIso8601String();
     await _pruneTheoreticalCache();
-    final cacheKey = _getCacheKey(fromStationId, toStationId, serviceDay);
+    final cacheKey = _getCacheKey(
+      fromStationId,
+      toStationId,
+      serviceDay,
+      transport,
+    );
 
     if (AppConstants.enableDebugLogs) {
       debugPrint('[ApiService] Cache key: $cacheKey');
@@ -288,6 +281,7 @@ class ApiService {
       toStationId: toStationId,
       datetime: serviceStart,
       count: count,
+      transport: transport,
     );
 
     // Sauvegarder dans le cache
@@ -370,7 +364,7 @@ class ApiService {
     final cutoff = DateTime.now().subtract(const Duration(days: 2));
     for (final key in prefs.getKeys().where((k) => k.startsWith('journeys_'))) {
       final date = DateTime.tryParse(key.split('_').last);
-      if (!key.startsWith('journeys_v3_') ||
+      if (!key.startsWith('journeys_v4_') ||
           date == null ||
           date.isBefore(cutoff)) {
         await prefs.remove(key);
@@ -382,10 +376,11 @@ class ApiService {
     String fromStationId,
     String toStationId,
     String serviceDay,
+    TransportPreferences transport,
   ) {
     final fromId = fromStationId.split(':').last;
     final toId = toStationId.split(':').last;
-    return 'journeys_v3_${fromId}_${toId}_$serviceDay';
+    return 'journeys_v4_${transport.cacheKey}_${fromId}_${toId}_$serviceDay';
   }
 
   String _formatNavitiaDateTime(DateTime datetime) {

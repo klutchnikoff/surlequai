@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/departure.dart';
@@ -20,20 +21,24 @@ class ControlledRealtime extends RealtimeService {
   final Map<String, Completer<DeparturesResult>> pending = {};
   final Map<String, DeparturesResult> cached = {};
   int calls = 0;
+  final requestedPreferences = <String>[];
   ControlledRealtime(ApiService api, StorageService storage)
     : super(apiService: api, storageService: storage);
   @override
   Future<DeparturesResult> getCachedDepartures({
+    TransportPreferences transport = const TransportPreferences(),
     required String fromStationId,
     required String toStationId,
   }) async => cached[fromStationId] ?? DeparturesResult();
   @override
   Future<DeparturesResult> getDeparturesWithRealtime({
+    TransportPreferences transport = const TransportPreferences(),
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
   }) {
     calls++;
+    requestedPreferences.add(transport.cacheKey);
     return (pending[fromStationId] ??= Completer<DeparturesResult>()).future;
   }
 
@@ -160,6 +165,30 @@ void main() {
     await flush();
     await temp.delete(recursive: true);
   });
+
+  test(
+    'preference change discards in-flight results and republishes widgets',
+    () async {
+      await start([a]);
+      await settings.setTransport(includeTgv: true, includeCoach: false);
+      await flush();
+      expect(provider.departuresGo, isEmpty);
+      expect(widgets.go['a'], isEmpty);
+      final oldA = realtime.pending.remove('A')!;
+      final oldB = realtime.pending.remove('B')!;
+      oldA.complete(result('old-A', 10));
+      oldB.complete(result('old-B', 10));
+      await flush();
+      expect(provider.departuresGo, isEmpty);
+      expect(realtime.requestedPreferences, ['01', '01', '10', '10']);
+      realtime.complete('A', result('new-A', 20));
+      realtime.complete('B', result('new-B', 20));
+      await flush();
+      expect(provider.departuresGo.single.id, 'new-A');
+      expect(widgets.go['a']!.single.id, 'new-A');
+      expect(widgets.back['a']!.single.id, 'new-B');
+    },
+  );
 
   test(
     'cache is visible while the first network requests are still pending',

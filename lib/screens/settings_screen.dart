@@ -62,6 +62,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               _buildTimeBehaviorSetting(context, settingsProvider),
               const Divider(),
+              _buildSectionTitle(context, 'TRANSPORTS'),
+              CheckboxListTile(
+                title: const Text('Inclure les TGV INOUI et OUIGO'),
+                subtitle: const Text(
+                  'Selon les conditions de votre billet ou abonnement.',
+                ),
+                value: settingsProvider.transport.includeTgv,
+                onChanged: (value) =>
+                    settingsProvider.setTransport(includeTgv: value),
+              ),
+              CheckboxListTile(
+                title: const Text('Inclure les cars SNCF'),
+                value: settingsProvider.transport.includeCoach,
+                onChanged: (value) =>
+                    settingsProvider.setTransport(includeCoach: value),
+              ),
+              const Divider(),
               _buildSectionTitle(context, 'DONNÉES'),
               _buildClearCacheButton(context),
               const Divider(),

@@ -45,7 +45,9 @@ class _SchedulesModalState extends State<SchedulesModal> {
     final apiService = context.read<ApiService>();
     final now = DateTime.now();
 
-    final hour = context.read<SettingsProvider>().serviceDayStartTime;
+    final settings = context.read<SettingsProvider>();
+    final hour = settings.serviceDayStartTime;
+    final transport = settings.transport;
     final todayServiceStart = ServiceDay.start(now, hour);
     final tomorrowServiceStart = ServiceDay.next(todayServiceStart);
 
@@ -59,6 +61,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
           datetime: start,
           count: AppConstants.maxTrainsPerDay,
           serviceDayStartHour: hour,
+          transport: transport,
         );
         final end = ServiceDay.next(start);
         departures = result
@@ -271,7 +274,7 @@ class _SchedulesModalState extends State<SchedulesModal> {
       title: Row(
         children: [
           Text(
-            '${departure.isCoach ? 'Car · ' : ''}${TimeFormatter.formatTime(departure.scheduledTime)}',
+            '${departure.transportPrefix.isNotEmpty ? '${departure.transportPrefix} · ' : ''}${TimeFormatter.formatTime(departure.scheduledTime)}',
             style: timeStyle,
           ),
           if (statusText != null) ...[

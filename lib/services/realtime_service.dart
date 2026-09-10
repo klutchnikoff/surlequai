@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:surlequai/models/data_failure.dart';
 import 'package:surlequai/models/departures_result.dart';
 import 'package:surlequai/services/api_service.dart';
@@ -18,17 +19,24 @@ class RealtimeService {
   }) : _now = now ?? DateTime.now;
 
   Future<DeparturesResult> getCachedDepartures({
+    TransportPreferences transport = const TransportPreferences(),
     required String fromStationId,
     required String toStationId,
-  }) => storageService.readCachedDepartures(fromStationId, toStationId);
+  }) => storageService.readCachedDepartures(
+    fromStationId,
+    toStationId,
+    transport: transport,
+  );
 
   Future<DeparturesResult> getDeparturesWithRealtime({
+    TransportPreferences transport = const TransportPreferences(),
     required String fromStationId,
     required String toStationId,
     required DateTime datetime,
   }) async {
     try {
       final departures = await apiService.getDirectJourneys(
+        transport: transport,
         fromStationId: fromStationId,
         toStationId: toStationId,
         datetime: datetime,
@@ -41,6 +49,7 @@ class RealtimeService {
         toStationId,
         departures,
         fetchedAt: fetchedAt,
+        transport: transport,
       );
       return DeparturesResult(
         departures: departures,
@@ -57,6 +66,7 @@ class RealtimeService {
         _ => DataFailure.invalidData,
       };
       final cached = await getCachedDepartures(
+        transport: transport,
         fromStationId: fromStationId,
         toStationId: toStationId,
       );

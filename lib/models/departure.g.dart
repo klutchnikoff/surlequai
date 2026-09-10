@@ -16,6 +16,7 @@ _Departure _$DepartureFromJson(Map<String, dynamic> json) => _Departure(
   delayMinutes: (json['delayMinutes'] as num?)?.toInt() ?? 0,
   durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
   isCoach: json['isCoach'] as bool? ?? false,
+  isTgv: json['isTgv'] as bool? ?? false,
   lastKnownStatus: $enumDecodeNullable(
     _$DepartureStatusEnumMap,
     json['lastKnownStatus'],
@@ -32,6 +33,7 @@ Map<String, dynamic> _$DepartureToJson(_Departure instance) =>
       'delayMinutes': instance.delayMinutes,
       'durationMinutes': instance.durationMinutes,
       'isCoach': instance.isCoach,
+      'isTgv': instance.isTgv,
       'lastKnownStatus': _$DepartureStatusEnumMap[instance.lastKnownStatus],
       'lastKnownDelayMinutes': instance.lastKnownDelayMinutes,
     };

@@ -51,3 +51,23 @@ Test d’intégration aux données réelles via capture/rejeu, pas un essai de l
 Les réponses brutes et le script de rejeu sont conservés localement dans `/tmp/surlequai-live-20260910/` (fichiers temporaires). La fixture de régression est conservée dans le dépôt.
 
 Documentation du paramètre de comparaison : [Navitia](https://doc.navitia.io/) (`is_journey_schedules`).
+
+## Investigation complémentaire : cause de la sélection Nantes
+
+Les recherches ciblées sur la ligne K4 rétablissent les deux trains : 857763
+10:56–13:15 et 857765 12:56–15:15, via Vitré, Laval, Sablé-sur-Sarthe, Angers
+et Ancenis. Les alternatives retenues sont 858329 11:31–12:52 et 858355
+13:35–14:52 : départ plus tardif mais arrivée 23 minutes plus tôt.
+
+Contrôle causal : reprendre la recherche générale en excluant seulement la
+route concurrente `route:SNCF:FR:Line::C7CAE674-56E6-44EC-8881-EE52570D5BA2:`
+rétablit les deux trains. Retirer les filtres commerciaux ou ajouter `debug=true`
+ne les rétablit pas ; démarrer la recherche à 10:50 ou 12:50 ne change pas cette
+sélection. Cela étaye une sélection liée aux alternatives plus rapides, sans
+prétendre connaître tous les détails de l'algorithme déployé.
+
+Décision produit validée : conserver cette sélection SNCF. La remarque précédente
+sur la nécessité d'une acquisition exhaustive ne constitue donc plus un travail
+à réaliser. Huit requêtes ont été tentées pour cette investigation, dont deux
+refusées par le proxy (`vehicle_journeys` n'est pas exposé). Les captures restent
+dans `/tmp/surlequai-live-20260910/cause-*.json` et `nantes-debug.json`.

@@ -1,3 +1,4 @@
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surlequai/models/settings.dart';
@@ -7,6 +8,21 @@ class SettingsProvider with ChangeNotifier {
   late SharedPreferences _prefs;
   late final Future<void> ready;
   bool _disposed = false;
+
+  TransportPreferences _transport = const TransportPreferences();
+  TransportPreferences get transport => _transport;
+
+  Future<void> setTransport({bool? includeTgv, bool? includeCoach}) async {
+    await ready;
+    final next = TransportPreferences(
+      includeTgv: includeTgv ?? _transport.includeTgv,
+      includeCoach: includeCoach ?? _transport.includeCoach,
+    );
+    if (next.cacheKey == _transport.cacheKey) return;
+    _transport = next;
+    await _prefs.setString(TransportPreferences.storageKey, next.cacheKey);
+    if (!_disposed) notifyListeners();
+  }
 
   // State
   late AppThemeMode _themeMode;
@@ -28,6 +44,8 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
+
+    _transport = TransportPreferences.read(_prefs);
 
     // Load theme
     final themeIndex =

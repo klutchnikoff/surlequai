@@ -1,3 +1,4 @@
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:surlequai/models/departure.dart';
 
 /// Adapte les trajets Navitia aux seules liaisons ferroviaires directes.
@@ -5,6 +6,7 @@ import 'package:surlequai/models/departure.dart';
 class JourneyMapper {
   static List<Departure> parse(
     Map<String, dynamic> response, {
+    TransportPreferences transport = const TransportPreferences(),
     required String fromStationId,
     required String toStationId,
   }) {
@@ -26,7 +28,7 @@ class JourneyMapper {
       if (journey['nb_transfers'] != 0 || transports.length != 1) continue;
       final section = transports.single;
       final info = section['display_informations'] as Map<String, dynamic>;
-      final mode = _mode(info, section);
+      final mode = _mode(info, section, transport);
       if (mode == null) continue;
       // Navitia inclut des raccordements de durée nulle gare → quai.
       // Ils sont acceptés, contrairement aux parcours via une autre gare.
@@ -70,6 +72,7 @@ class JourneyMapper {
             ? platform.trim()
             : '?',
         isCoach: mode == 'coach',
+        isTgv: mode == 'tgv',
         status: cancelled
             ? DepartureStatus.cancelled
             : delay > 0
@@ -94,18 +97,16 @@ class JourneyMapper {
   static String? _mode(
     Map<String, dynamic> info,
     Map<String, dynamic> section,
+    TransportPreferences transport,
   ) {
     final branding = '${info['network']} ${info['commercial_mode']}'
         .toUpperCase();
-    if ([
-      'TGV',
-      'OUIGO',
-      'TRANSILIEN',
-      'EUROSTAR',
-      'THALYS',
-    ].any(branding.contains)) {
+    if (['TRANSILIEN', 'EUROSTAR', 'THALYS'].any(branding.contains)) {
       return null;
     }
+    if (branding.contains('OUIGO TRAIN CLASSIQUE')) return null;
+    final tgv = branding.contains('TGV') || branding.contains('OUIGO');
+    if (tgv && !transport.includeTgv) return null;
     final links = section['links'] as List? ?? const [];
     final modeIds = links
         .where((l) => l['type'] == 'physical_mode')
@@ -130,7 +131,9 @@ class JourneyMapper {
         commercial == 'NOMAD' ||
         commercial == 'TER' ||
         commercial.startsWith('TER ');
+    if (coach && !transport.includeCoach) return null;
     final train =
+        tgv ||
         modeIds.contains('physical_mode:Train') ||
         physical == 'ter / intercités' ||
         (regional &&
@@ -147,7 +150,11 @@ class JourneyMapper {
               (l['id'] as String? ?? '').startsWith('vehicle_journey:SNCF:'),
         );
     if (coach && !sncf) return null;
-    return coach ? 'coach' : 'train';
+    return coach
+        ? 'coach'
+        : tgv
+        ? 'tgv'
+        : 'train';
   }
 
   static bool _cancelled(

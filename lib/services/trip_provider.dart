@@ -44,6 +44,7 @@ class TripProvider with ChangeNotifier {
   Future<void> _widgetWrites = Future.value();
   int _selection = 0;
   int _cacheGeneration = 0;
+  String _transportKey = '01';
   Future<void>? _clearingCache;
   DirectionCardViewModel? _directionGoViewModel;
   DirectionCardViewModel? _directionReturnViewModel;
@@ -110,6 +111,7 @@ class TripProvider with ChangeNotifier {
   Future<void> _loadTrips() async {
     try {
       await _settingsProvider.ready;
+      _transportKey = _settingsProvider.transport.cacheKey;
       if (_ownsApi) await _apiService.init();
       final prefs = await SharedPreferences.getInstance();
       final json = prefs.getString(AppConstants.tripsStorageKey);
@@ -166,10 +168,12 @@ class TripProvider with ChangeNotifier {
     final generation = _cacheGeneration;
     final results = await Future.wait([
       _realtimeService.getCachedDepartures(
+        transport: _settingsProvider.transport,
         fromStationId: trip.stationA.id,
         toStationId: trip.stationB.id,
       ),
       _realtimeService.getCachedDepartures(
+        transport: _settingsProvider.transport,
         fromStationId: trip.stationB.id,
         toStationId: trip.stationA.id,
       ),
@@ -191,27 +195,32 @@ class TripProvider with ChangeNotifier {
   }
 
   Future<void> _fetchTrip(Trip trip) async {
+    final generation = _cacheGeneration;
     try {
       final date = _now();
       final results = await Future.wait([
         _realtimeService.getDeparturesWithRealtime(
+          transport: _settingsProvider.transport,
           fromStationId: trip.stationA.id,
           toStationId: trip.stationB.id,
           datetime: date,
         ),
         _realtimeService.getDeparturesWithRealtime(
+          transport: _settingsProvider.transport,
           fromStationId: trip.stationB.id,
           toStationId: trip.stationA.id,
           datetime: date,
         ),
       ]);
-      if (!_disposed && _trips.any((t) => t.id == trip.id)) {
+      if (!_disposed &&
+          generation == _cacheGeneration &&
+          _trips.any((t) => t.id == trip.id)) {
         _data[trip.id] = TripDepartures(results[0], results[1]);
       }
     } catch (e) {
       debugPrint('Erreur rafraîchissement: $e');
       final previous = _data[trip.id];
-      if (previous != null && !_disposed) {
+      if (previous != null && !_disposed && generation == _cacheGeneration) {
         _data[trip.id] = TripDepartures(
           previous.go.asOffline(),
           previous.back.asOffline(),
@@ -305,9 +314,22 @@ class TripProvider with ChangeNotifier {
 
   void _settingsChanged() {
     if (isLoading || _disposed) return;
+    if (_transportKey != _settingsProvider.transport.cacheKey) {
+      _transportKey = _settingsProvider.transport.cacheKey;
+      final generation = ++_cacheGeneration;
+      _data.clear();
+      unawaited(_refreshTransport(generation));
+    }
     _buildViewModels();
     _notify();
     unawaited(_publishWidgets());
+  }
+
+  Future<void> _refreshTransport(int generation) async {
+    await _clearingCache;
+    await Future.wait(_requests.values.toList());
+    if (_disposed || generation != _cacheGeneration) return;
+    await refreshDepartures(feedback: false);
   }
 
   /// Le temps qui passe actualise le rendu même sans réponse réseau.

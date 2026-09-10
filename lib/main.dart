@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +55,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     // --- Logique de mise à jour ---
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
+    final transport = TransportPreferences.read(prefs);
     final tripsJson = prefs.getString(AppConstants.tripsStorageKey);
 
     List<Trip> trips;
@@ -84,11 +86,13 @@ Future<void> backgroundCallback(Uri? uri) async {
           fromStationId: trip.stationA.id,
           toStationId: trip.stationB.id,
           datetime: now,
+          transport: transport,
         ),
         realtimeService.getDeparturesWithRealtime(
           fromStationId: trip.stationB.id,
           toStationId: trip.stationA.id,
           datetime: now,
+          transport: transport,
         ),
       ]);
       final go = results[0];
@@ -103,7 +107,10 @@ Future<void> backgroundCallback(Uri? uri) async {
 
     // L'application a pu supprimer ou modifier un trajet pendant le réseau.
     await prefs.reload();
-    if (prefs.getString(AppConstants.tripsStorageKey) != tripsJson) return;
+    if (prefs.getString(AppConstants.tripsStorageKey) != tripsJson ||
+        TransportPreferences.read(prefs).cacheKey != transport.cacheKey) {
+      return;
+    }
 
     // Charger les préférences utilisateur pour l'ordre matin/soir
     final morningEveningSplitHour =

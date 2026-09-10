@@ -74,7 +74,7 @@ sealed class DirectionCardViewModel {
       return DirectionCardNoDepartures.nextTrainTomorrow(
         title: title,
         tomorrowTime:
-            '${trainsTomorrow.first.isCoach ? 'Car · ' : ''}${TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime)}',
+            '${trainsTomorrow.first.transportPrefix.isNotEmpty ? '${trainsTomorrow.first.transportPrefix} · ' : ''}${TimeFormatter.formatTime(trainsTomorrow.first.scheduledTime)}',
         fromNetwork: fromNetwork,
       );
     }
@@ -136,7 +136,7 @@ sealed class DirectionCardViewModel {
           ? ''
           : 'Voie ${nextDeparture.platform}',
       statusText:
-          '${nextDeparture.isCoach ? 'Car · ' : ''}$statusText${failureText == null ? '' : '\n$failureText'}',
+          '${nextDeparture.transportPrefix.isNotEmpty ? '${nextDeparture.transportPrefix} · ' : ''}$statusText${failureText == null ? '' : '\n$failureText'}',
       statusColor: statusBarColor,
       statusType: nextDeparture.status, // Nouveau champ
       subsequentDepartures: subsequentDepartures.isNotEmpty
@@ -153,7 +153,7 @@ sealed class DirectionCardViewModel {
       DepartureStatus.offline => ' (hors ligne)',
       _ => '',
     };
-    return '${d.isCoach ? 'Car ' : ''}${TimeFormatter.formatTime(d.scheduledTime)}$status';
+    return '${d.transportPrefix.isNotEmpty ? '${d.transportPrefix} ' : ''}${TimeFormatter.formatTime(d.scheduledTime)}$status';
   }
 }
 

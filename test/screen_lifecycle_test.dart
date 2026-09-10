@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,7 @@ class SlowApi extends ApiService {
     required String toStationId,
     required DateTime datetime,
     int count = AppConstants.maxTrainsPerDay,
+    TransportPreferences transport = const TransportPreferences(),
     int serviceDayStartHour = 4,
   }) => schedules.future;
 }

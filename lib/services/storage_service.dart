@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:surlequai/models/transport_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,11 +39,12 @@ class StorageService {
     String to,
     List<Departure> departures, {
     DateTime? fetchedAt,
+    TransportPreferences transport = const TransportPreferences(),
   }) async {
     File? temporary;
     try {
       await init();
-      final file = _getFile(from, to);
+      final file = _getFile(from, to, transport);
       temporary = File('${file.path}.${const Uuid().v4()}.tmp');
       await temporary.writeAsString(
         jsonEncode({
@@ -63,10 +65,14 @@ class StorageService {
     }
   }
 
-  Future<DeparturesResult> readCachedDepartures(String from, String to) async {
+  Future<DeparturesResult> readCachedDepartures(
+    String from,
+    String to, {
+    TransportPreferences transport = const TransportPreferences(),
+  }) async {
     try {
       await init();
-      final file = _getFile(from, to);
+      final file = _getFile(from, to, transport);
       if (!await file.exists()) return DeparturesResult();
       final data =
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
@@ -99,13 +105,30 @@ class StorageService {
 
   Future<void> removeDirection(String from, String to) async {
     await init();
-    final file = _getFile(from, to);
-    if (await file.exists()) await file.delete();
+    for (final tgv in [false, true]) {
+      for (final coach in [false, true]) {
+        final file = _getFile(
+          from,
+          to,
+          TransportPreferences(includeTgv: tgv, includeCoach: coach),
+        );
+        if (await file.exists()) await file.delete();
+      }
+    }
   }
 
-  File _getFile(String from, String to) {
+  File _getFile(
+    String from,
+    String to, [
+    TransportPreferences transport = const TransportPreferences(),
+  ]) {
     final a = from.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
     final b = to.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-    return File(join(_cacheDir!.path, 'cache_${a}_$b.json'));
+    return File(
+      join(
+        _cacheDir!.path,
+        'cache_${a}_$b${transport.cacheKey == '01' ? '' : '_${transport.cacheKey}'}.json',
+      ),
+    );
   }
 }
