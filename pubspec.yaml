@@ -2,7 +2,7 @@ name: surlequai
 description: "Horaires TER en temps réel - Vos prochains trains, directement sur le quai"
 publish_to: 'none'
 
-version: 0.12.0+4
+version: 0.12.0+2005
 
 environment:
   sdk: ^3.13.0

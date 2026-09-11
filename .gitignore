@@ -54,3 +54,6 @@ app.*.map.json
 android/key.properties
 *.keystore
 *.jks
+
+# Local Google Play publication bundles and copy
+/play-release/
