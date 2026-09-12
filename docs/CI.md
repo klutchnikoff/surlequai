@@ -60,32 +60,47 @@ précédemment déposées à la main doivent également être prises en compte. 
 supprimer/déplacer les tags de publication ; ne pas réutiliser un numéro déjà
 importé dans Play Console.
 
-Après tous les contrôles, la CI génère un bundle signé, puis un artefact
-`surlequai-X.Y.Z+BUILD` téléchargeable dans l'exécution GitHub Actions pendant
+Après tous les contrôles, la CI génère un bundle **non signé**, puis un artefact
+`surlequai-X.Y.Z+BUILD-unsigned` téléchargeable dans GitHub Actions pendant
 30 jours. Il contient le `.aab`, son SHA-256 et la version/commit/tag d'origine.
-Conserver localement le bundle destiné à publication avant expiration.
+Le suffixe `-unsigned` indique qu'il ne peut pas encore être déposé sur Google Play.
 
-## Signature
+## Signature exclusivement locale
 
-L'environnement GitHub `android-release` est réservé aux tags `v*`. Il doit contenir :
+Aucune clé ni aucun mot de passe Android n'est nécessaire sur GitHub. Le workflow
+n'utilise ni secrets de signature ni environnement de publication. L'ancien
+environnement `android-release`, s'il existe encore, est inutilisé et peut être supprimé.
 
-- `ANDROID_KEYSTORE_BASE64` : contenu de la clé d'importation existante, encodé en base64 ;
-- `ANDROID_KEYSTORE_PASSWORD` : mot de passe du keystore ;
-- `ANDROID_KEY_ALIAS` : alias de la clé ;
-- `ANDROID_KEY_PASSWORD` : mot de passe de la clé.
+La CI définit `SURLEQUAI_UNSIGNED_RELEASE=true` : Gradle ne lit alors pas
+`android/key.properties` et ne configure aucune signature, même si une clé locale
+est présente. Un contrôle du ZIP refuse tout bundle contenant une signature.
+Sans cette variable, les compilations locales conservent leur signature habituelle
+avec `android/key.properties`.
 
-Les secrets ne sont pas configurés automatiquement : les renseigner dans
-Settings → Environments → android-release → Environment secrets du dépôt.
-Le workflow échoue explicitement si un secret manque.
+Après téléchargement et extraction de l'artefact :
 
-Base64 n'est pas un chiffrement : la protection repose sur les secrets GitHub.
-La clé est décodée uniquement dans le répertoire temporaire du runner du job de
-signature (permissions 0600), puis supprimée même en cas d'échec. Elle n'entre
-ni dans les artefacts ni dans le cache Flutter. Aucun secret n'est transmis au
-workflow réutilisable des contrôles ni aux tests de PR.
+1. Vérifier dans `BUILD.txt` le tag et le commit attendus.
+2. Vérifier l'intégrité depuis le dossier extrait : `shasum -a 256 -c SHA256SUMS.txt`.
+   Cette empreinte détecte une corruption ; elle ne prouve pas à elle seule la
+   fiabilité du contenu produit par la CI. Ne signer qu'une exécution de confiance.
+3. Depuis le dépôt, lancer la signature avec Java 21 (`jarsigner` dans le PATH) :
 
-Gradle utilise ces variables uniquement quand `ANDROID_KEYSTORE_PATH` existe ;
-les compilations locales continuent d'utiliser `android/key.properties`.
+```sh
+python3 scripts/sign_android_bundle.py \
+  '/chemin/vers/surlequai-0.12.1+2006-unsigned.aab' \
+  --keystore android/app/surlequai-release.keystore \
+  --alias 'ALIAS_LOCAL'
+```
+
+Remplacer `ALIAS_LOCAL` par la valeur `keyAlias` de `android/key.properties`.
+`jarsigner` demande les mots de passe directement dans le terminal : ne pas les
+ajouter à la commande. La clé existante reste sur le Mac. Le script refuse un
+bundle déjà signé et n'écrase pas un fichier de sortie existant.
+
+Le résultat et sa nouvelle empreinte sont placés dans `play-release/signed/`,
+répertoire ignoré par Git. Déposer ce **bundle signé** manuellement dans Google
+Play Console. Le bundle téléchargé reste inchangé. Conserver la clé et ses mots
+de passe dans une sauvegarde privée indépendante du dépôt.
 
 ## Protection de main
 
@@ -96,5 +111,5 @@ la suppression de `main`, et appliquer ces règles aux administrateurs.
 
 Documentation :
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
-- https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
+- https://developer.android.com/studio/publish/app-signing
 - https://github.com/subosito/flutter-action
