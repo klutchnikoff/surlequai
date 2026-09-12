@@ -12,7 +12,8 @@ class NavitiaConfig {
   static const String directApiUrl = 'https://api.sncf.com/v1';
 
   /// URL de base du proxy Cloudflare Worker
-  static const String proxyUrl = 'https://surlequai.nicolas-klutchnikoff.workers.dev';
+  static const String proxyUrl =
+      'https://surlequai.nicolas-klutchnikoff.workers.dev';
 
   /// Coverage SNCF (pour les requêtes spécifiques TER)
   static const String coverage = 'sncf';
@@ -43,9 +44,7 @@ class NavitiaConfig {
     }
 
     // Mode proxy par défaut : pas d'authentification (gérée par le proxy)
-    return {
-      'Content-Type': 'application/json',
-    };
+    return {'Content-Type': 'application/json'};
   }
 
   /// Headers d'authentification par défaut (compatibilité)

@@ -97,6 +97,8 @@ class AppConstants {
   /// Utilisation :
   /// - Production (défaut) : false
   /// - Debug : flutter run --dart-define=DEBUG_LOGS=true
-  static const bool enableDebugLogs =
-      bool.fromEnvironment('DEBUG_LOGS', defaultValue: false);
+  static const bool enableDebugLogs = bool.fromEnvironment(
+    'DEBUG_LOGS',
+    defaultValue: false,
+  );
 }

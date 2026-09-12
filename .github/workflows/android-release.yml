@@ -1,0 +1,78 @@
+name: Android release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    name: Validate release tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a commit integrated into main
+        run: git merge-base --is-ancestor HEAD origin/main
+      - name: Match tag to pubspec and check build progression
+        id: version
+        run: python3 scripts/ci/check_release.py
+
+  checks:
+    needs: metadata
+    uses: ./.github/workflows/ci.yml
+
+  bundle:
+    name: Signed Android bundle
+    needs: [metadata, checks]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: android-release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: ./.github/actions/setup-flutter
+      - name: Build with the upload key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/surlequai-upload.jks
+        run: |
+          python3 scripts/ci/prepare_signing.py
+          flutter build appbundle --release --no-pub
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/surlequai-upload.jks"
+      - name: Package bundle and checksum
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          mkdir -p release
+          cp build/app/outputs/bundle/release/app-release.aab "release/surlequai-${RELEASE_VERSION}.aab"
+          cd release
+          sha256sum ./*.aab > SHA256SUMS.txt
+          printf 'Version: %s\nCommit: %s\nTag: %s\n' "$RELEASE_VERSION" "$GITHUB_SHA" "$GITHUB_REF_NAME" > BUILD.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: surlequai-${{ needs.metadata.outputs.version }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 30

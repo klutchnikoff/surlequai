@@ -45,10 +45,7 @@ class StationIdMigration {
       return station; // Pas de migration nécessaire
     }
 
-    return Station(
-      id: newId,
-      name: station.name,
-    );
+    return Station(id: newId, name: station.name);
   }
 
   /// Migre un Trip complet (avec ses deux gares)
@@ -77,7 +74,9 @@ class StationIdMigration {
 
   /// Vérifie si une liste de trips contient des IDs à migrer
   static bool tripsNeedMigration(List<Trip> trips) {
-    return trips.any((trip) =>
-        needsMigration(trip.stationA.id) || needsMigration(trip.stationB.id));
+    return trips.any(
+      (trip) =>
+          needsMigration(trip.stationA.id) || needsMigration(trip.stationB.id),
+    );
   }
 }

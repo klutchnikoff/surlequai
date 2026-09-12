@@ -7,11 +7,7 @@ class DirectionCard extends StatelessWidget {
   final DirectionCardViewModel viewModel;
   final VoidCallback? onTap;
 
-  const DirectionCard({
-    super.key,
-    required this.viewModel,
-    this.onTap,
-  });
+  const DirectionCard({super.key, required this.viewModel, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +20,7 @@ class DirectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 10,
-              color: viewModel.statusBarColor,
-            ),
+            Container(height: 10, color: viewModel.statusBarColor),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -38,28 +31,41 @@ class DirectionCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           viewModel.title,
-                          style: AppTextStyles.medium
-                              .copyWith(fontWeight: FontWeight.bold),
+                          style: AppTextStyles.medium.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       if (viewModel is DirectionCardWithDepartures &&
-                          (viewModel as DirectionCardWithDepartures).durationMinutes != null) ...[
+                          (viewModel as DirectionCardWithDepartures)
+                                  .durationMinutes !=
+                              null) ...[
                         const SizedBox(width: 8),
-                        const Icon(Icons.timer_outlined, size: 18, color: AppColors.secondary),
+                        const Icon(
+                          Icons.timer_outlined,
+                          size: 18,
+                          color: AppColors.secondary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${(viewModel as DirectionCardWithDepartures).durationMinutes} min',
-                          style: AppTextStyles.small.copyWith(color: AppColors.secondary),
+                          style: AppTextStyles.small.copyWith(
+                            color: AppColors.secondary,
+                          ),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 16),
                   switch (viewModel) {
-                    DirectionCardWithDepartures vm =>
-                      _buildDepartureInfo(context, vm),
-                    DirectionCardNoDepartures vm =>
-                      _buildNoDeparturesInfo(context, vm),
+                    DirectionCardWithDepartures vm => _buildDepartureInfo(
+                      context,
+                      vm,
+                    ),
+                    DirectionCardNoDepartures vm => _buildNoDeparturesInfo(
+                      context,
+                      vm,
+                    ),
                   },
                 ],
               ),
@@ -116,8 +122,9 @@ class DirectionCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           viewModel.noTrainStatusDisplay,
-          style: AppTextStyles.medium
-              .copyWith(color: viewModel.noTrainStatusColor),
+          style: AppTextStyles.medium.copyWith(
+            color: viewModel.noTrainStatusColor,
+          ),
         ),
         const SizedBox(height: 24),
         // No subsequent departures for "no departures" state

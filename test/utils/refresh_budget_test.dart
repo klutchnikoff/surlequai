@@ -73,10 +73,7 @@ void main() {
         RefreshBudget.isStale(now: at(10, 30), fetchedAt: at(10)),
         isFalse,
       );
-      expect(
-        RefreshBudget.isStale(now: at(10, 31), fetchedAt: at(10)),
-        isTrue,
-      );
+      expect(RefreshBudget.isStale(now: at(10, 31), fetchedAt: at(10)), isTrue);
     });
 
     test('the window shortens the tolerance near a departure', () {
