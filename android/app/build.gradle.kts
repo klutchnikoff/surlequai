@@ -1,5 +1,4 @@
 import java.util.Properties
-import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
@@ -8,10 +7,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Charger les propriétés de signature depuis key.properties
+// La CI demande explicitement une compilation sans accès à la clé locale.
+val unsignedRelease = System.getenv("SURLEQUAI_UNSIGNED_RELEASE") == "true"
+
+// Charger les propriétés uniquement pour une signature locale.
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
+if (!unsignedRelease && keystorePropertiesFile.exists()) {
     keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
@@ -40,13 +42,7 @@ android {
 
     signingConfigs {
         create("release") {
-            val ciKeystore = System.getenv("ANDROID_KEYSTORE_PATH")
-            if (ciKeystore != null) {
-                storeFile = file(ciKeystore)
-                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
-                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
-            } else if (keystorePropertiesFile.exists()) {
+            if (!unsignedRelease && keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
                 storeFile = file(keystoreProperties.getProperty("storeFile"))
@@ -57,7 +53,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (!unsignedRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
