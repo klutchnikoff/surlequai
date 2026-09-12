@@ -20,13 +20,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.bgLight,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      drawerTheme: const DrawerThemeData(
-        backgroundColor: AppColors.bgLight,
-      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: AppColors.bgLight),
     );
   }
 
@@ -48,13 +44,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.bgDark,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      drawerTheme: const DrawerThemeData(
-        backgroundColor: AppColors.bgDark,
-      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: AppColors.bgDark),
     );
   }
 

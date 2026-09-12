@@ -19,8 +19,9 @@ class TripSorter {
     // Considère comme "soirée/après-midi" :
     // - Entre l'heure de bascule (13h) et minuit
     // - OU entre minuit et le début de service (4h) car on est encore dans la "soirée" de la veille pour les fêtards
-    final isEvening = (currentHour >= morningEveningSplitHour) || 
-                      (currentHour >= 0 && currentHour < serviceDayStartHour);
+    final isEvening =
+        (currentHour >= morningEveningSplitHour) ||
+        (currentHour >= 0 && currentHour < serviceDayStartHour);
 
     // Si c'est le soir et que la direction du matin est A->B
     // Alors le soir on veut B->A, donc on inverse (swap)
@@ -38,12 +39,12 @@ class TripSorter {
     // Sinon, l'ordre par défaut (A->B) convient
     // - Soit c'est le matin et on veut A->B
     // - Soit c'est le soir et on veut A->B (cas rare où morningDirection serait B->A... attend, logique inverse)
-    
+
     // Reprenons :
     // morningDirection = A->B (cas standard)
     // - Matin : On veut A->B. Default (A->B). Swap = false. OK.
     // - Soir : On veut B->A. Default (A->B). Swap = true. OK.
-    
+
     // morningDirection = B->A (cas atypique, ex: travail de nuit)
     // - Matin : On veut B->A. Default (A->B). Swap = true. OK.
     // - Soir : On veut A->B. Default (A->B). Swap = false. OK.

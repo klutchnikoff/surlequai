@@ -11,7 +11,10 @@ class TripsDrawer extends StatelessWidget {
   const TripsDrawer({super.key});
 
   Future<void> _confirmDeleteTrip(
-      BuildContext context, String tripId, String tripName) async {
+    BuildContext context,
+    String tripId,
+    String tripName,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -24,9 +27,7 @@ class TripsDrawer extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Supprimer'),
           ),
         ],
@@ -64,9 +65,7 @@ class TripsDrawer extends StatelessWidget {
     Navigator.pop(context); // Fermer le drawer d'abord
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AddTripScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const AddTripScreen()),
     );
   }
 
@@ -83,19 +82,14 @@ class TripsDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-            ),
+            decoration: BoxDecoration(color: AppColors.primary),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Mes trajets',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 24),
                 ),
               ],
             ),
@@ -118,8 +112,8 @@ class TripsDrawer extends StatelessWidget {
                 tooltip: 'Supprimer',
               ),
               selected: trip.id == activeTrip?.id,
-              selectedTileColor:
-                  Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              selectedTileColor: Theme.of(context).primaryColor
+                  .withValues(alpha: 0.1),
               onTap: () async {
                 // Using `read` here as we are in a callback, not the build method
                 await context.read<TripProvider>().setActiveTrip(trip);

@@ -75,7 +75,7 @@ class DateFormatter {
       'Jeudi',
       'Vendredi',
       'Samedi',
-      'Dimanche'
+      'Dimanche',
     ];
     final months = [
       'janvier',
@@ -89,7 +89,7 @@ class DateFormatter {
       'septembre',
       'octobre',
       'novembre',
-      'décembre'
+      'décembre',
     ];
 
     final dayName = days[dateTime.weekday - 1];

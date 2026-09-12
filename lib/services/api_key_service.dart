@@ -20,12 +20,11 @@ class ApiKeyService {
   bool _isInitialized = false;
 
   ApiKeyService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ??
-            const FlutterSecureStorage(
-              aOptions: AndroidOptions(
-                encryptedSharedPreferences: true,
-              ),
-            );
+    : _secureStorage =
+          secureStorage ??
+          const FlutterSecureStorage(
+            aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          );
 
   /// Initialise le service (charge la clé en cache)
   Future<void> init() async {
@@ -36,7 +35,9 @@ class ApiKeyService {
       _isInitialized = true;
 
       if (_cachedKey != null && kDebugMode) {
-        debugPrint('[ApiKeyService] Clé personnalisée chargée (${_cachedKey!.length} caractères)');
+        debugPrint(
+          '[ApiKeyService] Clé personnalisée chargée (${_cachedKey!.length} caractères)',
+        );
       }
     } catch (e) {
       debugPrint('[ApiKeyService] Erreur lecture clé: $e');
@@ -106,13 +107,15 @@ class ApiKeyService {
         debugPrint('[ApiKeyService] Test de la clé API...');
       }
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Basic $base64Credentials',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Basic $base64Credentials',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (kDebugMode) {
         debugPrint('[ApiKeyService] Réponse API: ${response.statusCode}');

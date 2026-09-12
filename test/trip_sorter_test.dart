@@ -99,7 +99,7 @@ void main() {
     });
 
     // Cas inverses : Si l'utilisateur a configuré "Matin = B->A" (travail de nuit ?)
-    
+
     test('Matin (8h) - Direction B->A configurée', () {
       // Matin. On veut B->A.
       // Ordre par défaut : A->B.
